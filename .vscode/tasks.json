@@ -8,12 +8,32 @@
                 "type": "shell",
                 "command": "g++",
                 "args": [
-                    "-g", "main.c"
+                    "-g",
+                    "main.c"
                 ],
                 "group": {
                     "kind": "build",
                     "isDefault": true
                 }
+            },
+            {
+                "label": "build scanner",
+                "type": "shell",
+                "command": "flex",
+                "args": [
+                    "scanner.l"
+                ],
+                "problemMatcher": []
+            },
+            {
+                "label": "compile flex scanner",
+                "type": "shell",
+                "command": "gcc",
+                "args": [
+                    "-o", "etapa1.o", "main.c", "lex.yy.c", "-lfl"
+                ],
+                "dependsOn": "build scanner",
+                "problemMatcher": []
             }
         ]
     }
