@@ -27,6 +27,31 @@ class       return TK_PR_CLASS;
 private     return TK_PR_PRIVATE;
 public      return TK_PR_PUBLIC;
 protected   return TK_PR_PROTECTED;
+,           return ',';
+;           return ';';
+:           return ':';
+\)          return ')';
+\(          return '(';
+\]          return ']';
+\[          return '[';
+\}          return '}';
+\{          return '{';
+\+          return '+';
+-           return '-';
+\|          return '|';
+\?          return '?';
+\*          return '*';
+\/          return '/';
+\>          return '>';
+\<          return '<';
+=           return '=';
+!           return '!';
+&           return '&';
+%           return '%';
+#           return '#';
+\^          return '^';
+\.          return '.';
+\$          return '$';
 %%
 
 /* int float bool char string if then else
@@ -35,11 +60,6 @@ foreach for switch case break continue class
 private public protected */
 
 //TODO
-/* Caracteres especiais
-,   ;   :   (   )   [   ]   {   }   +   -   |   ?
-*   /   <   >   =   !   &   %   #   ^   .   $
-*/
-
 /* Compostos
 <=    >=    ==     !=    &&    ||    >>     <<     %>%    %|%
 */
