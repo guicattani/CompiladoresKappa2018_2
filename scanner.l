@@ -79,11 +79,13 @@ true                                    return TK_LIT_TRUE;
 \/{2}.*                                 {};
 
 [^\r\n\t\f\v ]+                         return TOKEN_ERRO;
+
+\n                                      current_line++;
+\r                                      current_line++;
 %%
 
-//TK_IDENTIFICADOR subject to change, because it only works when there's a new line
+//TODO test cases
 
-//TODO logic
 int get_line_number(void){
     return current_line;
 }
