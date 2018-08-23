@@ -73,12 +73,12 @@ true                                    return TK_LIT_TRUE;
 \'.\'                                   return TK_LIT_CHAR;
 \"[^\"]*\"                              return TK_LIT_STRING;
 
-[A-Z_a-z]\w*                            return TK_IDENTIFICADOR;
+[A-Z_a-z][A-Z_a-z0-9]*                  return TK_IDENTIFICADOR;
 
 \/\*([^*]|(\*+[^*/]))*\*+\/             {};
 \/{2}.*                                 {};
 
-\S+                                     return TOKEN_ERRO;
+[^\r\n\t\f\v ]+                         return TOKEN_ERRO;
 %%
 
 //TK_IDENTIFICADOR subject to change, because it only works when there's a new line
