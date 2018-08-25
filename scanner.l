@@ -67,8 +67,8 @@ protected                               return TK_PR_PROTECTED;
 \%\>\%                                  return TK_OC_FORWARD_PIPE;
 \%\|\%                                  return TK_OC_BASH_PIPE;
 
-\-?[0-9]*                               return TK_LIT_INT;
-\-?[0-9]*\.[0-9]*(e(\+|\-)?[0-9]*)?     return TK_LIT_FLOAT;
+(\-|\+)?[0-9]*                          return TK_LIT_INT;
+(\-|\+)?[0-9]*\.[0-9]*(e(\+|\-)?[0-9]*)? return TK_LIT_FLOAT;
 false                                   return TK_LIT_FALSE;
 true                                    return TK_LIT_TRUE;
 \'(.|\\n|\\\'|\\\\)\'                   return TK_LIT_CHAR;
@@ -76,9 +76,38 @@ true                                    return TK_LIT_TRUE;
 
 [A-Z_a-z][A-Z_a-z0-9]*                  return TK_IDENTIFICADOR;
 
-\/\*([^\*]|(\*[^\/]))*\*+\/             {};
-\/{2}.*                                 {};
+\/\*                                    { 
+                                        int c;
+                                        int first_time_line = current_line;
+                                        int passed = 0;
+                                        while((c = input()) != -1)
+                                            {
+                      
+                                            if(c == '\n')
+                                                current_line++;
+
+                                            else if(c == '*')
+                                                {
+                                                if((c = input()) == '/'){
+                                                    passed = 1;
+                                                    current_line = current_line;
+                                                    break;
+                                                }
+                                                    
+                                                else
+                                                    unput(c);
+                                                }
+                                            }
+                                            if (!passed){
+                                                return TOKEN_ERRO;
+                                            }
+                                       };
                      
+
+
+
+    
+\/{2}.*                                  {};
 
 
 \r\n                                    current_line++;

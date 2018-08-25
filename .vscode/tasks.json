@@ -27,7 +27,7 @@
                 "type": "shell",
                 "command": "gcc",
                 "args": [
-                    "-o", "etapa1.o", "main.c", "lex.yy.c", "-lfl"
+                    "-o", "etapa1", "main.c", "lex.yy.c", "-lfl"
                 ],
                 "dependsOn": "build scanner",
                 "problemMatcher": [],
