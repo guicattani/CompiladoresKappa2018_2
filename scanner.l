@@ -1,6 +1,6 @@
 %{
 #include "tokens.h"
-int current_line = 0;
+int current_line = 1;
 %}
 
 %%
@@ -8,6 +8,7 @@ int                                     return TK_PR_INT;
 float                                   return TK_PR_FLOAT;
 bool                                    return TK_PR_BOOL;
 char                                    return TK_PR_CHAR;
+string                                  return TK_PR_STRING;
 if                                      return TK_PR_IF;
 then                                    return TK_PR_THEN;
 else                                    return TK_PR_ELSE;
@@ -66,26 +67,31 @@ protected                               return TK_PR_PROTECTED;
 \%\>\%                                  return TK_OC_FORWARD_PIPE;
 \%\|\%                                  return TK_OC_BASH_PIPE;
 
-[0-9]*                                  return TK_LIT_INT;
-[0-9]*\.[0-9]*                          return TK_LIT_FLOAT;
+\-?[0-9]*                               return TK_LIT_INT;
+\-?[0-9]*\.[0-9]*(e(\+|\-)?[0-9]*)?     return TK_LIT_FLOAT;
 false                                   return TK_LIT_FALSE;
 true                                    return TK_LIT_TRUE;
-\'.\'                                   return TK_LIT_CHAR;
-\"[^\"]*\"                              return TK_LIT_STRING;
+\'(.|\\n|\\\'|\\\\)\'                   return TK_LIT_CHAR;
+\"(\\\"|[^\"|\r\n|\r|\n])*\"            return TK_LIT_STRING;
 
 [A-Z_a-z][A-Z_a-z0-9]*                  return TK_IDENTIFICADOR;
 
-\/\*([^*]|(\*+[^*/]))*\*+\/             {};
+\/\*([^\*]|(\*[^\/]))*\*+\/             {};
 \/{2}.*                                 {};
+                     
 
-[^\r\n\t\f\v ]+                         return TOKEN_ERRO;
 
+\r\n                                    current_line++;
 \n                                      current_line++;
 \r                                      current_line++;
+
+" "                                     {};
+.                                       return TOKEN_ERRO;
+
 %%
 
 //TODO test cases
-
+//TODO notação cientifica, contagem de linha nos comentários
 int get_line_number(void){
     return current_line;
 }

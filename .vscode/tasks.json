@@ -11,10 +11,7 @@
                     "-g",
                     "main.c"
                 ],
-                "group": {
-                    "kind": "build",
-                    "isDefault": true
-                }
+
             },
             {
                 "label": "build scanner",
@@ -33,7 +30,11 @@
                     "-o", "etapa1.o", "main.c", "lex.yy.c", "-lfl"
                 ],
                 "dependsOn": "build scanner",
-                "problemMatcher": []
+                "problemMatcher": [],
+                "group": {
+                    "kind": "build",
+                    "isDefault": true
+                }
             }
         ]
     }
