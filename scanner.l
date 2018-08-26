@@ -100,7 +100,6 @@ true                                    return TK_LIT_TRUE;
                                                 }
                                             }
                                             if (!passed){
-
                                                 current_line = first_time_line;
                                                 return TOKEN_ERRO;
                                             }
