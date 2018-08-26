@@ -29,6 +29,16 @@ class                                   return TK_PR_CLASS;
 private                                 return TK_PR_PRIVATE;
 public                                  return TK_PR_PUBLIC;
 protected                               return TK_PR_PROTECTED;
+\<\=                                    return TK_OC_LE;   
+\>\=                                    return TK_OC_GE;   
+\=\=                                    return TK_OC_EQ;    
+\!\=                                    return TK_OC_NE; 
+\&\&                                    return TK_OC_AND;   
+\|\|                                    return TK_OC_OR;   
+\>\>                                    return TK_OC_SL;    
+\<\<                                    return TK_OC_SR;    
+\%\>\%                                  return TK_OC_FORWARD_PIPE;
+\%\|\%                                  return TK_OC_BASH_PIPE;
 
 \,                                      return ',';
 \;                                      return ';';
@@ -56,26 +66,18 @@ protected                               return TK_PR_PROTECTED;
 \.                                      return '.';
 \$                                      return '$';
 
-\<\=                                    return TK_OC_LE;   
-\>\=                                    return TK_OC_GE;   
-\=\=                                    return TK_OC_EQ;    
-\!\=                                    return TK_OC_NE; 
-\&\&                                    return TK_OC_AND;   
-\|\|                                    return TK_OC_OR;   
-\>\>                                    return TK_OC_SL;    
-\<\<                                    return TK_OC_SR;    
-\%\>\%                                  return TK_OC_FORWARD_PIPE;
-\%\|\%                                  return TK_OC_BASH_PIPE;
+
 
 (\-|\+)?[0-9]*                          return TK_LIT_INT;
-(\-|\+)?[0-9]*\.[0-9]*(e(\+|\-)?[0-9]*)? return TK_LIT_FLOAT;
+(\-|\+)?[0-9]*\.([0-9]*((e|E)(\+|\-)?[0-9]*)?)? return TK_LIT_FLOAT;
 false                                   return TK_LIT_FALSE;
 true                                    return TK_LIT_TRUE;
-\'(.|\\n|\\\'|\\\\)\'                   return TK_LIT_CHAR;
+\'([^\'\\\n]|\\n|\\\'|\\\\)\'           return TK_LIT_CHAR;
 \"(\\\"|[^\"|\r\n|\r|\n])*\"            return TK_LIT_STRING;
 
 [A-Z_a-z][A-Z_a-z0-9]*                  return TK_IDENTIFICADOR;
-
+    
+\/{2}.*                                  {};
 \/\*                                    { 
                                         int c;
                                         int first_time_line = current_line;
@@ -90,7 +92,6 @@ true                                    return TK_LIT_TRUE;
                                                 {
                                                 if((c = input()) == '/'){
                                                     passed = 1;
-                                                    current_line = current_line;
                                                     break;
                                                 }
                                                     
@@ -99,17 +100,12 @@ true                                    return TK_LIT_TRUE;
                                                 }
                                             }
                                             if (!passed){
+
+                                                current_line = first_time_line;
                                                 return TOKEN_ERRO;
                                             }
                                        };
                      
-
-
-
-    
-\/{2}.*                                  {};
-
-
 \r\n                                    current_line++;
 \n                                      current_line++;
 \r                                      current_line++;
@@ -119,8 +115,6 @@ true                                    return TK_LIT_TRUE;
 
 %%
 
-//TODO test cases
-//TODO notação cientifica, contagem de linha nos comentários
 int get_line_number(void){
     return current_line;
 }
