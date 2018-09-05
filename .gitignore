@@ -33,3 +33,8 @@
 
 # Lex generated
 *.yy.c
+
+# Bison generated
+*.tab.h
+*.output
+*.tab.c

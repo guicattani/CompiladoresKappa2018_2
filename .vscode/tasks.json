@@ -14,6 +14,15 @@
 
             },
             {
+                "label": "build parser",
+                "type": "shell",
+                "command": "bison",
+                "args": [
+                    "-v","-d","parser.y"
+                ],
+                "problemMatcher": []
+            },
+            {
                 "label": "build scanner",
                 "type": "shell",
                 "command": "flex",
@@ -23,13 +32,16 @@
                 "problemMatcher": []
             },
             {
-                "label": "compile flex scanner",
+                "label": "compile bison and flex",
                 "type": "shell",
                 "command": "gcc",
                 "args": [
-                    "-o", "etapa1", "main.c", "lex.yy.c", "-lfl"
+                    "-o", "etapa2.exe", "main.c", "parser.tab.c", "lex.yy.c", "-lfl"
                 ],
-                "dependsOn": "build scanner",
+                "dependsOn": [
+                    "build parser",
+                    "build scanner"
+                ],
                 "problemMatcher": [],
                 "group": {
                     "kind": "build",

@@ -1,7 +1,7 @@
 /*INF UFRGS 2018/2// COMPILADORES SCHNORR // GRUPO KAPPA // GUILHERME CATTANI DE CASTRO 00243589 && CAIO F RODRIGUES 00261578*/
 %x multilinecomment
 %{
-#include "tokens.h"
+#include "parser.tab.h"
 int current_line = 1;
 %}
 
