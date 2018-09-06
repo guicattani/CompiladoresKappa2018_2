@@ -2,7 +2,7 @@
 %x multilinecomment
 %{
 #include "parser.tab.h"
-int current_line = 1;
+
 %}
 
 %%
@@ -58,16 +58,16 @@ true                                            return TK_LIT_TRUE;
 "/*"		                                    BEGIN(multilinecomment);
 <multilinecomment>[^*\n]*	                    /* ignore everything that isn't newline or '*' */
 <multilinecomment>"*"+[^*/\n]*                  /* ignore everything that isn't '*' followed by '/' */
-<multilinecomment>\n		                    ++current_line;
+<multilinecomment>\n		                    yylineno++;
 <multilinecomment>"*"+"/"	                    BEGIN(INITIAL); /* source: flex man */
                      
-\r\n                                            current_line++;
-\n                                              current_line++;
-\r                                              current_line++;
+\r\n                                            yylineno++;
+\n                                              yylineno++;
+\r                                              yylineno++;
 
 .                                               return TOKEN_ERRO;
 %%
 
 int get_line_number(void){
-    return current_line;
+    return yylineno;
 }

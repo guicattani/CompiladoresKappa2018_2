@@ -27,7 +27,7 @@
                 "type": "shell",
                 "command": "flex",
                 "args": [
-                    "scanner.l"
+                    "--yylineno","scanner.l"
                 ],
                 "problemMatcher": []
             },

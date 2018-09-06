@@ -3,6 +3,8 @@
 #include <stdio.h>
 int yylex(void);
 void yyerror (char const *s);
+
+extern int yylineno;
 %}
 
 %token TK_PR_INT
@@ -52,11 +54,11 @@ void yyerror (char const *s);
 %%
 
 programa:
-    TK_IDENTIFICADOR                 {  printf("bison test"); };
+    TK_LIT_TRUE                 {  printf("bison test\n"); };
 
 
 %%
 
 void yyerror (char const *s){
-    printf("error");
+    printf("%d:ERROR: %s\n",yylineno, s);
 }
