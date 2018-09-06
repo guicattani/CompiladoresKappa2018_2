@@ -65,6 +65,7 @@ true                                            return TK_LIT_TRUE;
 \n                                              yylineno++;
 \r                                              yylineno++;
 
+" "                                             {};
 .                                               return TOKEN_ERRO;
 %%
 

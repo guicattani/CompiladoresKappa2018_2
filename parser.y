@@ -54,7 +54,19 @@ extern int yylineno;
 %%
 
 programa:
-    TK_LIT_TRUE                 {  printf("bison test\n"); };
+    privatePublicProtected                 
+    ;
+privatePublicProtected:
+    TK_PR_PRIVATE class
+    | TK_PR_PUBLIC class
+    | TK_PR_PROTECTED class
+    ;
+class:
+    TK_PR_CLASS TK_IDENTIFICADOR '{' body;
+    ;   
+body:
+    TK_IDENTIFICADOR;
+    ;
 
 
 %%
