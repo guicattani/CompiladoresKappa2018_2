@@ -54,7 +54,7 @@ extern int yylineno;
 %%
 
 programa:
-    declaration;
+    code | %empty;
 
 
 /*obvious stuff */
@@ -62,11 +62,17 @@ programa:
 id:
     TK_IDENTIFICADOR;
 
+literal:
+    TK_LIT_CHAR | TK_LIT_FALSE | TK_LIT_FLOAT | TK_LIT_INT | TK_LIT_STRING | TK_LIT_TRUE;
+
+idOrLiteral:
+    id | literal;
+
 type:
     TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING | id;
 
 //Available types for class declaration
-classAvailableType:
+primitiveType:
     TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING
 
 //Modifiers are usually optional
@@ -75,16 +81,19 @@ accessModifiers:
 
 staticModifier:
     TK_PR_STATIC | %empty;
-    
+
+constModifier:
+    TK_PR_CONST | %empty;
+
+vectorModifier:
+    '[' TK_LIT_INT ']' | %empty;
 /*obvious stuff end */
 
-
-varDeclaration:
-    type id;
-
+code:
+    declaration | declaration code;
 
 declaration:
-    classDeclaration | globalVarDeclaration;
+    classDeclaration | globalVarDeclaration | functionDeclaration;
 
 
 /* A class is a declaration of a new type in the format:
@@ -96,15 +105,54 @@ declaration:
 classDeclaration:
     accessModifiers TK_PR_CLASS id '{' fields '}' ';';   
 
-// fields are varDeclarations inside classes that can't contain user-classes nor initialization of values
+// fields are type and id inside classes that can't contain user-classes nor initialization of values
 fields:
-    accessModifiers classAvailableType id | accessModifiers classAvailableType id ':' fields;
+    accessModifiers primitiveType id | accessModifiers primitiveType id ':' fields;
 
 
 //Declaration of global variables
 globalVarDeclaration:
-    staticModifier varDeclaration ';' ;
+    staticModifier type id vectorModifier ';' ;
 
+//Function declaration
+functionDeclaration:
+    functionHead functionBody;
+
+functionHead:
+    staticModifier type id '(' functionArgumentsList ')'
+
+functionBody:
+    '{' commandsBlock '}';
+
+commandsBlock:
+    command commandsBlock| %empty;
+
+functionArgumentsList:
+    functionArgumentElements | %empty;
+
+functionArgumentElements:
+    constModifier type id | constModifier type id ',' functionArgumentElements;
+
+//Simple Command
+command:
+    localVarDeclaration;
+
+
+//A variable declaration can be initialized ONLY if it has a primitive type
+localVarDeclaration:
+    localPrimitiveVarNaming localVarInit ';' | localUserTypeVarNaming ';';  
+
+//Naming part of the declaration of variable with primitive type
+localPrimitiveVarNaming:
+    staticModifier constModifier primitiveType id;
+
+//Naming part of the declaration of variable with user defined type
+localUserTypeVarNaming:
+    staticModifier constModifier id id;
+
+//Initialization of variable
+localVarInit:
+    TK_OC_LE idOrLiteral | %empty;
 
 %%
 
