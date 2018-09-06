@@ -135,7 +135,7 @@ functionArgumentElements:
 
 //Simple Command
 command:
-    localVarDeclaration;
+    localVarDeclaration | attribution;
 
 
 //A variable declaration can be initialized ONLY if it has a primitive type
@@ -153,6 +153,19 @@ localUserTypeVarNaming:
 //Initialization of variable
 localVarInit:
     TK_OC_LE idOrLiteral | %empty;
+
+attribution:
+    primitiveAttribution | userTypeAttribution;
+
+primitiveAttribution:
+    id vectorModifier '=' expression ';' ;
+
+userTypeAttribution:
+    id vectorModifier '$' id '=' expression ';';
+
+expression:
+    id;
+
 
 %%
 
