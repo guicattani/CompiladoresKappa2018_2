@@ -54,19 +54,56 @@ extern int yylineno;
 %%
 
 programa:
-    privatePublicProtected                 
-    ;
-privatePublicProtected:
-    TK_PR_PRIVATE class
-    | TK_PR_PUBLIC class
-    | TK_PR_PROTECTED class
-    ;
-class:
-    TK_PR_CLASS TK_IDENTIFICADOR '{' body;
-    ;   
-body:
+    declaration;
+
+
+/*obvious stuff */
+
+id:
     TK_IDENTIFICADOR;
-    ;
+
+type:
+    TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING | id;
+
+//Available types for class declaration
+classAvailableType:
+    TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING
+
+//Modifiers are usually optional
+accessModifiers:
+    TK_PR_PRIVATE | TK_PR_PUBLIC | TK_PR_PROTECTED | %empty;
+
+staticModifier:
+    TK_PR_STATIC | %empty;
+    
+/*obvious stuff end */
+
+
+varDeclaration:
+    type id;
+
+
+declaration:
+    classDeclaration | globalVarDeclaration;
+
+
+/* A class is a declaration of a new type in the format:
+    class id1 {
+        protected int id2:
+        protected float id3
+    }; 
+*/
+classDeclaration:
+    accessModifiers TK_PR_CLASS id '{' fields '}' ';';   
+
+// fields are varDeclarations inside classes that can't contain user-classes nor initialization of values
+fields:
+    accessModifiers classAvailableType id | accessModifiers classAvailableType id ':' fields;
+
+
+//Declaration of global variables
+globalVarDeclaration:
+    staticModifier varDeclaration ';' ;
 
 
 %%

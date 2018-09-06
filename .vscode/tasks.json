@@ -10,15 +10,16 @@
                 "args": [
                     "-g",
                     "main.c"
-                ],
-
+                ]
             },
             {
                 "label": "build parser",
                 "type": "shell",
                 "command": "bison",
                 "args": [
-                    "-v","-d","parser.y"
+                    "-v",
+                    "-d",
+                    "parser.y"
                 ],
                 "problemMatcher": []
             },
@@ -36,7 +37,12 @@
                 "type": "shell",
                 "command": "gcc",
                 "args": [
-                    "-o", "etapa2.exe", "main.c", "parser.tab.c", "lex.yy.c", "-lfl"
+                    "-o",
+                    "etapa2.exe",
+                    "main.c",
+                    "parser.tab.c",
+                    "lex.yy.c",
+                    "-lfl"
                 ],
                 "dependsOn": [
                     "build parser",
