@@ -56,14 +56,22 @@ extern int yylineno;
 programa:
     code | %empty;
 
-
 /*obvious stuff */
 
 id:
     TK_IDENTIFICADOR;
 
+userType:
+    TK_IDENTIFICADOR;
+
+classField:
+    TK_IDENTIFICADOR;
+
 literal:
     TK_LIT_CHAR | TK_LIT_FALSE | TK_LIT_FLOAT | TK_LIT_INT | TK_LIT_STRING | TK_LIT_TRUE;
+
+comparableLiteral:
+    TK_LIT_FALSE | TK_LIT_FLOAT | TK_LIT_INT | TK_LIT_TRUE;
 
 idOrLiteral:
     id | literal;
@@ -86,7 +94,7 @@ constModifier:
     TK_PR_CONST | %empty;
 
 vectorModifier:
-    '[' TK_LIT_INT ']' | %empty;
+    '[' expression ']' | %empty;
 /*obvious stuff end */
 
 code:
@@ -125,7 +133,7 @@ functionBody:
     '{' commandsBlock '}';
 
 commandsBlock:
-    command commandsBlock| %empty;
+    command ';' commandsBlock | %empty;
 
 functionArgumentsList:
     functionArgumentElements | %empty;
@@ -134,21 +142,23 @@ functionArgumentElements:
     constModifier type id | constModifier type id ',' functionArgumentElements;
 
 //Simple Command
-command:
-    localVarDeclaration | attribution;
-
+command
+    : TK_PR_STATIC TK_PR_CONST localVarDeclaration 
+    | TK_PR_CONST localVarDeclaration 
+    | localVarDeclaration 
+    | attribution;
 
 //A variable declaration can be initialized ONLY if it has a primitive type
 localVarDeclaration:
-    localPrimitiveVarNaming localVarInit ';' | localUserTypeVarNaming ';';  
+    localPrimitiveVarNaming localVarInit | localUserTypeVarNaming;  
 
 //Naming part of the declaration of variable with primitive type
 localPrimitiveVarNaming:
-    staticModifier constModifier primitiveType id;
+    primitiveType id;
 
 //Naming part of the declaration of variable with user defined type
 localUserTypeVarNaming:
-    staticModifier constModifier id id;
+    userType id;
 
 //Initialization of variable
 localVarInit:
@@ -158,14 +168,40 @@ attribution:
     primitiveAttribution | userTypeAttribution;
 
 primitiveAttribution:
-    id vectorModifier '=' expression ';' ;
+    id vectorModifier '=' expression ;
 
 userTypeAttribution:
-    id vectorModifier '$' id '=' expression ';';
+    id vectorModifier '$' classField '=' expression ;
 
-expression:
-    id;
+expression
+    : comparableLiteral 
+    | '-' comparableLiteral
+    | compositeExpression;
 
+compositeExpression
+    : comparableLiteral operator comparableLiteral operator expression;
+    | comparableLiteral operator comparableLiteral;
+
+operator
+    : arithmeticOperator
+    | comparisonOperator;
+
+arithmeticOperator
+    : '*' 
+    | '+'
+    | '-'
+    | '/'
+    | '%';
+
+comparisonOperator
+    : TK_OC_LE
+    | TK_OC_GE
+    | TK_OC_EQ
+    | TK_OC_NE
+    | TK_OC_AND
+    | TK_OC_OR
+    | '<'
+    | '>';
 
 %%
 
