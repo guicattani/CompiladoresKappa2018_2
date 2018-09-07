@@ -133,7 +133,7 @@ functionBody:
     '{' commandsBlock '}';
 
 commandsBlock:
-    command ';' commandsBlock | %empty;
+    command ';' commandsBlock | %empty | ';' commandsBlock | functionBody;
 
 functionArgumentsList:
     functionArgumentElements | %empty;
@@ -175,7 +175,7 @@ userTypeAttribution:
 
 expression
     : comparableLiteral 
-    | '-' comparableLiteral
+    | '-' expression
     | compositeExpression;
 
 compositeExpression
