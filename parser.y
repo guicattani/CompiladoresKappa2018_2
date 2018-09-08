@@ -78,6 +78,9 @@ literal:
 comparableLiteral:
     TK_LIT_FALSE | TK_LIT_FLOAT | TK_LIT_INT | TK_LIT_TRUE;
 
+number:
+    TK_LIT_FLOAT | TK_LIT_INT;
+
 idOrLiteral:
     id | literal;
 
@@ -97,6 +100,8 @@ primitiveType:
     | TK_PR_BOOL 
     | TK_PR_STRING
 
+shift:
+    TK_OC_SR | TK_OC_SL;
 //Modifiers are usually optional
 accessModifiers:
       TK_PR_PRIVATE 
@@ -123,7 +128,8 @@ code:
 
 declaration:
       classDeclaration 
-    | globalVarDeclaration | functionDeclaration;
+    | globalVarDeclaration 
+    | functionDeclaration;
 
 
 /* A class is a declaration of a new type in the format:
@@ -167,23 +173,26 @@ functionArgumentElements:
 
 //Simple Command
 command:
-      TK_PR_STATIC TK_PR_CONST localVarDeclaration 
-    | TK_PR_CONST localVarDeclaration 
-    | localVarDeclaration 
-    | attribution;
+      localVarCompleteDeclaration
+    | attribution
+    | inputOutputCommand
+    | functionCall;
+    | shiftCommand;
+
 
 //A variable declaration can be initialized ONLY if it has a primitive type
 localVarDeclaration:
-    localPrimitiveVarNaming localVarInit | localUserTypeVarNaming;  
+      primitiveType id localVarInit //If it starts with ID and is initialized
+    | userType id;  
 
-//Naming part of the declaration of variable with primitive type
-localPrimitiveVarNaming:
-    primitiveType id;
 
-//Naming part of the declaration of variable with user defined type
-localUserTypeVarNaming:
-    userType id;
+localVarCompleteDeclaration:
+      TK_PR_STATIC TK_PR_CONST localVarDeclaration 
+    | TK_PR_CONST localVarDeclaration 
+    | localVarDeclaration;
 
+
+    
 //Initialization of variable
 localVarInit:
     TK_OC_LE idOrLiteral | %empty;
@@ -226,6 +235,34 @@ comparisonOperator:
     | TK_OC_OR
     | '<'
     | '>';
+
+expressionList:
+      expression 
+    | expression ',' expressionList
+
+inputOutputCommand:
+      TK_PR_INPUT expression
+    | TK_PR_OUTPUT expressionList;
+
+functionCall:
+    id '(' functionCallArguments ')';
+
+functionCallArguments:
+      functionCallArgumentsList
+    | %empty;
+    
+functionCallArgumentsList:
+    functionCallArgument
+    | functionCallArgument ',' functionCallArgumentsList
+    
+functionCallArgument:
+      '.'
+    | expression;
+
+
+shiftCommand:
+      id vectorModifier shift number
+    | id vectorModifier '.' id shift number;
 
 %%
 

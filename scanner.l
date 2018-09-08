@@ -1,5 +1,6 @@
 /*INF UFRGS 2018/2// COMPILADORES SCHNORR // GRUPO KAPPA // GUILHERME CATTANI DE CASTRO 00243589 && CAIO F RODRIGUES 00261578*/
 %x multilinecomment
+
 %{
 #include "parser.tab.h"
 
@@ -17,7 +18,7 @@ else                                            return TK_PR_ELSE;
 while                                           return TK_PR_WHILE;
 do                                              return TK_PR_DO;
 input                                           return TK_PR_INPUT;
-ouput                                           return TK_PR_OUTPUT;
+output                                           return TK_PR_OUTPUT;
 return                                          return TK_PR_RETURN;
 const                                           return TK_PR_CONST;
 static                                          return TK_PR_STATIC;
@@ -37,8 +38,8 @@ protected                                       return TK_PR_PROTECTED;
 \!\=                                            return TK_OC_NE; 
 \&\&                                            return TK_OC_AND;   
 \|\|                                            return TK_OC_OR;   
-\>\>                                            return TK_OC_SL;    
-\<\<                                            return TK_OC_SR;    
+\>\>                                            return TK_OC_SR;    
+\<\<                                            return TK_OC_SL;    
 \%\>\%                                          return TK_OC_FORWARD_PIPE;
 \%\|\%                                          return TK_OC_BASH_PIPE;
 
@@ -68,6 +69,7 @@ true                                            return TK_LIT_TRUE;
 " "                                             {};
 .                                               return TOKEN_ERRO;
 %%
+int yywrap(){}
 
 int get_line_number(void){
     return yylineno;

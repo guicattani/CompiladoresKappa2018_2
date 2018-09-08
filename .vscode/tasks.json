@@ -42,7 +42,6 @@
                     "main.c",
                     "parser.tab.c",
                     "lex.yy.c",
-                    "-lfl"
                 ],
                 "dependsOn": [
                     "build parser",
