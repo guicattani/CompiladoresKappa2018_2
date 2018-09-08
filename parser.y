@@ -54,7 +54,7 @@ extern int yylineno;
 %%
 
 programa:
-    code | %empty;
+      code | %empty;
 
 /*obvious stuff */
 
@@ -68,7 +68,12 @@ classField:
     TK_IDENTIFICADOR;
 
 literal:
-    TK_LIT_CHAR | TK_LIT_FALSE | TK_LIT_FLOAT | TK_LIT_INT | TK_LIT_STRING | TK_LIT_TRUE;
+      TK_LIT_CHAR 
+    | TK_LIT_FALSE 
+    | TK_LIT_FLOAT 
+    | TK_LIT_INT 
+    | TK_LIT_STRING 
+    | TK_LIT_TRUE;
 
 comparableLiteral:
     TK_LIT_FALSE | TK_LIT_FLOAT | TK_LIT_INT | TK_LIT_TRUE;
@@ -77,31 +82,48 @@ idOrLiteral:
     id | literal;
 
 type:
-    TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING | id;
+      TK_PR_INT 
+    | TK_PR_FLOAT 
+    | TK_PR_CHAR 
+    | TK_PR_BOOL 
+    | TK_PR_STRING 
+    | id;
 
 //Available types for class declaration
 primitiveType:
-    TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING
+      TK_PR_INT 
+    | TK_PR_FLOAT 
+    | TK_PR_CHAR 
+    | TK_PR_BOOL 
+    | TK_PR_STRING
 
 //Modifiers are usually optional
 accessModifiers:
-    TK_PR_PRIVATE | TK_PR_PUBLIC | TK_PR_PROTECTED | %empty;
+      TK_PR_PRIVATE 
+    | TK_PR_PUBLIC 
+    | TK_PR_PROTECTED 
+    | %empty;
 
 staticModifier:
-    TK_PR_STATIC | %empty;
+    TK_PR_STATIC 
+    | %empty;
 
 constModifier:
-    TK_PR_CONST | %empty;
+    TK_PR_CONST 
+    | %empty;
 
 vectorModifier:
-    '[' expression ']' | %empty;
+     '[' expression ']' 
+    | %empty;
 /*obvious stuff end */
 
 code:
-    declaration | declaration code;
+    declaration 
+    | declaration code;
 
 declaration:
-    classDeclaration | globalVarDeclaration | functionDeclaration;
+      classDeclaration 
+    | globalVarDeclaration | functionDeclaration;
 
 
 /* A class is a declaration of a new type in the format:
@@ -115,7 +137,8 @@ classDeclaration:
 
 // fields are type and id inside classes that can't contain user-classes nor initialization of values
 fields:
-    accessModifiers primitiveType id | accessModifiers primitiveType id ':' fields;
+    accessModifiers primitiveType id 
+    | accessModifiers primitiveType id ':' fields;
 
 
 //Declaration of global variables
@@ -139,11 +162,12 @@ functionArgumentsList:
     functionArgumentElements | %empty;
 
 functionArgumentElements:
-    constModifier type id | constModifier type id ',' functionArgumentElements;
+    constModifier type id 
+    | constModifier type id ',' functionArgumentElements;
 
 //Simple Command
-command
-    : TK_PR_STATIC TK_PR_CONST localVarDeclaration 
+command:
+      TK_PR_STATIC TK_PR_CONST localVarDeclaration 
     | TK_PR_CONST localVarDeclaration 
     | localVarDeclaration 
     | attribution;
@@ -173,28 +197,28 @@ primitiveAttribution:
 userTypeAttribution:
     id vectorModifier '$' classField '=' expression ;
 
-expression
-    : comparableLiteral 
+expression:
+      comparableLiteral 
     | '-' expression
     | compositeExpression;
 
-compositeExpression
-    : comparableLiteral operator comparableLiteral operator expression;
+compositeExpression:
+      comparableLiteral operator comparableLiteral operator expression;
     | comparableLiteral operator comparableLiteral;
 
-operator
-    : arithmeticOperator
+operator:
+      arithmeticOperator
     | comparisonOperator;
 
-arithmeticOperator
-    : '*' 
+arithmeticOperator:
+      '*' 
     | '+'
     | '-'
     | '/'
     | '%';
 
-comparisonOperator
-    : TK_OC_LE
+comparisonOperator:
+      TK_OC_LE
     | TK_OC_GE
     | TK_OC_EQ
     | TK_OC_NE
