@@ -178,7 +178,7 @@ command:
     | inputOutputCommand
     | functionCall;
     | shiftCommand;
-
+    | fluxControlCommand;
 
 //A variable declaration can be initialized ONLY if it has a primitive type
 localVarDeclaration:
@@ -244,26 +244,50 @@ inputOutputCommand:
       TK_PR_INPUT expression
     | TK_PR_OUTPUT expressionList;
 
+//Function call has a very straight forward approach
 functionCall:
     id '(' functionCallArguments ')';
 
+//Arguments can be empty or can be a list of expressions/dots
 functionCallArguments:
       functionCallArgumentsList
     | %empty;
-    
+
+//List of Expression/Dots
 functionCallArgumentsList:
     functionCallArgument
     | functionCallArgument ',' functionCallArgumentsList
     
+//Argument can be expression or dot
 functionCallArgument:
       '.'
     | expression;
 
-
+//Shift command is straightforward too
 shiftCommand:
       id vectorModifier shift number
     | id vectorModifier '.' id shift number;
 
+//WIP
+fluxControlCommand:
+      conditionalFluxControl;
+ //   | selectionFluxControl;
+
+//WIP², works but always needs curly brackets
+conditionalFluxControl:
+      TK_PR_IF '(' expression ')' TK_PR_THEN functionBody
+    | TK_PR_IF '(' expression ')' TK_PR_THEN functionBody TK_PR_ELSE functionBody;
+
+/*
+selectionFluxControl:
+      TK_PR_FOREACH '(' id ':' expressionList ')' functionBody;
+    | TK_PR_FOR '(' commandList ':' expression ':' commandList ')' functionBody
+    | TK_PR_WHILE '(' expression ')' TK_PR_DO functionBody
+    | TK_PR_DO functionBody TK_PR_WHILE '(' expression ')';      
+
+commandList:
+    command | command ',' commandList;
+*/
 %%
 
 void yyerror (char const *s){
