@@ -1,10 +1,12 @@
 /*INF UFRGS 2018/2// COMPILADORES SCHNORR // GRUPO KAPPA // GUILHERME CATTANI DE CASTRO 00243589 && CAIO F RODRIGUES 00261578*/
 %{
 #include <stdio.h>
+#include <string.h>
 int yylex(void);
 void yyerror (char const *s);
 
 extern int yylineno;
+extern char* yytext;
 %}
 
 %token TK_PR_INT
@@ -72,22 +74,18 @@ literal:
     | TK_LIT_STRING 
     | TK_LIT_TRUE;
 
-comparableLiteral:
-      TK_LIT_FALSE 
-    | TK_LIT_FLOAT 
-    | TK_LIT_INT 
-    | TK_LIT_TRUE;
-
-number:
-      TK_LIT_FLOAT 
-    | TK_LIT_INT;
+//comparableLiteral:
+//      TK_LIT_FALSE 
+//    | TK_LIT_FLOAT 
+//    | TK_LIT_INT 
+//    | TK_LIT_TRUE;
 
 pipe:
       TK_OC_BASH_PIPE
     | TK_OC_FORWARD_PIPE;
 
 userVariableOrLiteral:
-      TK_IDENTIFICADOR 
+      TK_IDENTIFICADOR //userVariable
     | literal;
 
 type:
@@ -96,7 +94,7 @@ type:
     | TK_PR_CHAR 
     | TK_PR_BOOL 
     | TK_PR_STRING 
-    | TK_IDENTIFICADOR;
+    | TK_IDENTIFICADOR; //userType
 
 //Available types for class declaration
 primitiveType:
@@ -116,16 +114,12 @@ accessModifiers:
     | TK_PR_PROTECTED 
     | %empty;
 
-staticModifier:
-      TK_PR_STATIC 
-    | %empty;
-
 constModifier:
       TK_PR_CONST 
     | %empty;
 
 vectorModifier:
-     '[' expression ']' 
+     '[' expression ']' vectorModifier
     | %empty;
 /*obvious stuff end */
 
@@ -146,24 +140,30 @@ declaration:
     }; 
 */
 classDeclaration:
-    accessModifiers TK_PR_CLASS TK_IDENTIFICADOR '{' fields '}' ';';   
+    accessModifiers TK_PR_CLASS TK_IDENTIFICADOR '[' fields ']' ';';   //className
 
 // fields are type and id inside classes that can't contain user-classes nor initialization of values
 fields:
-      accessModifiers primitiveType TK_IDENTIFICADOR 
-    | accessModifiers primitiveType TK_IDENTIFICADOR ':' fields;
+      accessModifiers primitiveType TK_IDENTIFICADOR //classField
+    | accessModifiers primitiveType TK_IDENTIFICADOR ':' fields; //classField
 
 
 //Declaration of global variables
 globalVarDeclaration:
-    staticModifier type TK_IDENTIFICADOR vectorModifier ';' ;
+    TK_IDENTIFICADOR type  ';'      //userVariable userType
+    | TK_IDENTIFICADOR TK_PR_STATIC type  ';' //userVariable userType
+    | TK_IDENTIFICADOR '['TK_LIT_INT']' type  ';' //userVariable userType
+    | TK_IDENTIFICADOR '['TK_LIT_INT']' TK_PR_STATIC type  ';' ; //userVariable userType
 
 //Function declaration
 functionDeclaration:
     functionHead commandsBlock;
 
 functionHead:
-    staticModifier type TK_IDENTIFICADOR '(' functionArgumentsList ')'
+      primitiveType TK_IDENTIFICADOR '(' functionArgumentsList ')' //userType functionName
+    | TK_IDENTIFICADOR TK_IDENTIFICADOR '(' functionArgumentsList ')' //userType functionName
+    | TK_PR_STATIC primitiveType TK_IDENTIFICADOR  '(' functionArgumentsList ')' // userType functionName
+    | TK_PR_STATIC TK_IDENTIFICADOR TK_IDENTIFICADOR  '(' functionArgumentsList ')' // userType functionName
 
 commandsBlock:
     '{' commandsList '}';
@@ -177,8 +177,8 @@ functionArgumentsList:
     | %empty;
 
 functionArgumentElements:
-      constModifier type TK_IDENTIFICADOR 
-    | constModifier type TK_IDENTIFICADOR ',' functionArgumentElements;
+      constModifier type TK_IDENTIFICADOR //userVariable
+    | constModifier type TK_IDENTIFICADOR ',' functionArgumentElements; //userVariable
 
 //All Commands, it can be anypart of a simple command or it can be a case/output
 command:
@@ -203,14 +203,13 @@ commandSimple:
 //A variable declaration can be initialized ONLY if it has a primitive type
 localVarDeclaration:
       primitiveType TK_IDENTIFICADOR localVarInit //If it starts with ID and is initialized
-    | TK_IDENTIFICADOR TK_IDENTIFICADOR;  //type userVariable
+    | TK_IDENTIFICADOR TK_IDENTIFICADOR;  //userType userVariable
 
 localVarCompleteDeclaration:
       TK_PR_STATIC TK_PR_CONST localVarDeclaration 
+    | TK_PR_STATIC localVarDeclaration 
     | TK_PR_CONST localVarDeclaration 
     | localVarDeclaration;
-
-
     
 //Initialization of variable
 localVarInit:
@@ -222,44 +221,60 @@ attribution:
     | userTypeAttribution;
 
 primitiveAttribution:
-    TK_IDENTIFICADOR vectorModifier '=' expression ;
+      TK_IDENTIFICADOR vectorModifier '=' expression ;  //userVariable
+ //userVariable
 
 userTypeAttribution:
-    TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR '=' expression ;
+      TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR '=' expression ; //userVariable
 
 expression:
-      unaryOperator unifiedExpression;
+      unifiedExpression 
+    | expression '?' expression ':';
+    | expression operator unifiedExpression;
 
 unifiedExpression:
-      '(' expression ')' operator expression
-    | '(' expression ')'
-    | TK_IDENTIFICADOR'['expression']''$'TK_IDENTIFICADOR operator expression 
-    | TK_IDENTIFICADOR'['expression']''$'TK_IDENTIFICADOR 
-    | TK_IDENTIFICADOR'$'TK_IDENTIFICADOR operator expression 
-    | TK_IDENTIFICADOR'$'TK_IDENTIFICADOR 
-    | TK_IDENTIFICADOR'['expression']' operator expression 
-    | TK_IDENTIFICADOR'['expression']' 
-    | TK_IDENTIFICADOR operator expression 
-    | TK_IDENTIFICADOR
-    | functionCall
-    | comparableLiteral 
-    | comparableLiteral operator '(' expression ')'
-    | comparableLiteral operator comparableLiteral operator expression
-    | comparableLiteral operator comparableLiteral;
+      '(' expression ')'
+    | unaryOperator '(' expression ')'
+    
+    | TK_IDENTIFICADOR'['expression']''$'TK_IDENTIFICADOR               //userType classField
+    | unaryOperator TK_IDENTIFICADOR'['expression']''$'TK_IDENTIFICADOR //userType classField
+    
+    | TK_IDENTIFICADOR'$'TK_IDENTIFICADOR                               //userType classField
+    | unaryOperator TK_IDENTIFICADOR'$'TK_IDENTIFICADOR                 //userType classField
+    
+    | TK_IDENTIFICADOR'['expression']'                                  //userType
+    | unaryOperator TK_IDENTIFICADOR'['expression']'                    //userType
+    
+    | TK_IDENTIFICADOR                                                  //userVariable
+    | unaryOperator TK_IDENTIFICADOR                                    //userVariable
+    
+    | functionCall 
+    | unaryOperator functionCall 
+    
+    | pipeCommands
+    | unaryOperator pipeCommands
+    
+    | literal
+    | unaryOperator literal;
+
+// 1 ? ? ? 2 : 3
 
 operator:
       arithmeticOperator
     | comparisonOperator;
 
 unaryOperator:
+       unarySimbol
+    |  unaryOperator unarySimbol;
+
+unarySimbol:
       '+' 
     | '-'
     | '!'
     | '&'
     | '*'
     | '?'
-    | '#'
-    | %empty;
+    | '#';
 
 arithmeticOperator:
       '+' 
@@ -281,8 +296,6 @@ comparisonOperator:
     | '<'
     | '>';
 
-//ternaryOperator:
-//    expression '?' expression ':' expression;
 
 expressionList:
       expression 
@@ -309,8 +322,8 @@ functionCallArgument:
 
 //Shift command is straightforward too
 shiftCommand:
-      TK_IDENTIFICADOR vectorModifier shift number
-    | TK_IDENTIFICADOR vectorModifier '.' TK_IDENTIFICADOR shift number;
+      TK_IDENTIFICADOR vectorModifier shift expression
+    | TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR shift expression;
 
 //Flux Control can be of 3 kinds: Conditional, iterative or selection
 fluxControlCommand:
@@ -348,5 +361,5 @@ pipeCommands:
 %%
 
 void yyerror (char const *s){
-    printf("%d:ERROR: %s\n",yylineno, s);
+    printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);
 }
