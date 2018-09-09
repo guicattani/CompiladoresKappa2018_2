@@ -173,9 +173,7 @@ commandsBlock:
     '{' commandsList '}';
 
 commandsList:
-      command ';' commandsList  
-    | ';' commandsList 
-    | commandsBlock
+      command commandsList
     | %empty;
 
 functionArgumentsList:
@@ -186,24 +184,22 @@ functionArgumentElements:
       constModifier type id 
     | constModifier type id ',' functionArgumentElements;
 
-//Simple Command
+//All Commands, it can be anypart of a simple command or it can be a case/output
 command:
-      localVarCompleteDeclaration
-    | attribution
-    | inputOutputCommand
-    | functionCall;
-    | shiftCommand;
-    | fluxControlCommand
-    | pipeCommands
-    | commandsBlock;
+      commandSimple ';' //All simple commands finish with a ';'
+    | TK_PR_OUTPUT expressionList ';' //Output has parenthesis and thus is not a simple command
+    | TK_PR_CASE TK_LIT_INT ':'; //case from switch cannot end in ';'
 
-//Command without commas or case: Used in the "for" command
+//Commands without commas or case: Used in the "for" command
 commandSimple:
       localVarCompleteDeclaration
     | attribution
-    | TK_PR_INPUT expression // inputOutputCommand is replaced only by its input contrapart
+    | TK_PR_INPUT expression 
     | functionCall;
     | shiftCommand;
+    | TK_PR_RETURN expression
+    | TK_PR_CONTINUE
+    | TK_PR_BREAK
     | fluxControlCommand
     | pipeCommands
     | commandsBlock;      
@@ -270,10 +266,6 @@ expressionList:
       expression 
     | expression ',' expressionList
 
-inputOutputCommand:
-      TK_PR_INPUT expression
-    | TK_PR_OUTPUT expressionList;
-
 //Function call has a very straight forward approach
 functionCall:
     id '(' functionCallArguments ')';
@@ -298,22 +290,28 @@ shiftCommand:
       id vectorModifier shift number
     | id vectorModifier '.' id shift number;
 
-
+//Flux Control can be of 3 kinds: Conditional, iterative or selection
 fluxControlCommand:
       conditionalFluxControl;
+    | iterativeFluxControl
     | selectionFluxControl;
 
-
+//Conditional flux is if (exp) then {...} else {...}, with the else being optional
 conditionalFluxControl:
       TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock
     | TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock TK_PR_ELSE commandsBlock;
 
-
-selectionFluxControl:
+//There are 4 variations of iterative flux control
+iterativeFluxControl:
       TK_PR_FOREACH '(' id ':' expressionList ')' commandsBlock;
-    | TK_PR_FOR '(' commandSimpleList ':' expression ':' commandSimpleList ')' commandsBlock
+    | TK_PR_FOR '(' commandSimpleList ':' expression ':' commandSimpleList ')' commandsBlock //The command list is of simple commands
     | TK_PR_WHILE '(' expression ')' TK_PR_DO commandsBlock
     | TK_PR_DO commandsBlock TK_PR_WHILE '(' expression ')';      
+
+//The only selection flux control is switch
+//It is important to note that bison won't check if there are cases on the commandsBlock
+selectionFluxControl:
+    TK_PR_SWITCH '(' expression ')' commandsBlock;
 
 //List of commands without commas in them, used in for
 commandSimpleList:
