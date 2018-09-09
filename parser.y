@@ -242,7 +242,7 @@ twoWayRecursiveExpression:
 
 expression:
     twoWayRecursiveExpression
-    | twoWayRecursiveExpression '?' twoWayRecursiveExpression ':' twoWayRecursiveExpression;
+    | twoWayRecursiveExpression '?' expression ':' expression;
 
 oneWayRecursiveExpression:
      simpleExpression
