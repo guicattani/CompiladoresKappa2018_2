@@ -51,6 +51,9 @@ extern int yylineno;
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
+%right '&' '*' '#'
+
+
 %%
 
 programa:
@@ -233,24 +236,42 @@ userTypeAttribution:
     id vectorModifier '$' classField '=' expression ;
 
 expression:
+      unaryOperator unifiedExpression;
+
+unifiedExpression:
       comparableLiteral 
-    | '-' expression
+    | comparableLiteral operator '(' expression ')'
+    | '(' expression ')'
+    | '(' expression ')' operator expression
     | compositeExpression;
 
 compositeExpression:
-      comparableLiteral operator comparableLiteral operator expression;
+      comparableLiteral operator comparableLiteral operator expression
     | comparableLiteral operator comparableLiteral;
 
 operator:
       arithmeticOperator
     | comparisonOperator;
 
-arithmeticOperator:
-      '*' 
-    | '+'
+unaryOperator:
+      '+' 
     | '-'
+    | '!'
+    | '&'
+    | '*'
+    | '?'
+    | '#'
+    | %empty;
+
+arithmeticOperator:
+      '+' 
+    | '-'
+    | '*'
     | '/'
-    | '%';
+    | '%'
+    | '|'
+    | '&'
+    | '^';
 
 comparisonOperator:
       TK_OC_LE
@@ -261,6 +282,9 @@ comparisonOperator:
     | TK_OC_OR
     | '<'
     | '>';
+
+//ternaryOperator:
+//    expression '?' expression ':' expression;
 
 expressionList:
       expression 
