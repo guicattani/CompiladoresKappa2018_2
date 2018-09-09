@@ -54,7 +54,8 @@ extern int yylineno;
 %%
 
 programa:
-      code | %empty;
+      code 
+    | %empty;
 
 /*obvious stuff */
 
@@ -76,13 +77,22 @@ literal:
     | TK_LIT_TRUE;
 
 comparableLiteral:
-    TK_LIT_FALSE | TK_LIT_FLOAT | TK_LIT_INT | TK_LIT_TRUE;
+      TK_LIT_FALSE 
+    | TK_LIT_FLOAT 
+    | TK_LIT_INT 
+    | TK_LIT_TRUE;
 
 number:
-    TK_LIT_FLOAT | TK_LIT_INT;
+      TK_LIT_FLOAT 
+    | TK_LIT_INT;
+
+pipe:
+      TK_OC_BASH_PIPE
+    | TK_OC_FORWARD_PIPE;
 
 idOrLiteral:
-    id | literal;
+      id 
+    | literal;
 
 type:
       TK_PR_INT 
@@ -101,7 +111,8 @@ primitiveType:
     | TK_PR_STRING
 
 shift:
-    TK_OC_SR | TK_OC_SL;
+      TK_OC_SR 
+    | TK_OC_SL;
 //Modifiers are usually optional
 accessModifiers:
       TK_PR_PRIVATE 
@@ -110,11 +121,11 @@ accessModifiers:
     | %empty;
 
 staticModifier:
-    TK_PR_STATIC 
+      TK_PR_STATIC 
     | %empty;
 
 constModifier:
-    TK_PR_CONST 
+      TK_PR_CONST 
     | %empty;
 
 vectorModifier:
@@ -123,7 +134,7 @@ vectorModifier:
 /*obvious stuff end */
 
 code:
-    declaration 
+      declaration 
     | declaration code;
 
 declaration:
@@ -143,7 +154,7 @@ classDeclaration:
 
 // fields are type and id inside classes that can't contain user-classes nor initialization of values
 fields:
-    accessModifiers primitiveType id 
+      accessModifiers primitiveType id 
     | accessModifiers primitiveType id ':' fields;
 
 
@@ -153,22 +164,26 @@ globalVarDeclaration:
 
 //Function declaration
 functionDeclaration:
-    functionHead functionBody;
+    functionHead commandsBlock;
 
 functionHead:
     staticModifier type id '(' functionArgumentsList ')'
 
-functionBody:
-    '{' commandsBlock '}';
-
 commandsBlock:
-    command ';' commandsBlock | %empty | ';' commandsBlock | functionBody;
+    '{' commandsList '}';
+
+commandsList:
+      command ';' commandsList  
+    | ';' commandsList 
+    | commandsBlock
+    | %empty;
 
 functionArgumentsList:
-    functionArgumentElements | %empty;
+      functionArgumentElements 
+    | %empty;
 
 functionArgumentElements:
-    constModifier type id 
+      constModifier type id 
     | constModifier type id ',' functionArgumentElements;
 
 //Simple Command
@@ -178,7 +193,20 @@ command:
     | inputOutputCommand
     | functionCall;
     | shiftCommand;
-    | fluxControlCommand;
+    | fluxControlCommand
+    | pipeCommands
+    | commandsBlock;
+
+//Command without commas or case: Used in the "for" command
+commandSimple:
+      localVarCompleteDeclaration
+    | attribution
+    | TK_PR_INPUT expression // inputOutputCommand is replaced only by its input contrapart
+    | functionCall;
+    | shiftCommand;
+    | fluxControlCommand
+    | pipeCommands
+    | commandsBlock;      
 
 //A variable declaration can be initialized ONLY if it has a primitive type
 localVarDeclaration:
@@ -195,10 +223,12 @@ localVarCompleteDeclaration:
     
 //Initialization of variable
 localVarInit:
-    TK_OC_LE idOrLiteral | %empty;
+      TK_OC_LE idOrLiteral 
+    | %empty;
 
 attribution:
-    primitiveAttribution | userTypeAttribution;
+      primitiveAttribution
+    | userTypeAttribution;
 
 primitiveAttribution:
     id vectorModifier '=' expression ;
@@ -268,26 +298,33 @@ shiftCommand:
       id vectorModifier shift number
     | id vectorModifier '.' id shift number;
 
-//WIP
+
 fluxControlCommand:
       conditionalFluxControl;
- //   | selectionFluxControl;
+    | selectionFluxControl;
 
-//WIP², works but always needs curly brackets
+
 conditionalFluxControl:
-      TK_PR_IF '(' expression ')' TK_PR_THEN functionBody
-    | TK_PR_IF '(' expression ')' TK_PR_THEN functionBody TK_PR_ELSE functionBody;
+      TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock
+    | TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock TK_PR_ELSE commandsBlock;
 
-/*
+
 selectionFluxControl:
-      TK_PR_FOREACH '(' id ':' expressionList ')' functionBody;
-    | TK_PR_FOR '(' commandList ':' expression ':' commandList ')' functionBody
-    | TK_PR_WHILE '(' expression ')' TK_PR_DO functionBody
-    | TK_PR_DO functionBody TK_PR_WHILE '(' expression ')';      
+      TK_PR_FOREACH '(' id ':' expressionList ')' commandsBlock;
+    | TK_PR_FOR '(' commandSimpleList ':' expression ':' commandSimpleList ')' commandsBlock
+    | TK_PR_WHILE '(' expression ')' TK_PR_DO commandsBlock
+    | TK_PR_DO commandsBlock TK_PR_WHILE '(' expression ')';      
 
-commandList:
-    command | command ',' commandList;
-*/
+//List of commands without commas in them, used in for
+commandSimpleList:
+      commandSimple 
+    | commandSimpleList ',' commandSimple ;
+
+//Pipe Commands can be in the format of "f() %>% f()" or "f() %>% f() %>% ... f()"
+pipeCommands:
+      functionCall pipe functionCall
+    | pipeCommands pipe functionCall;
+
 %%
 
 void yyerror (char const *s){
