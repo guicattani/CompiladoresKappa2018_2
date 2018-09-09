@@ -54,8 +54,6 @@ extern char* yytext;
 %token TOKEN_ERRO
 
 %right '&' '*' '#'
-%left '('
-
 
 %%
 
@@ -229,8 +227,8 @@ userTypeAttribution:
 
 expression:
       unifiedExpression 
-    | expression '?' expression ':';
-    | expression operator unifiedExpression;
+    | unifiedExpression operator unifiedExpression;
+    | unifiedExpression '?' unifiedExpression ':' unifiedExpression;
 
 unifiedExpression:
       '(' expression ')'
@@ -256,8 +254,6 @@ unifiedExpression:
     
     | literal
     | unaryOperator literal;
-
-// 1 ? ? ? 2 : 3
 
 operator:
       arithmeticOperator
