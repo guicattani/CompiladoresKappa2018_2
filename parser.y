@@ -119,6 +119,10 @@ constModifier:
 vectorModifier:
      '[' expression ']' vectorModifier
     | %empty;
+
+vectorList:
+      '[' expression ']'
+    | vectorList '[' expression ']';
 /*obvious stuff end */
 
 code:
@@ -225,39 +229,41 @@ primitiveAttribution:
 userTypeAttribution:
       TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR '=' expression ; //userVariable
 
-expression:
-      unifiedExpression 
-    | unifiedExpression operator unifiedExpression;
-    | unifiedExpression '?' unifiedExpression ':' unifiedExpression;
-
-unifiedExpression:
-      '(' expression ')'
-    | unaryOperator '(' expression ')'
-    
-    | TK_IDENTIFICADOR'['expression']''$'TK_IDENTIFICADOR               //userType classField
-    | unaryOperator TK_IDENTIFICADOR'['expression']''$'TK_IDENTIFICADOR //userType classField
-    
-    | TK_IDENTIFICADOR'$'TK_IDENTIFICADOR                               //userType classField
-    | unaryOperator TK_IDENTIFICADOR'$'TK_IDENTIFICADOR                 //userType classField
-    
-    | TK_IDENTIFICADOR'['expression']'                                  //userType
-    | unaryOperator TK_IDENTIFICADOR'['expression']'                    //userType
-    
-    | TK_IDENTIFICADOR                                                  //userVariable
-    | unaryOperator TK_IDENTIFICADOR                                    //userVariable
-    
-    | functionCall 
-    | unaryOperator functionCall 
-    
+simpleExpression:
+      TK_IDENTIFICADOR
+    | functionCall
     | pipeCommands
-    | unaryOperator pipeCommands
-    
     | literal
-    | unaryOperator literal;
+    | TK_IDENTIFICADOR  '$' TK_IDENTIFICADOR;
+
+twoWayRecursiveExpression:
+    oneWayRecursiveExpression
+    | twoWayRecursiveExpression operator oneWayRecursiveExpression;
+
+expression:
+    twoWayRecursiveExpression
+    | twoWayRecursiveExpression '?' twoWayRecursiveExpression ':' twoWayRecursiveExpression;
+
+oneWayRecursiveExpression:
+     simpleExpression
+    | unaryOperator simpleExpression;
+
+    | '(' expression ')'
+    | unaryOperator '(' expression ')'
+
+    | TK_IDENTIFICADOR vectorList;
+    | unaryOperator TK_IDENTIFICADOR vectorList;
+
+    | TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR;
+    | unaryOperator TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR;
+
 
 operator:
       arithmeticOperator
     | comparisonOperator;
+
+
+
 
 unaryOperator:
        unarySimbol
