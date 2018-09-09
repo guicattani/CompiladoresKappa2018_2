@@ -63,20 +63,6 @@ programa:
 
 /*obvious stuff */
 
-userVariable:
-    TK_IDENTIFICADOR;
-
-userType:
-    TK_IDENTIFICADOR;
-
-className:
-    TK_IDENTIFICADOR;
-
-classField:
-    TK_IDENTIFICADOR;
-
-functionName:
-    TK_IDENTIFICADOR;
 
 literal:
       TK_LIT_CHAR 
@@ -101,7 +87,7 @@ pipe:
     | TK_OC_FORWARD_PIPE;
 
 userVariableOrLiteral:
-      userVariable 
+      TK_IDENTIFICADOR 
     | literal;
 
 type:
@@ -110,7 +96,7 @@ type:
     | TK_PR_CHAR 
     | TK_PR_BOOL 
     | TK_PR_STRING 
-    | userType;
+    | TK_IDENTIFICADOR;
 
 //Available types for class declaration
 primitiveType:
@@ -160,24 +146,24 @@ declaration:
     }; 
 */
 classDeclaration:
-    accessModifiers TK_PR_CLASS className '{' fields '}' ';';   
+    accessModifiers TK_PR_CLASS TK_IDENTIFICADOR '{' fields '}' ';';   
 
 // fields are type and id inside classes that can't contain user-classes nor initialization of values
 fields:
-      accessModifiers primitiveType classField 
-    | accessModifiers primitiveType classField ':' fields;
+      accessModifiers primitiveType TK_IDENTIFICADOR 
+    | accessModifiers primitiveType TK_IDENTIFICADOR ':' fields;
 
 
 //Declaration of global variables
 globalVarDeclaration:
-    staticModifier type userVariable vectorModifier ';' ;
+    staticModifier type TK_IDENTIFICADOR vectorModifier ';' ;
 
 //Function declaration
 functionDeclaration:
     functionHead commandsBlock;
 
 functionHead:
-    staticModifier type functionName '(' functionArgumentsList ')'
+    staticModifier type TK_IDENTIFICADOR '(' functionArgumentsList ')'
 
 commandsBlock:
     '{' commandsList '}';
@@ -191,8 +177,8 @@ functionArgumentsList:
     | %empty;
 
 functionArgumentElements:
-      constModifier type userVariable 
-    | constModifier type userVariable ',' functionArgumentElements;
+      constModifier type TK_IDENTIFICADOR 
+    | constModifier type TK_IDENTIFICADOR ',' functionArgumentElements;
 
 //All Commands, it can be anypart of a simple command or it can be a case/output
 command:
@@ -216,9 +202,8 @@ commandSimple:
 
 //A variable declaration can be initialized ONLY if it has a primitive type
 localVarDeclaration:
-      primitiveType userVariable localVarInit //If it starts with ID and is initialized
-    | userType userVariable;  
-
+      primitiveType TK_IDENTIFICADOR localVarInit //If it starts with ID and is initialized
+    | TK_IDENTIFICADOR TK_IDENTIFICADOR;  //type userVariable
 
 localVarCompleteDeclaration:
       TK_PR_STATIC TK_PR_CONST localVarDeclaration 
@@ -237,25 +222,26 @@ attribution:
     | userTypeAttribution;
 
 primitiveAttribution:
-    userVariable vectorModifier '=' expression ;
+    TK_IDENTIFICADOR vectorModifier '=' expression ;
 
 userTypeAttribution:
-    userVariable vectorModifier '$' classField '=' expression ;
+    TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR '=' expression ;
 
 expression:
       unaryOperator unifiedExpression;
 
 unifiedExpression:
-      '(' expression ')'
-    | '(' expression ')' operator expression
-    | userType'['expression']''$'classField operator expression 
-    | userType'['expression']''$'classField 
-    | userType'$'classField operator expression 
-    | userType'$'classField 
-    | userType'['expression']' operator expression 
-    | userType'['expression']' 
-    | userVariable operator expression 
-    | userVariable
+      '(' expression ')' operator expression
+    | '(' expression ')'
+    | TK_IDENTIFICADOR'['expression']''$'TK_IDENTIFICADOR operator expression 
+    | TK_IDENTIFICADOR'['expression']''$'TK_IDENTIFICADOR 
+    | TK_IDENTIFICADOR'$'TK_IDENTIFICADOR operator expression 
+    | TK_IDENTIFICADOR'$'TK_IDENTIFICADOR 
+    | TK_IDENTIFICADOR'['expression']' operator expression 
+    | TK_IDENTIFICADOR'['expression']' 
+    | TK_IDENTIFICADOR operator expression 
+    | TK_IDENTIFICADOR
+    | functionCall
     | comparableLiteral 
     | comparableLiteral operator '(' expression ')'
     | comparableLiteral operator comparableLiteral operator expression
@@ -304,7 +290,7 @@ expressionList:
 
 //Function call has a very straight forward approach
 functionCall:
-    functionName '(' functionCallArguments ')';
+    TK_IDENTIFICADOR '(' functionCallArguments ')';
 
 //Arguments can be empty or can be a list of expressions/dots
 functionCallArguments:
@@ -323,8 +309,8 @@ functionCallArgument:
 
 //Shift command is straightforward too
 shiftCommand:
-      userVariable vectorModifier shift number
-    | userVariable vectorModifier '.' userVariable shift number;
+      TK_IDENTIFICADOR vectorModifier shift number
+    | TK_IDENTIFICADOR vectorModifier '.' TK_IDENTIFICADOR shift number;
 
 //Flux Control can be of 3 kinds: Conditional, iterative or selection
 fluxControlCommand:
@@ -339,7 +325,7 @@ conditionalFluxControl:
 
 //There are 4 variations of iterative flux control
 iterativeFluxControl:
-      TK_PR_FOREACH '(' userVariable ':' expressionList ')' commandsBlock;
+      TK_PR_FOREACH '(' TK_IDENTIFICADOR ':' expressionList ')' commandsBlock;
     | TK_PR_FOR '(' commandSimpleList ':' expression ':' commandSimpleList ')' commandsBlock //The command list is of simple commands
     | TK_PR_WHILE '(' expression ')' TK_PR_DO commandsBlock
     | TK_PR_DO commandsBlock TK_PR_WHILE '(' expression ')';      
