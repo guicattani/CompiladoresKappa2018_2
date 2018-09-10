@@ -236,15 +236,23 @@ simpleExpression:
     | literal
     | TK_IDENTIFICADOR  '$' TK_IDENTIFICADOR;
 
-twoWayRecursiveExpression:
-    oneWayRecursiveExpression
-    | twoWayRecursiveExpression operator oneWayRecursiveExpression;
-
 expression:
-    twoWayRecursiveExpression
-    | twoWayRecursiveExpression '?' expression ':' expression;
+    lowPrecedenceTwoFoldRecursiveExpression
+    | lowPrecedenceTwoFoldRecursiveExpression '?' expression ':' expression;
 
-oneWayRecursiveExpression:
+lowPrecedenceTwoFoldRecursiveExpression:
+    mediumPrecedenceTwoFoldRecursiveExpression
+    | lowPrecedenceTwoFoldRecursiveExpression operator mediumPrecedenceTwoFoldRecursiveExpression;
+
+mediumPrecedenceTwoFoldRecursiveExpression:
+    highPrecedenceTwoFoldRecursiveExpression
+    | mediumPrecedenceTwoFoldRecursiveExpression precedentArithmeticOperator highPrecedenceTwoFoldRecursiveExpression;
+
+highPrecedenceTwoFoldRecursiveExpression:
+    oneFoldRecursiveExpression
+    | highPrecedenceTwoFoldRecursiveExpression '^' oneFoldRecursiveExpression;
+
+oneFoldRecursiveExpression:
      simpleExpression
     | unaryOperator simpleExpression;
 
@@ -257,13 +265,9 @@ oneWayRecursiveExpression:
     | TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR;
     | unaryOperator TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR;
 
-
 operator:
       arithmeticOperator
     | comparisonOperator;
-
-
-
 
 unaryOperator:
        unarySimbol
@@ -281,12 +285,13 @@ unarySimbol:
 arithmeticOperator:
       '+' 
     | '-'
-    | '*'
-    | '/'
-    | '%'
     | '|'
-    | '&'
-    | '^';
+    | '&';
+
+precedentArithmeticOperator:
+      '*'
+    | '/'
+    | '%';
 
 comparisonOperator:
       TK_OC_LE
