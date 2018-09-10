@@ -1,7 +1,6 @@
 /*INF UFRGS 2018/2// COMPILADORES SCHNORR // GRUPO KAPPA // GUILHERME CATTANI DE CASTRO 00243589 && CAIO F RODRIGUES 00261578*/
 %{
 #include <stdio.h>
-#include <string.h>
 int yylex(void);
 void yyerror (char const *s);
 
@@ -368,5 +367,8 @@ pipeCommands:
 %%
 
 void yyerror (char const *s){
-    printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);
+    if(yytext == NULL || yytext[0] == '\0')
+        printf("Line %d: %s in last token of line\n",yylineno, s);
+    else
+        printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);
 }
