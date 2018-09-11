@@ -6,7 +6,12 @@ void yyerror (char const *s);
 
 extern int yylineno;
 extern char* yytext;
+#ifndef YYSTYPE
+# define YYSTYPE char*
+#endif
+
 %}
+
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
