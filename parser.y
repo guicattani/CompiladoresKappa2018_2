@@ -1,5 +1,14 @@
 /*INF UFRGS 2018/2// COMPILADORES SCHNORR // GRUPO KAPPA // GUILHERME CATTANI DE CASTRO 00243589 && CAIO F RODRIGUES 00261578*/
 %{
+#define FALSE             0
+#define TRUE              1
+
+#define RESERVED_WORD     2
+#define SPECIAL_CHARACTER 3
+#define COMPOUND_OPERATOR 4
+#define IDENTIFIER        5
+#define LITERAL           6
+
 #include <stdio.h>
 int yylex(void);
 void yyerror (char const *s);
@@ -11,6 +20,16 @@ extern char* yytext;
 #endif
 
 %}
+%union{
+    int     line_number;
+    int     token_type;
+    char*   token_value;
+    int     int_value;
+    int     bool_value;
+    float   float_value;
+    char    char_value;
+    char*   string_value;
+}
 
 
 %token TK_PR_INT

@@ -2,8 +2,16 @@
 %x multilinecomment
 
 %{
-#include "parser.tab.h"
+#define FALSE             0
+#define TRUE              1
 
+#define RESERVED_WORD     2
+#define SPECIAL_CHARACTER 3
+#define COMPOUND_OPERATOR 4
+#define IDENTIFIER        5
+#define LITERAL           6
+
+#include "parser.tab.h"
 %}
 
 %%
@@ -46,12 +54,36 @@ protected                                       return TK_PR_PROTECTED;
 \,|\;|\:|\)|\(|\]|\[|\}|\{|\+|\-|\||\?          return yytext[0];
 \*|\/|\>|\<|\=|\!|\&|\%|\#|\^|\.|\$             return yytext[0];
 
-[0-9]*                                          return TK_LIT_INT;
-[0-9]*\.([0-9]*((e|E)(\+|\-)?[0-9]*)?)?         return TK_LIT_FLOAT;
-false                                           return TK_LIT_FALSE;
-true                                            return TK_LIT_TRUE;
-\'([^\'\\\n]|\\n|\\\'|\\\\)\'                   return TK_LIT_CHAR;
-\"(\\\"|[^\"|\r\n|\r|\n])*\"                    return TK_LIT_STRING;
+[0-9]*                                          {   yylval.line_number = yylineno;
+                                                    yylval.token_type = LITERAL;
+                                                    yylval.int_value = atoi(yytext);
+                                                    return TK_LIT_INT;
+                                                }
+[0-9]*\.([0-9]*((e|E)(\+|\-)?[0-9]*)?)?         {   yylval.line_number = yylineno;
+                                                    yylval.token_type = LITERAL;
+                                                    yylval.float_value = atof(yytext);
+                                                    return TK_LIT_FLOAT;
+                                                }
+false                                           {   yylval.line_number = yylineno;
+                                                    yylval.token_type = LITERAL;
+                                                    yylval.bool_value = FALSE;
+                                                    return TK_LIT_FALSE;
+                                                }
+true                                            {   yylval.line_number = yylineno;
+                                                    yylval.token_type = LITERAL;
+                                                    yylval.bool_value = TRUE;
+                                                    return TK_LIT_TRUE;
+                                                }
+\'([^\'\\\n]|\\n|\\\'|\\\\)\'                   {   yylval.line_number = yylineno;
+                                                    yylval.token_type = LITERAL;
+                                                    yylval.char_value = yytext[0];
+                                                    return TK_LIT_CHAR;
+                                                }
+\"(\\\"|[^\"|\r\n|\r|\n])*\"                    {   yylval.line_number = yylineno;
+                                                    yylval.token_type = LITERAL;
+                                                    yylval.string_value = strdup(yytext);
+                                                    return TK_LIT_STRING;
+                                                }
 
 [A-Z_a-z][A-Z_a-z0-9]*                          return TK_IDENTIFICADOR;
     
