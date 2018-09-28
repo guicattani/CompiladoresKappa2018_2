@@ -1,12 +1,20 @@
 /*
-Função principal para realização da análise sintática.
+Função principal para realização da E3.
 
-Este arquivo será posterioremente substituído, não acrescente nada.
+Este arquivo não pode ser modificado.
 */
 #include <stdio.h>
 #include "parser.tab.h" //arquivo gerado com bison -d parser.y
 
+void *arvore = NULL;
+void descompila (void *arvore);
+void libera (void *arvore);
+
 int main (int argc, char **argv)
 {
-  return yyparse();
+  int ret = yyparse(); 
+  descompila (arvore);
+  libera(arvore);
+  arvore = NULL;
+  return ret;
 }

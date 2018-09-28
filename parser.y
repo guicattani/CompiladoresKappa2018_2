@@ -19,6 +19,21 @@ extern char* yytext;
 # define YYSTYPE char*
 #endif
 
+struct node{
+int     line_number;
+int     token_type;
+char*   token_value;
+int     int_value;
+int     bool_value;
+float   float_value;
+char    char_value;
+char*   string_value;
+
+struct node* parent;
+struct node* brother;
+struct node* children;
+};
+
 %}
 %union{
     int     line_number;
@@ -86,7 +101,6 @@ programa:
 
 /*obvious stuff */
 
-
 literal:
       TK_LIT_CHAR 
     | TK_LIT_FALSE 
@@ -94,12 +108,6 @@ literal:
     | TK_LIT_INT 
     | TK_LIT_STRING 
     | TK_LIT_TRUE;
-
-//comparableLiteral:
-//      TK_LIT_FALSE 
-//    | TK_LIT_FLOAT 
-//    | TK_LIT_INT 
-//    | TK_LIT_TRUE;
 
 pipe:
       TK_OC_BASH_PIPE
@@ -123,7 +131,7 @@ primitiveType:
     | TK_PR_FLOAT 
     | TK_PR_CHAR 
     | TK_PR_BOOL 
-    | TK_PR_STRING
+    | TK_PR_STRING;
 
 shift:
       TK_OC_SR 
@@ -395,4 +403,11 @@ void yyerror (char const *s){
         printf("Line %d: %s in last token of line\n",yylineno, s);
     else
         printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);
+}
+
+void descompila (void *arvore){
+    printf("Function libera not yet implemented\n");
+}
+void libera (void *arvore){
+    printf("Function libera not yet implemented\n");
 }

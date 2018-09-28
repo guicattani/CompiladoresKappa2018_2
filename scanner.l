@@ -15,7 +15,11 @@
 %}
 
 %%
-int                                             return TK_PR_INT;
+int                                             {   yylval.line_number = yylineno;
+                                                    yylval.token_value = strdup(yytext);
+                                                    yylval.token_type = RESERVED_WORD;
+                                                    return TK_PR_INT;
+                                                }
 float                                           return TK_PR_FLOAT;
 bool                                            return TK_PR_BOOL;
 char                                            return TK_PR_CHAR;
@@ -51,8 +55,14 @@ protected                                       return TK_PR_PROTECTED;
 \%\>\%                                          return TK_OC_FORWARD_PIPE;
 \%\|\%                                          return TK_OC_BASH_PIPE;
 
-\,|\;|\:|\)|\(|\]|\[|\}|\{|\+|\-|\||\?          return yytext[0];
-\*|\/|\>|\<|\=|\!|\&|\%|\#|\^|\.|\$             return yytext[0];
+\,|\;|\:|\)|\(|\]|\[|\}|\{|\+|\-|\||\?          {   yylval.line_number = yylineno;
+                                                    yylval.token_value = &yytext[0];
+                                                    yylval.token_type = SPECIAL_CHARACTER;
+                                                }
+\*|\/|\>|\<|\=|\!|\&|\%|\#|\^|\.|\$             {   yylval.line_number = yylineno;
+                                                    yylval.token_value = &yytext[0];
+                                                    yylval.token_type = SPECIAL_CHARACTER;
+                                                }
 
 [0-9]*                                          {   yylval.line_number = yylineno;
                                                     yylval.token_type = LITERAL;
