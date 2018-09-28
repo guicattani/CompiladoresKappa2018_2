@@ -15,11 +15,12 @@ void yyerror (char const *s);
 
 extern int yylineno;
 extern char* yytext;
+extern void* arvore;
 #ifndef YYSTYPE
 # define YYSTYPE char*
 #endif
 
-struct node{
+typedef struct node{
 int     line_number;
 int     token_type;
 char*   token_value;
@@ -31,8 +32,8 @@ char*   string_value;
 
 struct node* parent;
 struct node* brother;
-struct node* children;
-};
+struct node* child;
+} node;
 
 %}
 %union{
@@ -404,6 +405,24 @@ void yyerror (char const *s){
     else
         printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);
 }
+
+node* createChildren(struct node* parent, struct node* child){
+    node* nodeIterator;
+    
+    if(parent->child != NULL){
+        nodeIterator = parent->child;
+        while(nodeIterator == NULL){
+            nodeIterator = nodeIterator->brother;
+        }
+    }
+    else{
+        node* newNode = malloc(sizeof(struct node));
+        newNode = child;
+        parent->child = newNode;
+    }
+}
+
+
 
 void descompila (void *arvore){
     printf("Function libera not yet implemented\n");
