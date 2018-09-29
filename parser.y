@@ -9,6 +9,8 @@
 #define IDENTIFIER        5
 #define LITERAL           6
 
+#define ROOT_NODE        -1
+
 #include <stdio.h>
 int yylex(void);
 void yyerror (char const *s);
@@ -16,6 +18,7 @@ void yyerror (char const *s);
 extern int yylineno;
 extern char* yytext;
 extern void* arvore;
+
 #ifndef YYSTYPE
 # define YYSTYPE char*
 #endif
@@ -36,7 +39,7 @@ struct node* child;
 } node;
 
 %}
-%union{
+%union unionizedYYLVAL{
     int     line_number;
     int     token_type;
     char*   token_value;
@@ -45,7 +48,7 @@ struct node* child;
     float   float_value;
     char    char_value;
     char*   string_value;
-}
+} 
 
 
 %token TK_PR_INT
@@ -92,11 +95,15 @@ struct node* child;
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-%right '&' '*' '#'
+
+%type<syntaxTree> programa
+%type<syntaxTree> code
+%type<syntaxTree> declaration
+%type<syntaxTree> globalVarDeclaration
 
 %%
 
-programa:
+programa:{;$$ = createRootNode();}
       code 
     | %empty;
 
@@ -163,8 +170,8 @@ code:
 
 declaration:
       classDeclaration 
-    | globalVarDeclaration 
-    | functionDeclaration;
+    | globalVarDeclaration {$$=$1}
+    | functionDeclaration; 
 
 
 /* A class is a declaration of a new type in the format:
@@ -184,7 +191,7 @@ fields:
 
 //Declaration of global variables
 globalVarDeclaration:
-    TK_IDENTIFICADOR type  ';'      //userVariable userType
+    TK_IDENTIFICADOR type  ';'      {createChildren($$, createNodeOnYYVal($1)); createChildren($$, createNodeOnYYVal($2));}//userVariable userType
     | TK_IDENTIFICADOR TK_PR_STATIC type  ';' //userVariable userType
     | TK_IDENTIFICADOR '['TK_LIT_INT']' type  ';' //userVariable userType
     | TK_IDENTIFICADOR '['TK_LIT_INT']' TK_PR_STATIC type  ';' ; //userVariable userType
@@ -420,6 +427,44 @@ node* createChildren(struct node* parent, struct node* child){
         newNode = child;
         parent->child = newNode;
     }
+}
+
+node* createNodeOnYYVal(unionizedYYLVAL union ){
+    node* newNode         = malloc(sizeof(struct node));
+    newNode->line_number  = union.line_number;     
+    newNode->token_type   = union.token_type;     
+    newNode->token_value  = union.token_value;     
+    newNode->int_value    = union.int_value;     
+    newNode->bool_value   = union.bool_value;     
+    newNode->float_value  = union.float_value;     
+    newNode->char_value   = union.char_value;     
+    newNode->string_value = union.string_value;     
+
+    return newNode;
+}
+
+node* createRootNode(){
+    node* newNode         = malloc(sizeof(struct node));
+    newNode->token_type   = ROOT_NODE;     
+
+    return newNode;
+}
+
+void showTree(node* root)
+{
+	printf("$\n");
+    showTreeRecursion(root->child);
+}
+
+void showTreeRecursion(node* currentNode)
+{
+	if(currentNode == NULL)
+        return;
+    
+    printf("%s: %d"currentNode->token_value, currentNode->line_number);
+
+    showTreeRecursion(root->brother);
+    showTreeRecursion(root->child);
 }
 
 
