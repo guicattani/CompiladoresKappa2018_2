@@ -49,8 +49,7 @@
     //void showTreeRecursion(struct node currentNode);
     struct node* createNodeOnYYVal(struct node* newNode);
     struct node* createChildren(struct node* parent, struct node* child);
-    struct node* createRootNode();
-
+    struct node* createNode(int state);
     void showTree(struct node* root);
 %}
 
@@ -98,10 +97,12 @@
 %token<nodo> TK_LIT_FALSE
 %token<nodo> TK_LIT_TRUE
 %token<nodo> TK_LIT_CHAR
-%token<nodo> TK_LIT_STRING
-%token<nodo> TK_IDENTIFICADOR
-%token TOKEN_ERRO
+%token<nodo> TK_LIT_STRING                
+%token<nodo> TK_IDENTIFICADOR                    
+%token<nodo> ';' ',' ':' ')' '(' ']' '[' '}' '{' '+' '-' '|' '?' '*' '/' '>' '<' '=' '!' '&' '%' '#' '^' '.' '$';
 
+%token TOKEN_ERRO
+ 
 %type<nodo> programa
 %type<nodo> code
 %type<nodo> declaration
@@ -113,13 +114,20 @@
 %%
 
 programa:
-    test {printf("endofcode\n");struct node* root = createChildren(createRootNode(), $1); showTree(root);};
+    test    {struct node* root = createChildren(createNode(100), $1); showTree(root);};
 
 //code {printf("endofcode\n");struct node* root = createChildren(createRootNode(), $1); showTree(root);}
 //| %empty;
 
 test:
-    TK_IDENTIFICADOR TK_IDENTIFICADOR ';' {printf("reduced test\n"); $$=createNodeOnYYVal($1) };
+    TK_IDENTIFICADOR TK_IDENTIFICADOR ';'
+    
+     {
+       $$ = createNode(101); 
+       createChildren($$, $1);
+       createChildren($$, $2); 
+       createChildren($$, $3); 
+     };
 
 /*obvious stuff */
 
@@ -131,11 +139,8 @@ literal:
     | TK_LIT_STRING 
     | TK_LIT_TRUE;
 
-     else{
 pipe:
-     else{
       TK_OC_BASH_PIPE
-     else{
     | TK_OC_FORWARD_PIPE;
 
 userVariableOrLiteral:
@@ -423,7 +428,7 @@ pipeCommands:
 
 %%
 
-void showTreeRecursion(struct node* currentNode);
+void showTreeRecursion(struct node* currentNode, int treeLevel);
 
 void yyerror (char const *s){
     if(yytext == NULL || yytext[0] == '\0')
@@ -432,29 +437,18 @@ void yyerror (char const *s){
         printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);
 }
 
-struct node* createNodeOnYYVal(struct node* newNode){
-    //node* newNode         = malloc(sizeof(struct node));
-    //newNode->line_number  = newNode.line_number;     
-    //newNode->token_type   = newNode.token_type;     
-    //newNode->token_value  = newNode.token_value;     
-    //newNode->int_value    = newNode.int_value;     
-    //newNode->bool_value   = newNode.bool_value;     
-    //newNode->float_value  = newNode.float_value;     
-    //newNode->char_value   = newNode.char_value;     
-    //newNode->string_value = newNode.string_value;     
-    return newNode;
-}
-
 struct node* createChildren(struct node* parent, struct node* child){
      struct node* nodeIterator;
      
      printf(" create children ");
+     printf ("To be inserted: %s \n", child->token_value);
      if(parent->child != NULL){
          nodeIterator = parent->child;
          printf(" %s ", nodeIterator->token_value);
          while(nodeIterator->brother != NULL){
-             printf(" %s ", nodeIterator->token_value);
+             
              nodeIterator = nodeIterator->brother;
+             printf(" %s ", nodeIterator->token_value);
          }
          nodeIterator->brother = child;
          printf(" \n ");
@@ -464,28 +458,37 @@ struct node* createChildren(struct node* parent, struct node* child){
          newNode = child;
          parent->child = newNode;
     }
-
     return parent;
 }
 
-struct node* createRootNode(){
+struct node* createNode(int state){
     struct node* newNode = malloc(sizeof(struct node));
-    newNode->token_type   = AST_PROGRAM;     
+    newNode->brother = NULL;
+	newNode->parent = NULL;
+	newNode->child = NULL;
+    newNode->token_type   = state;  
     return newNode;
 }
 void showTree(struct node* root)
 {
 	printf("$\n");
-    showTreeRecursion(root->child);
+    showTreeRecursion(root, 0);
 }
-void showTreeRecursion(struct node* currentNode)
+void showTreeRecursion(struct node* currentNode, int treeLevel)
 {
-	if(currentNode == NULL)
-        return;
-    
-    printf("%s: %d",currentNode->token_value, currentNode->line_number);
-    //showTreeRecursion(currentNode->brother);
-    //showTreeRecursion(currentNode->child);
+    for(int i = 0; i<treeLevel;i++)
+        printf("\t"); 
+    printf("OI");
+    if(currentNode->child == NULL)
+        printf("%s: %d\n",currentNode->token_value, currentNode->line_number);
+    else{
+        printf("%d\n",currentNode->token_type);
+    }
+    if (currentNode->child != NULL)
+        showTreeRecursion(currentNode->child, treeLevel + 1);
+
+    if (currentNode->brother != NULL)
+        showTreeRecursion(currentNode->brother, treeLevel); 
 }
 
 void descompila (void *arvore){
