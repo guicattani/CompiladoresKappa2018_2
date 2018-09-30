@@ -31,6 +31,7 @@
         int     line_number;
         int     token_type;
         char*   token_value;
+
         int     int_value;
         int     bool_value;
         float   float_value;
@@ -469,7 +470,7 @@ struct node* createChildren(struct node* parent, struct node* child){
 
 struct node* createRootNode(){
     struct node* newNode = malloc(sizeof(struct node));
-    newNode->token_type   = ROOT_NODE;     
+    newNode->token_type   = AST_PROGRAM;     
     return newNode;
 }
 void showTree(struct node* root)

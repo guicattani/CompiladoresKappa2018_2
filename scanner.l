@@ -379,7 +379,7 @@ true                                            {   struct node *newNode = mallo
 
 [A-Z_a-z][A-Z_a-z0-9]*                          {   struct node *newNode = malloc(sizeof(struct node));
                                                     newNode->line_number = yylineno;
-                                                    newNode->token_type  = 1;
+                                                    newNode->token_type  = IDENTIFIER;
                                                     newNode->token_value = strdup(yytext);
                                                     yylval.nodo = newNode;
                                                     free(newNode);
