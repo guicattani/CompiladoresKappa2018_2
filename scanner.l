@@ -2,246 +2,388 @@
 %x multilinecomment
 
 %{
-#define FALSE             0
-#define TRUE              1
+    #define FALSE             0
+    #define TRUE              1
 
-#define RESERVED_WORD     2
-#define SPECIAL_CHARACTER 3
-#define COMPOUND_OPERATOR 4
-#define IDENTIFIER        5
-#define LITERAL           6
+    #define RESERVED_WORD     2
+    #define SPECIAL_CHARACTER 3
+    #define COMPOUND_OPERATOR 4
+    #define IDENTIFIER        5
 
-#include "parser.tab.h"
+    #define LITERAL_INT       6
+    #define LITERAL_BOOL      7
+    #define LITERAL_FLOAT     8
+    #define LITERAL_CHAR      9
+    #define LITERAL_STRING    10 
+
+    #include "parser.tab.h"
 %}
 
 %%
-int                                             {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+int                                             {   struct node *newNode = malloc(sizeof(struct node));
+                                                    newNode->line_number = yylineno;
+                                                    newNode->token_type  = RESERVED_WORD;
+                                                    newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_INT;
-                                                }
-float                                           {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+                                                };
+float                                           {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_FLOAT;
                                                 };
-bool                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+bool                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_BOOL;
                                                 };
-char                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+char                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_CHAR;
                                                 };
-string                                          {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+string                                          {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_STRING;
                                                 };
-if                                              {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+if                                              {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_IF;
                                                 };
-then                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+then                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_THEN;
                                                 };
-else                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+else                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_ELSE;
                                                 };
-while                                           {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+while                                           {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_WHILE;
                                                 };
-do                                              {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+do                                              {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_DO;
                                                 };
-input                                           {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+input                                           {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_INPUT;
                                                 };
-output                                          {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+output                                          {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_OUTPUT;
                                                 };
-return                                          {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+return                                          {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_RETURN;
                                                 };
-const                                           {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+const                                           {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_CONST;
                                                 };
-static                                          {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+static                                          {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_STATIC;
                                                 };
-foreach                                         {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+foreach                                         {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_FOREACH;
                                                 };
-for                                             {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+for                                             {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_FOR;
                                                 };
-switch                                          {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+switch                                          {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_SWITCH;
                                                 };
-case                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+case                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_CASE;
                                                 };
-break                                           {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+break                                           {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_BREAK;
                                                 };
-continue                                        {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+continue                                        {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_CONTINUE;
                                                 };
-class                                           {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+class                                           {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_CLASS;
                                                 };
-private                                         {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+private                                         {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_PRIVATE;
                                                 };
-public                                          {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+public                                          {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_PUBLIC;
                                                 };
-protected                                       {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = RESERVED_WORD;
+protected                                       {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = RESERVED_WORD;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_PR_PROTECTED;
                                                 };
 
 
 
 
-\<\=                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = COMPOUND_OPERATOR;
+\<\=                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = COMPOUND_OPERATOR;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_OC_LE;
                                                 };   
-\>\=                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = COMPOUND_OPERATOR;
+\>\=                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = COMPOUND_OPERATOR;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_OC_GE;
                                                 };   
-\=\=                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = COMPOUND_OPERATOR;
+\=\=                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = COMPOUND_OPERATOR;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_OC_EQ;
                                                 };   
-\!\=                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = COMPOUND_OPERATOR;
+\!\=                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = COMPOUND_OPERATOR;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_OC_NE;
                                                 }; 
-\&\&                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = COMPOUND_OPERATOR;
+\&\&                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = COMPOUND_OPERATOR;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_OC_AND;
                                                 };   
-\|\|                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = COMPOUND_OPERATOR;
+\|\|                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = COMPOUND_OPERATOR;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_OC_OR;
                                                 };   
-\>\>                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = COMPOUND_OPERATOR;
+\>\>                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = COMPOUND_OPERATOR;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_OC_SR;
                                                 };   
-\<\<                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = COMPOUND_OPERATOR;
+\<\<                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = COMPOUND_OPERATOR;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_OC_SL;
                                                 };  
-\%\>\%                                          {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = COMPOUND_OPERATOR;
+\%\>\%                                          {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = COMPOUND_OPERATOR;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_OC_FORWARD_PIPE;
                                                 };
-\%\|\%                                          {   yylval.line_number = yylineno;
-                                                    yylval.token_value = strdup(yytext);
-                                                    yylval.token_type = COMPOUND_OPERATOR;
-                                                    return TK_OC_FORWARD_PIPE;
+\%\|\%                                          {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = COMPOUND_OPERATOR;
+													newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
+                                                    return TK_OC_BASH_PIPE;
                                                 };
 
 
 
 
-\,|\;|\:|\)|\(|\]|\[|\}|\{|\+|\-|\||\?          {   yylval.line_number = yylineno;
-                                                    yylval.token_value = &yytext[0];
-                                                    yylval.token_type = SPECIAL_CHARACTER;
+\,|\;|\:|\)|\(|\]|\[|\}|\{|\+|\-|\||\?          {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = SPECIAL_CHARACTER;
+													newNode->token_value = &yytext[0];
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                 }
-\*|\/|\>|\<|\=|\!|\&|\%|\#|\^|\.|\$             {   yylval.line_number = yylineno;
-                                                    yylval.token_value = &yytext[0];
-                                                    yylval.token_type = SPECIAL_CHARACTER;
+\*|\/|\>|\<|\=|\!|\&|\%|\#|\^|\.|\$             {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = SPECIAL_CHARACTER;
+													newNode->token_value = &yytext[0];
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                 }
 
 
 
 
-[0-9]*                                          {   yylval.line_number = yylineno;
-                                                    yylval.token_type = LITERAL;
-                                                    yylval.int_value = atoi(yytext);
+[0-9]*                                          {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type = LITERAL_INT;
+													newNode->int_value = atoi(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_LIT_INT;
                                                 }
-[0-9]*\.([0-9]*((e|E)(\+|\-)?[0-9]*)?)?         {   yylval.line_number = yylineno;
-                                                    yylval.token_type = LITERAL;
-                                                    yylval.float_value = atof(yytext);
+[0-9]*\.([0-9]*((e|E)(\+|\-)?[0-9]*)?)?         {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = LITERAL_FLOAT;
+													newNode->float_value = atof(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_LIT_FLOAT;
                                                 }
-false                                           {   yylval.line_number = yylineno;
-                                                    yylval.token_type = LITERAL;
-                                                    yylval.bool_value = FALSE;
+false                                           {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = LITERAL_BOOL;
+													newNode->bool_value  = FALSE;
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_LIT_FALSE;
                                                 }
-true                                            {   yylval.line_number = yylineno;
-                                                    yylval.token_type = LITERAL;
-                                                    yylval.bool_value = TRUE;
+true                                            {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = LITERAL_BOOL;
+													newNode->bool_value  = TRUE;
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_LIT_TRUE;
                                                 }
-\'([^\'\\\n]|\\n|\\\'|\\\\)\'                   {   yylval.line_number = yylineno;
-                                                    yylval.token_type = LITERAL;
-                                                    yylval.char_value = yytext[0];
+\'([^\'\\\n]|\\n|\\\'|\\\\)\'                   {   struct node *newNode = malloc(sizeof(struct node));
+													newNode->line_number = yylineno;
+													newNode->token_type  = LITERAL_CHAR;
+													newNode->char_value  = yytext[0];
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_LIT_CHAR;
                                                 }
-\"(\\\"|[^\"|\r\n|\r|\n])*\"                    {   yylval.line_number = yylineno;
-                                                    yylval.token_type = LITERAL;
-                                                    yylval.string_value = strdup(yytext);
+\"(\\\"|[^\"|\r\n|\r|\n])*\"                    {   struct node *newNode  = malloc(sizeof(struct node));
+                                                    newNode->line_number  = yylineno;
+                                                    newNode->token_type   = LITERAL_STRING;
+                                                    newNode->string_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
                                                     return TK_LIT_STRING;
                                                 }
 
-[A-Z_a-z][A-Z_a-z0-9]*                          return TK_IDENTIFICADOR;
+[A-Z_a-z][A-Z_a-z0-9]*                          {
+                                                    struct node *newNode = malloc(sizeof(struct node));
+                                                    newNode->line_number = yylineno;
+                                                    newNode->token_type  = 1;
+                                                    newNode->token_value = strdup(yytext);
+                                                    yylval.nodo = newNode;
+                                                    free(newNode);
+                                                    return TK_IDENTIFICADOR;
+                                                }
     
 \/{2}.*                                         /* single line comment */
 "/*"		                                    BEGIN(multilinecomment);

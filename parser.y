@@ -1,55 +1,49 @@
 /*INF UFRGS 2018/2// COMPILADORES SCHNORR // GRUPO KAPPA // GUILHERME CATTANI DE CASTRO 00243589 && CAIO F RODRIGUES 00261578*/
-%{
-#define FALSE             0
-#define TRUE              1
+%code requires { 
+    #define FALSE             0
+    #define TRUE              1
 
-#define RESERVED_WORD     2
-#define SPECIAL_CHARACTER 3
-#define COMPOUND_OPERATOR 4
-#define IDENTIFIER        5
-#define LITERAL           6
+    #define RESERVED_WORD     2
+    #define SPECIAL_CHARACTER 3
+    #define COMPOUND_OPERATOR 4
+    #define IDENTIFIER        5
 
-#define ROOT_NODE        -1
+    #define LITERAL_INT       6
+    #define LITERAL_BOOL      7
+    #define LITERAL_FLOAT     8
+    #define LITERAL_CHAR      9
+    #define LITERAL_STRING    10
 
-#include <stdio.h>
-int yylex(void);
-void yyerror (char const *s);
+    #define ROOT_NODE        -1
 
-extern int yylineno;
-extern char* yytext;
-extern void* arvore;
+    #include <stdio.h>
+    #include <string.h>
+    int yylex(void);
+    void yyerror (char const *s);
 
-#ifndef YYSTYPE
-# define YYSTYPE char*
-#endif
+    extern int yylineno;
+    extern char* yytext;
+    extern void* arvore;
 
-typedef struct node{
-int     line_number;
-int     token_type;
-char*   token_value;
-int     int_value;
-int     bool_value;
-float   float_value;
-char    char_value;
-char*   string_value;
+    struct node{
+        int     line_number;
+        int     token_type;
+        char*   token_value;
+        int     int_value;
+        int     bool_value;
+        float   float_value;
+        char    char_value;
+        char*   string_value;
 
-struct node* parent;
-struct node* brother;
-struct node* child;
-} node;
+        struct node* parent;
+        struct node* brother;
+        struct node* child;
+    };
+}
 
-%}
-%union unionizedYYLVAL{
-    int     line_number;
-    int     token_type;
-    char*   token_value;
-    int     int_value;
-    int     bool_value;
-    float   float_value;
-    char    char_value;
-    char*   string_value;
-} 
-
+%union{
+    struct node* nodo;
+};
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
@@ -92,19 +86,15 @@ struct node* child;
 %token TK_LIT_TRUE
 %token TK_LIT_CHAR
 %token TK_LIT_STRING
-%token TK_IDENTIFICADOR
+%token<nodo> TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-
-%type<syntaxTree> programa
-%type<syntaxTree> code
-%type<syntaxTree> declaration
-%type<syntaxTree> globalVarDeclaration
+//%type<int> code
 
 %%
 
-programa:{;$$ = createRootNode();}
-      code 
+programa:
+    code //{printf("%d",$1->line_number);}
     | %empty;
 
 /*obvious stuff */
@@ -170,8 +160,9 @@ code:
 
 declaration:
       classDeclaration 
-    | globalVarDeclaration {$$=$1}
+    | globalVarDeclaration
     | functionDeclaration; 
+
 
 
 /* A class is a declaration of a new type in the format:
@@ -189,9 +180,9 @@ fields:
     | accessModifiers primitiveType TK_IDENTIFICADOR ':' fields; //classField
 
 
-//Declaration of global variables
+//Declaration of global variables ///*{createChildren($$, createNodeOnYYVal($1)); createChildren($$, createNodeOnYYVal($2));}*/
 globalVarDeclaration:
-    TK_IDENTIFICADOR type  ';'      {createChildren($$, createNodeOnYYVal($1)); createChildren($$, createNodeOnYYVal($2));}//userVariable userType
+    TK_IDENTIFICADOR type  ';'      
     | TK_IDENTIFICADOR TK_PR_STATIC type  ';' //userVariable userType
     | TK_IDENTIFICADOR '['TK_LIT_INT']' type  ';' //userVariable userType
     | TK_IDENTIFICADOR '['TK_LIT_INT']' TK_PR_STATIC type  ';' ; //userVariable userType
@@ -413,64 +404,8 @@ void yyerror (char const *s){
         printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);
 }
 
-node* createChildren(struct node* parent, struct node* child){
-    node* nodeIterator;
-    
-    if(parent->child != NULL){
-        nodeIterator = parent->child;
-        while(nodeIterator == NULL){
-            nodeIterator = nodeIterator->brother;
-        }
-    }
-    else{
-        node* newNode = malloc(sizeof(struct node));
-        newNode = child;
-        parent->child = newNode;
-    }
-}
-
-node* createNodeOnYYVal(unionizedYYLVAL union ){
-    node* newNode         = malloc(sizeof(struct node));
-    newNode->line_number  = union.line_number;     
-    newNode->token_type   = union.token_type;     
-    newNode->token_value  = union.token_value;     
-    newNode->int_value    = union.int_value;     
-    newNode->bool_value   = union.bool_value;     
-    newNode->float_value  = union.float_value;     
-    newNode->char_value   = union.char_value;     
-    newNode->string_value = union.string_value;     
-
-    return newNode;
-}
-
-node* createRootNode(){
-    node* newNode         = malloc(sizeof(struct node));
-    newNode->token_type   = ROOT_NODE;     
-
-    return newNode;
-}
-
-void showTree(node* root)
-{
-	printf("$\n");
-    showTreeRecursion(root->child);
-}
-
-void showTreeRecursion(node* currentNode)
-{
-	if(currentNode == NULL)
-        return;
-    
-    printf("%s: %d"currentNode->token_value, currentNode->line_number);
-
-    showTreeRecursion(root->brother);
-    showTreeRecursion(root->child);
-}
-
-
-
 void descompila (void *arvore){
-    printf("Function libera not yet implemented\n");
+    printf("Function descompila not yet implemented\n");
 }
 void libera (void *arvore){
     printf("Function libera not yet implemented\n");
