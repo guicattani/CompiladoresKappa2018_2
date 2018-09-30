@@ -14,7 +14,9 @@
     #define LITERAL_CHAR      9
     #define LITERAL_STRING    10
 
-    #define ROOT_NODE        -1
+    #define AST_PROGRAM              100
+    #define AST_IDENTIFIER           101
+    #define AST_IF_ELSE              102
 
     #include <stdio.h>
     #include <string.h>
@@ -39,63 +41,84 @@
         struct node* brother;
         struct node* child;
     };
+
+    
 }
+%{
+    //void showTreeRecursion(struct node currentNode);
+    struct node* createNodeOnYYVal(struct node* newNode);
+    struct node* createChildren(struct node* parent, struct node* child);
+    struct node* createRootNode();
+
+    void showTree(struct node* root);
+%}
 
 %union{
     struct node* nodo;
 };
 
-%token TK_PR_INT
-%token TK_PR_FLOAT
-%token TK_PR_BOOL
-%token TK_PR_CHAR
-%token TK_PR_STRING
-%token TK_PR_IF
-%token TK_PR_THEN
-%token TK_PR_ELSE
-%token TK_PR_WHILE
-%token TK_PR_DO
-%token TK_PR_INPUT
-%token TK_PR_OUTPUT
-%token TK_PR_RETURN
-%token TK_PR_CONST
-%token TK_PR_STATIC
-%token TK_PR_FOREACH
-%token TK_PR_FOR
-%token TK_PR_SWITCH
-%token TK_PR_CASE
-%token TK_PR_BREAK
-%token TK_PR_CONTINUE
-%token TK_PR_CLASS
-%token TK_PR_PRIVATE
-%token TK_PR_PUBLIC
-%token TK_PR_PROTECTED
-%token TK_OC_LE
-%token TK_OC_GE
-%token TK_OC_EQ
-%token TK_OC_NE
-%token TK_OC_AND
-%token TK_OC_OR
-%token TK_OC_SL
-%token TK_OC_SR
-%token TK_OC_FORWARD_PIPE
-%token TK_OC_BASH_PIPE
-%token TK_LIT_INT
-%token TK_LIT_FLOAT
-%token TK_LIT_FALSE
-%token TK_LIT_TRUE
-%token TK_LIT_CHAR
-%token TK_LIT_STRING
+%token<nodo> TK_PR_INT
+%token<nodo> TK_PR_FLOAT
+%token<nodo> TK_PR_BOOL
+%token<nodo> TK_PR_CHAR
+%token<nodo> TK_PR_STRING
+%token<nodo> TK_PR_IF
+%token<nodo> TK_PR_THEN
+%token<nodo> TK_PR_ELSE
+%token<nodo> TK_PR_WHILE
+%token<nodo> TK_PR_DO
+%token<nodo> TK_PR_INPUT
+%token<nodo> TK_PR_OUTPUT
+%token<nodo> TK_PR_RETURN
+%token<nodo> TK_PR_CONST
+%token<nodo> TK_PR_STATIC
+%token<nodo> TK_PR_FOREACH
+%token<nodo> TK_PR_FOR
+%token<nodo> TK_PR_SWITCH
+%token<nodo> TK_PR_CASE
+%token<nodo> TK_PR_BREAK
+%token<nodo> TK_PR_CONTINUE
+%token<nodo> TK_PR_CLASS
+%token<nodo> TK_PR_PRIVATE
+%token<nodo> TK_PR_PUBLIC
+%token<nodo> TK_PR_PROTECTED
+%token<nodo> TK_OC_LE
+%token<nodo> TK_OC_GE
+%token<nodo> TK_OC_EQ
+%token<nodo> TK_OC_NE
+%token<nodo> TK_OC_AND
+%token<nodo> TK_OC_OR
+%token<nodo> TK_OC_SL
+%token<nodo> TK_OC_SR
+%token<nodo> TK_OC_FORWARD_PIPE
+%token<nodo> TK_OC_BASH_PIPE
+%token<nodo> TK_LIT_INT
+%token<nodo> TK_LIT_FLOAT
+%token<nodo> TK_LIT_FALSE
+%token<nodo> TK_LIT_TRUE
+%token<nodo> TK_LIT_CHAR
+%token<nodo> TK_LIT_STRING
 %token<nodo> TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-//%type<int> code
+%type<nodo> programa
+%type<nodo> code
+%type<nodo> declaration
+%type<nodo> globalVarDeclaration
+%type<nodo> type
+
+%type<nodo> test
 
 %%
 
 programa:
-    code //{printf("%d",$1->line_number);}
-    | %empty;
+    test {printf("endofcode\n");struct node* root = createChildren(createRootNode(), $1); showTree(root);};
+
+//code {printf("endofcode\n");struct node* root = createChildren(createRootNode(), $1); showTree(root);}
+//| %empty;
+
+test:
+    TK_IDENTIFICADOR TK_IDENTIFICADOR ';' {printf("reduced test\n"); $$=createNodeOnYYVal($1) };
 
 /*obvious stuff */
 
@@ -107,8 +130,11 @@ literal:
     | TK_LIT_STRING 
     | TK_LIT_TRUE;
 
+     else{
 pipe:
+     else{
       TK_OC_BASH_PIPE
+     else{
     | TK_OC_FORWARD_PIPE;
 
 userVariableOrLiteral:
@@ -155,12 +181,12 @@ vectorList:
 /*obvious stuff end */
 
 code:
-      declaration 
+      declaration {$$=$1;}
     | declaration code;
 
 declaration:
       classDeclaration 
-    | globalVarDeclaration
+    | globalVarDeclaration {$$ = $1;}
     | functionDeclaration; 
 
 
@@ -179,10 +205,9 @@ fields:
       accessModifiers primitiveType TK_IDENTIFICADOR //classField
     | accessModifiers primitiveType TK_IDENTIFICADOR ':' fields; //classField
 
-
-//Declaration of global variables ///*{createChildren($$, createNodeOnYYVal($1)); createChildren($$, createNodeOnYYVal($2));}*/
+//Declaration of global variables
 globalVarDeclaration:
-    TK_IDENTIFICADOR type  ';'      
+    TK_IDENTIFICADOR type  ';'
     | TK_IDENTIFICADOR TK_PR_STATIC type  ';' //userVariable userType
     | TK_IDENTIFICADOR '['TK_LIT_INT']' type  ';' //userVariable userType
     | TK_IDENTIFICADOR '['TK_LIT_INT']' TK_PR_STATIC type  ';' ; //userVariable userType
@@ -397,11 +422,69 @@ pipeCommands:
 
 %%
 
+void showTreeRecursion(struct node* currentNode);
+
 void yyerror (char const *s){
     if(yytext == NULL || yytext[0] == '\0')
         printf("Line %d: %s in last token of line\n",yylineno, s);
     else
         printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);
+}
+
+struct node* createNodeOnYYVal(struct node* newNode){
+    //node* newNode         = malloc(sizeof(struct node));
+    //newNode->line_number  = newNode.line_number;     
+    //newNode->token_type   = newNode.token_type;     
+    //newNode->token_value  = newNode.token_value;     
+    //newNode->int_value    = newNode.int_value;     
+    //newNode->bool_value   = newNode.bool_value;     
+    //newNode->float_value  = newNode.float_value;     
+    //newNode->char_value   = newNode.char_value;     
+    //newNode->string_value = newNode.string_value;     
+    return newNode;
+}
+
+struct node* createChildren(struct node* parent, struct node* child){
+     struct node* nodeIterator;
+     
+     printf(" create children ");
+     if(parent->child != NULL){
+         nodeIterator = parent->child;
+         printf(" %s ", nodeIterator->token_value);
+         while(nodeIterator->brother != NULL){
+             printf(" %s ", nodeIterator->token_value);
+             nodeIterator = nodeIterator->brother;
+         }
+         nodeIterator->brother = child;
+         printf(" \n ");
+     }
+     else{
+         struct node* newNode = malloc(sizeof(struct node));
+         newNode = child;
+         parent->child = newNode;
+    }
+
+    return parent;
+}
+
+struct node* createRootNode(){
+    struct node* newNode = malloc(sizeof(struct node));
+    newNode->token_type   = ROOT_NODE;     
+    return newNode;
+}
+void showTree(struct node* root)
+{
+	printf("$\n");
+    showTreeRecursion(root->child);
+}
+void showTreeRecursion(struct node* currentNode)
+{
+	if(currentNode == NULL)
+        return;
+    
+    printf("%s: %d",currentNode->token_value, currentNode->line_number);
+    //showTreeRecursion(currentNode->brother);
+    //showTreeRecursion(currentNode->child);
 }
 
 void descompila (void *arvore){
