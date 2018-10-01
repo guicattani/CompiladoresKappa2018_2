@@ -3,18 +3,13 @@ struct nodeList* nodeList = NULL;
 struct node* createChildren(struct node* parent, struct node* child){
      struct node* nodeIterator;
      
-     printf(" create children ");
-     printf ("To be inserted: %s \n", child->token_value);
      if(parent->child != NULL){
          nodeIterator = parent->child;
-         printf(" %s ", nodeIterator->token_value);
          while(nodeIterator->brother != NULL){
              
              nodeIterator = nodeIterator->brother;
-             printf(" %s ", nodeIterator->token_value);
          }
          nodeIterator->brother = child;
-         printf(" \n ");
      }
      else{
          struct node* newNode = malloc(sizeof(struct node));
@@ -32,7 +27,7 @@ struct node* createNode(char* state){
     newNode->value.string_value = NULL;
     newNode->token_type = 0;
 
-    insertList(nodeList, newNode);
+    nodeList = insertList(nodeList, newNode);
     return newNode;
 }
 
@@ -69,7 +64,7 @@ struct node* createLeaf(int line_number, int type, char* text){
             break;
 
     }
-    insertList(nodeList, newNode);
+    nodeList = insertList(nodeList, newNode);
     return newNode;
 }
 
@@ -114,15 +109,17 @@ void liberaTree(struct node* node){
 }
 
 
-
-
 struct nodeList* insertList(struct nodeList* list, struct node* node){
+    printf("%s\n",node->token_value);
     if (list == NULL){
-        struct nodeList* newList = malloc(sizeof(struct nodeList));
-        newList->data = node;
-        newList->next = NULL; 
+        printf("%s22222\n",node->token_value);
+        list = malloc(sizeof(struct nodeList));
+        list->data = node;
+        list->next = NULL; 
+        
     }
     else{
+        printf("%s43333\n",node->token_value);
         struct nodeList* currentNode = list;
         while(currentNode->next != NULL){
             currentNode = currentNode->next;
@@ -131,13 +128,15 @@ struct nodeList* insertList(struct nodeList* list, struct node* node){
         currentNode = currentNode->next;
         currentNode->data = node;
         currentNode->next = NULL;
+        printf("%s466666\n",node->token_value);
     }
     return list;
 }
 void cleanList(struct nodeList* list){
+    printf("hi");
     if (list == NULL)
         return;
-    
+    printf("henlo");
     cleanList(list->next);
 
     if (list->data != NULL){
