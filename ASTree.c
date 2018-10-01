@@ -1,6 +1,5 @@
 #include "ASTree.h"
-
-struct nodeList* nodeList;
+struct nodeList* nodeList = NULL;
 struct node* createChildren(struct node* parent, struct node* child){
      struct node* nodeIterator;
      
@@ -135,21 +134,21 @@ struct nodeList* insertList(struct nodeList* list, struct node* node){
     }
     return list;
 }
-void cleanList(){
-    if (nodeList == NULL)
+void cleanList(struct nodeList* list){
+    if (list == NULL)
         return;
     
-    cleanList(nodeList->next);
+    cleanList(list->next);
 
-    if (nodeList->data != NULL){
-        free(nodeList->data->token_value);
-        if(nodeList->data->token_type != 5 || nodeList->data->token_type != 6 || nodeList->data->token_type != 7 )
+    if (list->data != NULL){
+        free(list->data->token_value);
+        if(list->data->token_type != 5 || list->data->token_type != 6 || list->data->token_type != 7 )
             //node has a string in it
-            if (nodeList->data->value.string_value != NULL)
-                free(nodeList->data->value.string_value); 
-        free(nodeList->data);
+            if (list->data->value.string_value != NULL)
+                free(list->data->value.string_value); 
+        free(list->data);
     }
     
-    free(nodeList);
+    free(list);
 
 } 

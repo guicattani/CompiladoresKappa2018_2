@@ -81,7 +81,7 @@
     extern char* yytext;
     extern void* arvore;
 
-
+    extern struct nodeList* nodeList;
 
     
 }
@@ -641,7 +641,7 @@ void yyerror (char const *s){
         printf("Line %d: %s in last token of line\n",yylineno, s);
     else
         printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);
-    cleanList();    
+    cleanList(nodeList);    
 }
 
 
@@ -649,5 +649,5 @@ void descompila (void *arvore){
     showTreeRecursion(arvore, 0);
 }
 void libera (void *arvore){
-    cleanList();
+    cleanList(nodeList);
 }

@@ -27,10 +27,10 @@ typedef struct nodeList{
 } NODELIST;
 
 
-
+extern struct nodeList* nodeList;
 
 struct nodeList* insertList(struct nodeList* list, struct node* node);
-void cleanList(); 
+void cleanList(struct nodeList* node); 
 
 
 void showTreeRecursion(struct node* currentNode, int treeLevel);
