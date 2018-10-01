@@ -42,7 +42,7 @@ struct node* createLeaf(int line_number, int type, char* text){
         case 2: //Special Char 
         case 3: //Compound Operator
         case 4: //Identifier
-            newNode->value.string_value = text;
+            newNode->value.string_value = strdup(text);
             break;
         case 5: //Lit int
             newNode->value.int_value = atoi(text);
@@ -58,7 +58,7 @@ struct node* createLeaf(int line_number, int type, char* text){
             break;
         case 8: //Literal Char
         case 9: //Literal String
-            newNode->value.string_value = text;
+            newNode->value.string_value = strdup(text);
             break;
 
     }
@@ -89,6 +89,7 @@ void showTreeRecursion(struct node* currentNode, int treeLevel)
 }
 
 void liberaTree(struct node* node){
+    
     if (node != NULL){
         liberaTree(node->child);
         free(node->token_value);
@@ -121,21 +122,24 @@ struct nodeList* insertList(struct nodeList* list, struct node* node){
         currentNode->data = node;
         currentNode->next = NULL;
 
+          printf("Inserido %s na lista\n", currentNode->data->token_value);
     }
     return list;
 }
 void cleanList(struct nodeList* list){
     if (list == NULL)
         return;
-    //printf("limpando %s\n", list->data->token_value);
     cleanList(list->next);
 
+    printf("limpando %s %d\n", list->data->token_value, list->data->token_type);
     if (list->data != NULL){
-        free(list->data->token_value);
-        if(list->data->token_type != 5 || list->data->token_type != 6 || list->data->token_type != 7 )
+        
+        if(list->data->token_type != 5 && list->data->token_type != 6 && list->data->token_type != 7 && list->data->token_type != 0)
             //node has a string in it
+            printf("Hey olha temos uma string em %s\n", list->data->token_value);
             if (list->data->value.string_value != NULL)
                 free(list->data->value.string_value); 
+        free(list->data->token_value);
         free(list->data);
     }
     

@@ -641,6 +641,7 @@ void yyerror (char const *s){
         printf("Line %d: %s in last token of line\n",yylineno, s);
     else
         printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);  
+
 }
 
 

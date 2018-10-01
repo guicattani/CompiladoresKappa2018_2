@@ -172,6 +172,7 @@ protected                                       {
 \,|\;|\:|\)|\(|\]|\[|\}|\{|\+|\-|\||\?          {  
                                                     yylval.nodo = createLeaf(yylineno, SPECIAL_CHARACTER, yytext);
                                                     return yytext[0];
+                                                    
                                                 }
 \*|\/|\>|\<|\=|\!|\&|\%|\#|\^|\.|\$             {   
                                                     yylval.nodo = createLeaf(yylineno, SPECIAL_CHARACTER, yytext);
