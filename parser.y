@@ -640,8 +640,7 @@ void yyerror (char const *s){
     if(yytext == NULL || yytext[0] == '\0')
         printf("Line %d: %s in last token of line\n",yylineno, s);
     else
-        printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);
-    cleanList(nodeList);    
+        printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);  
 }
 
 
@@ -650,4 +649,6 @@ void descompila (void *arvore){
 }
 void libera (void *arvore){
     cleanList(nodeList);
+    nodeList = NULL;
+    arvore = NULL;
 }

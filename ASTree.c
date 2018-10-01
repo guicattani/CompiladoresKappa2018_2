@@ -91,18 +91,14 @@ void showTreeRecursion(struct node* currentNode, int treeLevel)
 }
 
 void liberaTree(struct node* node){
-    printf("hi");
     if (node != NULL){
         liberaTree(node->child);
-        printf("oi");
         free(node->token_value);
         if(node->token_type != 5 || node->token_type != 6 || node->token_type != 7 )
             //node has a string in it
             if (node->value.string_value != NULL){
-                printf("ola");
                 free(node->value.string_value); 
             }
-        printf("helou");
         free(node);
     }
     
@@ -110,16 +106,14 @@ void liberaTree(struct node* node){
 
 
 struct nodeList* insertList(struct nodeList* list, struct node* node){
-    printf("%s\n",node->token_value);
+    //printf("Inserindo %s\n",node->token_value);
     if (list == NULL){
-        printf("%s22222\n",node->token_value);
         list = malloc(sizeof(struct nodeList));
         list->data = node;
         list->next = NULL; 
         
     }
     else{
-        printf("%s43333\n",node->token_value);
         struct nodeList* currentNode = list;
         while(currentNode->next != NULL){
             currentNode = currentNode->next;
@@ -128,15 +122,14 @@ struct nodeList* insertList(struct nodeList* list, struct node* node){
         currentNode = currentNode->next;
         currentNode->data = node;
         currentNode->next = NULL;
-        printf("%s466666\n",node->token_value);
+
     }
     return list;
 }
 void cleanList(struct nodeList* list){
-    printf("hi");
     if (list == NULL)
         return;
-    printf("henlo");
+    //printf("limpando %s\n", list->data->token_value);
     cleanList(list->next);
 
     if (list->data != NULL){
