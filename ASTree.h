@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
 union value{
         int     int_value;
         int     bool_value;
@@ -19,6 +20,18 @@ typedef struct node{
     struct node* brother;
     struct node* child;
 } NODE;
+
+typedef struct nodeList{
+    struct node* data;
+    struct nodeList* next;
+} NODELIST;
+
+
+
+
+struct nodeList* insertList(struct nodeList* list, struct node* node);
+void cleanList(); 
+
 
 void showTreeRecursion(struct node* currentNode, int treeLevel);
 struct node* createNodeOnYYVal(struct node* newNode);

@@ -1,5 +1,6 @@
 #include "ASTree.h"
 
+struct nodeList* nodeList;
 struct node* createChildren(struct node* parent, struct node* child){
      struct node* nodeIterator;
      
@@ -31,6 +32,8 @@ struct node* createNode(char* state){
 	newNode->child = NULL; 
     newNode->value.string_value = NULL;
     newNode->token_type = 0;
+
+    insertList(nodeList, newNode);
     return newNode;
 }
 
@@ -67,6 +70,7 @@ struct node* createLeaf(int line_number, int type, char* text){
             break;
 
     }
+    insertList(nodeList, newNode);
     return newNode;
 }
 
@@ -109,3 +113,43 @@ void liberaTree(struct node* node){
     }
     
 }
+
+
+
+
+struct nodeList* insertList(struct nodeList* list, struct node* node){
+    if (list == NULL){
+        struct nodeList* newList = malloc(sizeof(struct nodeList));
+        newList->data = node;
+        newList->next = NULL; 
+    }
+    else{
+        struct nodeList* currentNode = list;
+        while(currentNode->next != NULL){
+            currentNode = currentNode->next;
+        }
+        currentNode->next = malloc(sizeof(struct nodeList));
+        currentNode = currentNode->next;
+        currentNode->data = node;
+        currentNode->next = NULL;
+    }
+    return list;
+}
+void cleanList(){
+    if (nodeList == NULL)
+        return;
+    
+    cleanList(nodeList->next);
+
+    if (nodeList->data != NULL){
+        free(nodeList->data->token_value);
+        if(nodeList->data->token_type != 5 || nodeList->data->token_type != 6 || nodeList->data->token_type != 7 )
+            //node has a string in it
+            if (nodeList->data->value.string_value != NULL)
+                free(nodeList->data->value.string_value); 
+        free(nodeList->data);
+    }
+    
+    free(nodeList);
+
+} 

@@ -77,7 +77,6 @@
 
     int yylex(void);
     void yyerror (char const *s);
-
     extern int yylineno;
     extern char* yytext;
     extern void* arvore;
@@ -86,7 +85,6 @@
 
     
 }
-
 
 %union{
     struct node* nodo;
@@ -643,6 +641,7 @@ void yyerror (char const *s){
         printf("Line %d: %s in last token of line\n",yylineno, s);
     else
         printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);
+    cleanList();    
 }
 
 
@@ -650,5 +649,5 @@ void descompila (void *arvore){
     showTreeRecursion(arvore, 0);
 }
 void libera (void *arvore){
-    liberaTree(arvore);
+    cleanList();
 }
