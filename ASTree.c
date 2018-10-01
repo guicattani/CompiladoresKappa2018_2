@@ -12,9 +12,7 @@ struct node* createChildren(struct node* parent, struct node* child){
          nodeIterator->brother = child;
      }
      else{
-         struct node* newNode = malloc(sizeof(struct node));
-         newNode = child;
-         parent->child = newNode;
+         parent->child = child;
     }
     return parent;
 }
