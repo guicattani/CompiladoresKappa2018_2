@@ -30,6 +30,7 @@ struct node* createNode(char* state){
     newNode->brother = NULL;
 	newNode->child = NULL; 
     newNode->value.string_value = NULL;
+    newNode->token_type = 0;
     return newNode;
 }
 
@@ -42,10 +43,10 @@ struct node* createLeaf(int line_number, int type, char* text){
     newNode->child = NULL;
 
     switch (type){
-        case 1: //reserved word
+        case 1: //Reserved word
         case 2: //Special Char 
         case 3: //Compound Operator
-        case 4: //identifier
+        case 4: //Identifier
             newNode->value.string_value = text;
             break;
         case 5: //Lit int
@@ -77,30 +78,34 @@ void showTree(struct node* root)
 }
 void showTreeRecursion(struct node* currentNode, int treeLevel)
 {
+    if(currentNode == NULL)
+        return;
     for(int i = 0; i<treeLevel;i++)
         printf("\t"); 
-    if(currentNode->child == NULL)
+    if(currentNode->token_type != 0)
         printf("%s: %d\n",currentNode->token_value, currentNode->line_number);
     else{
-        printf("%s\n",currentNode->token_value);
+        printf("###%s###\n",currentNode->token_value);
     }
-    if (currentNode->child != NULL)
-        showTreeRecursion(currentNode->child, treeLevel + 1);
-
-    if (currentNode->brother != NULL)
-        showTreeRecursion(currentNode->brother, treeLevel); 
+    
+    showTreeRecursion(currentNode->child, treeLevel + 1);
+    showTreeRecursion(currentNode->brother, treeLevel); 
 }
 
 void liberaTree(struct node* node){
-    
+    printf("hi");
     if (node != NULL){
-        liberaTree(node->brother);
         liberaTree(node->child);
+        printf("oi");
         free(node->token_value);
         if(node->token_type != 5 || node->token_type != 6 || node->token_type != 7 )
             //node has a string in it
-            if (node->value.string_value != NULL)
+            if (node->value.string_value != NULL){
+                printf("ola");
                 free(node->value.string_value); 
-
+            }
+        printf("helou");
+        free(node);
     }
+    
 }
