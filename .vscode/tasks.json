@@ -42,6 +42,7 @@
                     "main.c",
                     "parser.tab.c",
                     "lex.yy.c",
+                    "ASTree.c"
                 ],
                 "dependsOn": [
                     "build parser",

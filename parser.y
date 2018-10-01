@@ -3,23 +3,75 @@
     #define FALSE             0
     #define TRUE              1
 
-    #define RESERVED_WORD     2
-    #define SPECIAL_CHARACTER 3
-    #define COMPOUND_OPERATOR 4
-    #define IDENTIFIER        5
+    #define RESERVED_WORD     1
+    #define SPECIAL_CHARACTER 2
+    #define COMPOUND_OPERATOR 3
+    #define IDENTIFIER        4
 
-    #define LITERAL_INT       6
-    #define LITERAL_BOOL      7
-    #define LITERAL_FLOAT     8
-    #define LITERAL_CHAR      9
-    #define LITERAL_STRING    10
+    #define LITERAL_INT       5
+    #define LITERAL_BOOL      6
+    #define LITERAL_FLOAT     7
+    #define LITERAL_CHAR      8
+    #define LITERAL_STRING    9
 
-    #define AST_PROGRAM              100
-    #define AST_IDENTIFIER           101
-    #define AST_IF_ELSE              102
+    #define AST_PROGRAMA      "Estado Programa"
+    #define AST_LITERAL       "Estado literal"
+    #define AST_PIPE          "Estado pipe"
+    #define AST_USERVARORLIT  "Estado userVariableOrLiteral"
+    #define AST_TYPE          "Estado type"
+    #define AST_PRIMITIVETYPE "Estado primitiveType"
+    #define AST_SHIFT         "Estado shift"
+    #define AST_ACCESSMOD     "Estado accessModifiers"
+    #define AST_CONSTMOD      "Estado constModifier"
+    #define AST_VECTORMOD     "Estado vectorModifier"
+    #define AST_VECTORLIST    "Estado vectorList"
+    #define AST_CODE          "Estado code"
+    #define AST_DECLARATION   "Estado declaration"
+    #define AST_CLASSDEC      "Estado classDeclaration"
+    #define AST_FIELDS        "Estado fields"
+    #define AST_GLOBALVARDEC  "Estado globalVarDeclaration"
+    #define AST_FUNCDEC       "Estado functionDeclaration"
+    #define AST_FUNCHEAD      "Estado functionHead"
+    #define AST_COMMANDSBLOCK "Estado commandsBlock"
+    #define AST_COMMANDSLIST  "Estado commandsList"
+    #define AST_FUNCARGLIST   "Estado functionArgumentsList"
+    #define AST_FUNCARGELEM   "Estado functionArgumentElements"
+    #define AST_COMMAND       "Estado command"
+    #define AST_COMMANDSIMPLE "Estado commandSimple"
+    #define AST_LOCALVARDEC   "Estado localVarDeclaration"
+    #define AST_LOCALVARCDEC  "Estado localVarCompleteDeclaration"
+    #define AST_ATTRIBUTION   "Estado attribution"
+    #define AST_PRIMATTR      "Estado primitiveAttribution"
+    #define AST_USERTYPEATTR  "Estado userTypeAttribution"
+    #define AST_SIMPLEEXP     "Estado simpleExpression"
+    #define AST_LOWPTFREXP    "Estado lowPrecedenceTwoFoldRecursiveExpression"
+    #define AST_MEDPTFREXP    "Estado mediumPrecedenceTwoFoldRecursiveExpression"
+    #define AST_HIGHPTFREXP   "Estado highPrecedenceTwoFoldRecursiveExpression"
+    #define AST_ONEFREXP      "Estado oneFoldRecursiveExpression"
+    #define AST_OPERATOR      "Estado operator"
+    #define AST_UNARYSIMBOL   "Estado unarySimbol"
+    #define AST_ARITHMETICOP  "Estado arithmeticOperator"
+    #define AST_PRECARITHOP   "Estado precedentArithmeticOperator"
+    #define AST_COMPARISONOP  "Estado comparisonOperator"
+    #define AST_EXPLIST       "Estado expressionList"
+    #define AST_FUNCTIONCALL  "Estado functionCall"
+    #define AST_FUNCCALLARGS  "Estado functionCallArguments"
+    #define AST_FUNCCALLARGSL "Estado functionCallArgumentsList"
+    #define AST_FUNCCALLARG   "Estado functionCallArgument"
+    #define AST_SHIFTCOMMAND  "Estado shiftCommand"
+    #define AST_FLUXCONTCMD   "Estado fluxControlCommand"
+    #define AST_CONDFLUXCONT  "Estado conditionalFluxControl"
+    #define AST_ITERFLUXCONT  "Estado iterativeFluxControl"
+    #define AST_SELECFLUXCONT "Estado selectionFluxControl"
+    #define AST_COMMANDSIMPLELIST "Estado commandSimpleList"
+    #define AST_PIPECOMMANDS  "Estado pipeCommands"
+
+
 
     #include <stdio.h>
     #include <string.h>
+    #include "ASTree.h"
+
     int yylex(void);
     void yyerror (char const *s);
 
@@ -27,31 +79,11 @@
     extern char* yytext;
     extern void* arvore;
 
-    struct node{
-        int     line_number;
-        int     token_type;
-        char*   token_value;
 
-        int     int_value;
-        int     bool_value;
-        float   float_value;
-        char    char_value;
-        char*   string_value;
-
-        struct node* parent;
-        struct node* brother;
-        struct node* child;
-    };
 
     
 }
-%{
-    //void showTreeRecursion(struct node currentNode);
-    struct node* createNodeOnYYVal(struct node* newNode);
-    struct node* createChildren(struct node* parent, struct node* child);
-    struct node* createNode(int state);
-    void showTree(struct node* root);
-%}
+
 
 %union{
     struct node* nodo;
@@ -114,7 +146,7 @@
 %%
 
 programa:
-    test    {struct node* root = createChildren(createNode(100), $1); showTree(root);};
+    test    {arvore = createChildren(createNode(AST_PROGRAMA), $1);};
 
 //code {printf("endofcode\n");struct node* root = createChildren(createRootNode(), $1); showTree(root);}
 //| %empty;
@@ -123,7 +155,7 @@ test:
     TK_IDENTIFICADOR TK_IDENTIFICADOR ';'
     
      {
-       $$ = createNode(101); 
+       $$ = createNode(AST_ACCESSMOD); 
        createChildren($$, $1);
        createChildren($$, $2); 
        createChildren($$, $3); 
@@ -428,7 +460,6 @@ pipeCommands:
 
 %%
 
-void showTreeRecursion(struct node* currentNode, int treeLevel);
 
 void yyerror (char const *s){
     if(yytext == NULL || yytext[0] == '\0')
@@ -437,63 +468,10 @@ void yyerror (char const *s){
         printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);
 }
 
-struct node* createChildren(struct node* parent, struct node* child){
-     struct node* nodeIterator;
-     
-     printf(" create children ");
-     printf ("To be inserted: %s \n", child->token_value);
-     if(parent->child != NULL){
-         nodeIterator = parent->child;
-         printf(" %s ", nodeIterator->token_value);
-         while(nodeIterator->brother != NULL){
-             
-             nodeIterator = nodeIterator->brother;
-             printf(" %s ", nodeIterator->token_value);
-         }
-         nodeIterator->brother = child;
-         printf(" \n ");
-     }
-     else{
-         struct node* newNode = malloc(sizeof(struct node));
-         newNode = child;
-         parent->child = newNode;
-    }
-    return parent;
-}
-
-struct node* createNode(int state){
-    struct node* newNode = malloc(sizeof(struct node));
-    newNode->brother = NULL;
-	newNode->parent = NULL;
-	newNode->child = NULL;
-    newNode->token_type   = state;  
-    return newNode;
-}
-void showTree(struct node* root)
-{
-	printf("$\n");
-    showTreeRecursion(root, 0);
-}
-void showTreeRecursion(struct node* currentNode, int treeLevel)
-{
-    for(int i = 0; i<treeLevel;i++)
-        printf("\t"); 
-    printf("OI");
-    if(currentNode->child == NULL)
-        printf("%s: %d\n",currentNode->token_value, currentNode->line_number);
-    else{
-        printf("%d\n",currentNode->token_type);
-    }
-    if (currentNode->child != NULL)
-        showTreeRecursion(currentNode->child, treeLevel + 1);
-
-    if (currentNode->brother != NULL)
-        showTreeRecursion(currentNode->brother, treeLevel); 
-}
 
 void descompila (void *arvore){
-    printf("Function descompila not yet implemented\n");
+    showTreeRecursion(arvore, 0);
 }
 void libera (void *arvore){
-    printf("Function libera not yet implemented\n");
+    liberaTree(arvore);
 }

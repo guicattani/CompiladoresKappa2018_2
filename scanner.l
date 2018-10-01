@@ -5,517 +5,209 @@
     #define FALSE             0
     #define TRUE              1
 
-    #define RESERVED_WORD     2
-    #define SPECIAL_CHARACTER 3
-    #define COMPOUND_OPERATOR 4
-    #define IDENTIFIER        5
+    #define RESERVED_WORD     1
+    #define SPECIAL_CHARACTER 2
+    #define COMPOUND_OPERATOR 3
+    #define IDENTIFIER        4
 
-    #define LITERAL_INT       6
-    #define LITERAL_BOOL      7
-    #define LITERAL_FLOAT     8
-    #define LITERAL_CHAR      9
-    #define LITERAL_STRING    10 
+    #define LITERAL_INT       5
+    #define LITERAL_BOOL      6
+    #define LITERAL_FLOAT     7
+    #define LITERAL_CHAR      8
+    #define LITERAL_STRING    9 
 
     #include "parser.tab.h"
+    #include "ASTree.h"
 %}
 
 %%
-int                                             {   struct node *newNode = malloc(sizeof(struct node));
-                                                    newNode->line_number = yylineno;
-                                                    newNode->token_type  = RESERVED_WORD;
-                                                    newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+int                                             {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_INT;
                                                 };
-float                                           {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+float                                           {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_FLOAT;
                                                 };
-bool                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+bool                                            { 
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_BOOL;
                                                 };
-char                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+char                                            {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_CHAR;
                                                 };
-string                                          {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+string                                          {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_STRING;
                                                 };
-if                                              {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+if                                              {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_IF;
                                                 };
-then                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+then                                            {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_THEN;
                                                 };
-else                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+else                                            {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_ELSE;
                                                 };
-while                                           {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+while                                           {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_WHILE;
                                                 };
-do                                              {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+do                                              {  
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_DO;
                                                 };
-input                                           {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+input                                           {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_INPUT;
                                                 };
-output                                          {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+output                                          {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_OUTPUT;
                                                 };
-return                                          {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+return                                          {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_RETURN;
                                                 };
-const                                           {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+const                                           {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_CONST;
                                                 };
-static                                          {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+static                                          {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_STATIC;
                                                 };
-foreach                                         {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+foreach                                         {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_FOREACH;
                                                 };
-for                                             {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+for                                             {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_FOR;
                                                 };
-switch                                          {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+switch                                          {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_SWITCH;
                                                 };
-case                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+case                                            {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_CASE;
                                                 };
-break                                           {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+break                                           {  
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_BREAK;
                                                 };
-continue                                        {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+continue                                        {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_CONTINUE;
                                                 };
-class                                           {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+class                                           {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_CLASS;
                                                 };
-private                                         {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+private                                         {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_PRIVATE;
                                                 };
-public                                          {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+public                                          {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_PUBLIC;
                                                 };
-protected                                       {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = RESERVED_WORD;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+protected                                       {   
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
                                                     return TK_PR_PROTECTED;
                                                 };
 
 
 
 
-\<\=                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = COMPOUND_OPERATOR;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+\<\=                                            {   
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
                                                     return TK_OC_LE;
                                                 };   
-\>\=                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = COMPOUND_OPERATOR;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+\>\=                                            {   
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
                                                     return TK_OC_GE;
                                                 };   
-\=\=                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = COMPOUND_OPERATOR;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+\=\=                                            {  
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
                                                     return TK_OC_EQ;
                                                 };   
-\!\=                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = COMPOUND_OPERATOR;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+\!\=                                            {   
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
                                                     return TK_OC_NE;
                                                 }; 
-\&\&                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = COMPOUND_OPERATOR;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+\&\&                                            {   
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
                                                     return TK_OC_AND;
                                                 };   
-\|\|                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = COMPOUND_OPERATOR;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+\|\|                                            {   
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
                                                     return TK_OC_OR;
                                                 };   
-\>\>                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = COMPOUND_OPERATOR;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+\>\>                                            {   
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
                                                     return TK_OC_SR;
                                                 };   
-\<\<                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = COMPOUND_OPERATOR;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+\<\<                                            {   
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
                                                     return TK_OC_SL;
                                                 };  
-\%\>\%                                          {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = COMPOUND_OPERATOR;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+\%\>\%                                          {   
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
                                                     return TK_OC_FORWARD_PIPE;
                                                 };
-\%\|\%                                          {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = COMPOUND_OPERATOR;
-													newNode->token_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+\%\|\%                                          {   
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
                                                     return TK_OC_BASH_PIPE;
                                                 };
 
 
 
 
-\,|\;|\:|\)|\(|\]|\[|\}|\{|\+|\-|\||\?          {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-                                                    ;
-													newNode->token_type  = SPECIAL_CHARACTER;
-													newNode->token_value = &yytext[0];
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
+\,|\;|\:|\)|\(|\]|\[|\}|\{|\+|\-|\||\?          {  
+                                                    yylval.nodo = createLeaf(yylineno, SPECIAL_CHARACTER, yytext);
                                                     return yytext[0];
                                                 }
-\*|\/|\>|\<|\=|\!|\&|\%|\#|\^|\.|\$             {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = SPECIAL_CHARACTER;
-													newNode->token_value = &yytext[0];
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-
+\*|\/|\>|\<|\=|\!|\&|\%|\#|\^|\.|\$             {   
+                                                    yylval.nodo = createLeaf(yylineno, SPECIAL_CHARACTER, yytext);
                                                     return yytext[0];
                                                 }
 
 
 
 
-[0-9]*                                          {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type = LITERAL_INT;
-													newNode->int_value = atoi(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+[0-9]*                                          {   
+                                                    yylval.nodo = createLeaf(yylineno, LITERAL_INT, yytext);
                                                     return TK_LIT_INT;
                                                 }
-[0-9]*\.([0-9]*((e|E)(\+|\-)?[0-9]*)?)?         {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = LITERAL_FLOAT;
-													newNode->float_value = atof(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+[0-9]*\.([0-9]*((e|E)(\+|\-)?[0-9]*)?)?         {   
+                                                    yylval.nodo = createLeaf(yylineno, LITERAL_FLOAT, yytext);
                                                     return TK_LIT_FLOAT;
                                                 }
-false                                           {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = LITERAL_BOOL;
-													newNode->bool_value  = FALSE;
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+false                                           {   
+                                                    yylval.nodo = createLeaf(yylineno, LITERAL_BOOL, yytext);
                                                     return TK_LIT_FALSE;
                                                 }
-true                                            {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = LITERAL_BOOL;
-													newNode->bool_value  = TRUE;
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+true                                            {   
+                                                    yylval.nodo = createLeaf(yylineno, LITERAL_BOOL, yytext);   
                                                     return TK_LIT_TRUE;
                                                 }
-\'([^\'\\\n]|\\n|\\\'|\\\\)\'                   {   struct node *newNode = malloc(sizeof(struct node));
-													newNode->line_number = yylineno;
-													newNode->token_type  = LITERAL_CHAR;
-													newNode->char_value  = yytext[0];
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+\'([^\'\\\n]|\\n|\\\'|\\\\)\'                   {   
+                                                    yylval.nodo = createLeaf(yylineno, LITERAL_CHAR, yytext);
                                                     return TK_LIT_CHAR;
                                                 }
-\"(\\\"|[^\"|\r\n|\r|\n])*\"                    {   struct node *newNode  = malloc(sizeof(struct node));
-                                                    newNode->line_number  = yylineno;
-                                                    newNode->token_type   = LITERAL_STRING;
-                                                    newNode->string_value = strdup(yytext);
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-                                                    
+\"(\\\"|[^\"|\r\n|\r|\n])*\"                    {  
+                                                    yylval.nodo = createLeaf(yylineno, LITERAL_STRING, yytext);
                                                     return TK_LIT_STRING;
                                                 }
 
-[A-Z_a-z][A-Z_a-z0-9]*                          {   struct node *newNode = malloc(sizeof(struct node));
-                                                    newNode->line_number = yylineno;
-                                                    newNode->token_type  = IDENTIFIER;
-                                                    newNode->token_value = strdup(yytext);
-                                                    
-                                                    newNode->brother = NULL;
-													newNode->parent = NULL;
-													newNode->child = NULL;
-													yylval.nodo = newNode;
-
+[A-Z_a-z][A-Z_a-z0-9]*                          {   
+                                                    yylval.nodo = createLeaf(yylineno, IDENTIFIER, yytext);
                                                     return TK_IDENTIFICADOR;
                                                 }
     
@@ -530,6 +222,7 @@ true                                            {   struct node *newNode = mallo
 \n                                              yylineno++;
 \r                                              yylineno++;
 
+\t                                              {};
 " "                                             {};
 .                                               return TOKEN_ERRO;
 %%
