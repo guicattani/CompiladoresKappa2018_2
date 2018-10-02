@@ -30,7 +30,8 @@ typedef struct nodeList{
 extern struct nodeList* nodeList;
 
 struct nodeList* insertList(struct nodeList* list, struct node* node);
-void cleanList(struct nodeList* node); 
+void cleanListOnError(struct nodeList* node); 
+void cleanListWhenSuccessful(struct nodeList* node); 
 
 
 void showTreeRecursion(struct node* currentNode, int treeLevel);

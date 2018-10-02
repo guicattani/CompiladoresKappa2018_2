@@ -641,7 +641,10 @@ void yyerror (char const *s){
         printf("Line %d: %s in last token of line\n",yylineno, s);
     else
         printf("Line %d: %s near \"%s\"\n",yylineno, s, yytext);  
-
+        
+    cleanListOnError(nodeList);
+    arvore = NULL;
+    nodeList = NULL;  
 }
 
 
@@ -649,7 +652,8 @@ void descompila (void *arvore){
     showTreeRecursion(arvore, 0);
 }
 void libera (void *arvore){
-    cleanList(nodeList);
+    cleanListWhenSuccessful(nodeList);
+    liberaTree(arvore);
     nodeList = NULL;
     arvore = NULL;
 }

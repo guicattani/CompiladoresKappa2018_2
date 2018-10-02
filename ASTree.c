@@ -113,9 +113,9 @@ void showTreeRecursion(struct node* currentNode, int treeLevel)
 }
 
 void liberaTree(struct node* node){
-    
     if (node != NULL){
         liberaTree(node->child);
+        liberaTree(node->brother);
         free(node->token_value);
         if(node->token_type != 5 || node->token_type != 6 || node->token_type != 7 )
             //node has a string in it
@@ -124,8 +124,15 @@ void liberaTree(struct node* node){
             }
         free(node);
     }
-    
 }
+
+void cleanListWhenSuccessful(struct nodeList* list){
+    if (list == NULL)
+        return;
+    
+    cleanListWhenSuccessful(list->next);
+    free(list);
+} 
 
 
 struct nodeList* insertList(struct nodeList* list, struct node* node){
@@ -150,10 +157,10 @@ struct nodeList* insertList(struct nodeList* list, struct node* node){
     }
     return list;
 }
-void cleanList(struct nodeList* list){
+void cleanListOnError(struct nodeList* list){
     if (list == NULL)
         return;
-    cleanList(list->next);
+    cleanListOnError(list->next);
 
     //printf("limpando %s %d\n", list->data->token_value, list->data->token_type);
     if (list->data != NULL){
