@@ -113,17 +113,17 @@ void showTreeRecursion(struct node* currentNode, int treeLevel)
 }
 
 void liberaTree(struct node* node){
-    if (node != NULL){
-        liberaTree(node->child);
-        liberaTree(node->brother);
-        free(node->token_value);
-        if(node->token_type != 5 || node->token_type != 6 || node->token_type != 7 )
-            //node has a string in it
-            if (node->value.string_value != NULL){
-                free(node->value.string_value); 
-            }
-        free(node);
-    }
+    if(node == NULL)
+        return;
+    liberaTree(node->child);
+    liberaTree(node->brother);
+    free(node->token_value);
+        if(node->token_type != 5 && node->token_type != 6 && node->token_type != 7 && node->token_type != 0)
+        //node has a string in it
+        if (node->value.string_value != NULL){
+            free(node->value.string_value); 
+        }
+    free(node);
 }
 
 void cleanListWhenSuccessful(struct nodeList* list){
