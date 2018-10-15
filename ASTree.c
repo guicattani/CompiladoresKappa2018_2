@@ -76,39 +76,15 @@ void showTreeRecursion(struct node* currentNode, int treeLevel)
 {
     if(currentNode == NULL)
         return;
-     
-    if(currentNode->token_type != 0){
-        if(!strcmp(currentNode->token_value, "}")){
-            treeLevel--;
-            for(int i = 0; i<treeLevel;i++)
-                printf("\t");
-        }
-
-        printf("%s ",currentNode->token_value);
-
-        if(!strcmp(currentNode->token_value, "}")){
-            putchar('\n');
-        }
-
-        if(!strcmp(currentNode->token_value, "{")){
-            putchar('\n');
-            treeLevel++;
-
-            for(int i = 0; i<treeLevel;i++)
-                printf("\t");
-        }
-        if(!strcmp(currentNode->token_value, ";")){
-            putchar('\n');
-            for(int i = 0; i<treeLevel;i++)
-                printf("\t");
-        }
-            
-    }
+    for(int i = 0; i<treeLevel;i++)
+        printf("\t"); 
+    if(currentNode->token_type != 0)
+        printf("%s: %d\n",currentNode->token_value, currentNode->line_number);
     else{
-       // printf("###%s###\n",currentNode->token_value);
+        printf("###%s###\n",currentNode->token_value);
     }
     
-    showTreeRecursion(currentNode->child, treeLevel);
+    showTreeRecursion(currentNode->child, treeLevel + 1);
     showTreeRecursion(currentNode->brother, treeLevel); 
 }
 
@@ -146,7 +122,7 @@ struct nodeList* insertList(struct nodeList* list, struct node* node){
         currentNode->data = node;
         currentNode->next = NULL;
 
-         // printf("Inserido %s na lista\n", currentNode->data->token_value);
+          printf("Inserido %s na lista\n", currentNode->data->token_value);
     }
     return list;
 }
@@ -155,12 +131,12 @@ void cleanList(struct nodeList* list){
         return;
     cleanList(list->next);
 
-    //printf("limpando %s %d\n", list->data->token_value, list->data->token_type);
+    printf("limpando %s %d\n", list->data->token_value, list->data->token_type);
     if (list->data != NULL){
         
         if(list->data->token_type != 5 && list->data->token_type != 6 && list->data->token_type != 7 && list->data->token_type != 0)
             //node has a string in it
-            //printf("Hey olha temos uma string em %s\n", list->data->token_value);
+            printf("Hey olha temos uma string em %s\n", list->data->token_value);
             if (list->data->value.string_value != NULL)
                 free(list->data->value.string_value); 
         free(list->data->token_value);
