@@ -42,7 +42,9 @@
                     "main.c",
                     "parser.tab.c",
                     "lex.yy.c",
-                    "ASTree.c"
+                    "ASTree.c",
+                    "symbolTable.c",
+                    "auxiliar.c"
                 ],
                 "dependsOn": [
                     "build parser",
@@ -53,6 +55,24 @@
                     "kind": "build",
                     "isDefault": true
                 }
+            },
+            {
+                "label": "testSymbolTable",
+                "type": "shell",
+                "command": "gcc",
+                "args": [
+                    "-o",
+                    "symbolTest",
+                    "symbolTable.c",
+                    "auxiliar.c",
+                    "symbolTableTest.c"
+                ],
+                "dependsOn": [
+                    "build parser",
+                    "build scanner"
+                ],
+                "problemMatcher": [],
+
             }
         ]
     }

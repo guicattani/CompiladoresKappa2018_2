@@ -2,20 +2,7 @@
 %x multilinecomment
 
 %{
-    #define FALSE             0
-    #define TRUE              1
-
-    #define RESERVED_WORD     1
-    #define SPECIAL_CHARACTER 2
-    #define COMPOUND_OPERATOR 3
-    #define IDENTIFIER        4
-
-    #define LITERAL_INT       5
-    #define LITERAL_BOOL      6
-    #define LITERAL_FLOAT     7
-    #define LITERAL_CHAR      8
-    #define LITERAL_STRING    9 
-
+    #include "auxiliar.h"
     #include "parser.tab.h"
     #include "ASTree.h"
 %}
@@ -183,32 +170,32 @@ protected                                       {
 
 
 [0-9]*                                          {   
-                                                    yylval.nodo = createLeaf(yylineno, LITERAL_INT, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_INT, yytext);
                                                     return TK_LIT_INT;
                                                 }
 [0-9]*\.([0-9]*((e|E)(\+|\-)?[0-9]*)?)?         {   
-                                                    yylval.nodo = createLeaf(yylineno, LITERAL_FLOAT, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_FLOAT, yytext);
                                                     return TK_LIT_FLOAT;
                                                 }
 false                                           {   
-                                                    yylval.nodo = createLeaf(yylineno, LITERAL_BOOL, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_BOOL, yytext);
                                                     return TK_LIT_FALSE;
                                                 }
 true                                            {   
-                                                    yylval.nodo = createLeaf(yylineno, LITERAL_BOOL, yytext);   
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_BOOL, yytext);   
                                                     return TK_LIT_TRUE;
                                                 }
 \'([^\'\\\n]|\\n|\\\'|\\\\)\'                   {   
-                                                    yylval.nodo = createLeaf(yylineno, LITERAL_CHAR, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_CHAR, yytext);
                                                     return TK_LIT_CHAR;
                                                 }
 \"(\\\"|[^\"|\r\n|\r|\n])*\"                    {  
-                                                    yylval.nodo = createLeaf(yylineno, LITERAL_STRING, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_STRING, yytext);
                                                     return TK_LIT_STRING;
                                                 }
 
 [A-Z_a-z][A-Z_a-z0-9]*                          {   
-                                                    yylval.nodo = createLeaf(yylineno, IDENTIFIER, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_IDENTIFICADOR, yytext);
                                                     return TK_IDENTIFICADOR;
                                                 }
     

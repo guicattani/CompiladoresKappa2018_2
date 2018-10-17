@@ -3,14 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-union value{
-        int     int_value;
-        int     bool_value;
-        float   float_value;
-        char    char_value;
-        char*   string_value;
-    };
+#include "auxiliar.h"
 typedef struct node{
     int     line_number;
     int     token_type;

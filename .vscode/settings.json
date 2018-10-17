@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "symboltable.h": "c",
+        "auxiliar.h": "c"
+    }
+}
