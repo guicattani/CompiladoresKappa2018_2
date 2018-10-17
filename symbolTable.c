@@ -93,3 +93,16 @@ struct fieldList* pushField(struct fieldList* fieldList, int type, char* name){
     }
     return fieldList;
 }
+
+void freeFieldList(struct fieldList* fieldList){
+    while(fieldList != NULL){
+        free(fieldList->name);
+        struct fieldList* temp = fieldList;
+        fieldList= fieldList->next;
+        free(temp);
+    }
+}
+
+struct symbolInfo* findSymbolInCurrentContext(){
+    //well this is a function
+}

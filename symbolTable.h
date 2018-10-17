@@ -42,6 +42,6 @@ typedef struct contextStack{
 int addSymbol(char * name, int line, int type, int nature, struct fieldList* fields, int vectorSize, char * value);
 void createContext();
 void freeSymbolInfo(struct symbolInfo* info);
-
+void deleteContext();
 
 #endif
