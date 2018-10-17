@@ -21,16 +21,19 @@ void createContext(){
 //nature - Nature of the symbol (don't ask me what it means, it should be type)
 //fieldList - List of fields or arguments with the respective types, it should already be allocated or NULL
 //VectorSize - If it is a vector, it should have its size, else it should be 1
-void addSymbol(char * name, int line, int type, int nature, struct fieldList* fields, int vectorSize){
+//returns 0 if the symbol exists
+int addSymbol(char * name, int line, int type, int nature, struct fieldList* fields, int vectorSize, char * value){
+
+
 
     struct context* new = malloc(sizeof(struct context));
     new->info.line = line;
     new->info.nature = nature;
     new->info.type = type;
-    new->info.size = getSizeFromType(type, vectorSize, name);
+    new->info.size = getSizeFromType(type, vectorSize, value);
 
     new->info.name = _strdup(name);
-    union value val = createValue(type, name);
+    union value val = createValue(type, value);
     new->info.value = val;
 
 
@@ -67,3 +70,26 @@ void freeSymbolInfo(struct symbolInfo* info){
 
 }
 
+
+//Given a FieldList, pushes a field into it and returns the new list
+struct fieldList* pushField(struct fieldList* fieldList, int type, char* name){
+    if(fieldList == NULL){
+        fieldList = malloc(sizeof(struct fieldList));
+        fieldList->name = strdup(name);
+        fieldList->type = type;
+        fieldList->next = NULL;
+    }
+    else{
+        
+        struct fieldList* new = malloc(sizeof(struct fieldList));
+        new->name = strdup(name);
+        new->type = type;
+        
+
+        struct fieldList* temp = fieldList;
+        while(temp->next != NULL)
+            temp = temp->next;
+        temp->next = new;
+    }
+    return fieldList;
+}
