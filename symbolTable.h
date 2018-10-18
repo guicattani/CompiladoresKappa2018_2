@@ -44,5 +44,6 @@ void createContext();
 void freeSymbolInfo(struct symbolInfo* info);
 void deleteContext();
 struct symbolInfo findSymbolInContexts(char* name);
+int setSymbolValue(char* name, char* value);
 
 #endif

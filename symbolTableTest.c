@@ -25,6 +25,10 @@ int main (int argc, char **argv)
     newInfo = findSymbolInContexts("oi2");
     printf("c%s", newInfo.value.string_value);
 
+    setSymbolValue("oi", "5");
+    newInfo = findSymbolInContexts("oi");
+    printf("b%s", newInfo.value.string_value);
+
     return 0;
 
 }

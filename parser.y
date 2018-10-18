@@ -5,16 +5,15 @@
     #include <stdio.h>
     #include <string.h>
     #include "ASTree.h"
+    #include "symbolTable.h"
 
     int yylex(void);
     void yyerror (char const *s);
+    
     extern int yylineno;
     extern char* yytext;
     extern void* arvore;
-
     extern struct nodeList* nodeList;
-
-    
 }
 
 %union{
@@ -129,8 +128,8 @@
 %%
 
 programa:
-      code   {arvore = createChildren(createNode(AST_PROGRAMA), $1);};
-    | %empty {arvore = createNode(AST_PROGRAMA);};
+    {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2);};
+                      | %empty {arvore = createNode(AST_PROGRAMA);};
 
 /* test:
     TK_IDENTIFICADOR TK_IDENTIFICADOR ';'
@@ -244,7 +243,8 @@ fields:
 globalVarDeclaration:
     TK_IDENTIFICADOR type  ';'                                 {$$ = createNode(AST_GLOBALVARDEC); 
                                                                 createChildren($$, $1); createChildren($$, $2);
-                                                                createChildren($$, $3);}
+                                                                createChildren($$, $3);
+                                                                addSymbol($1->token_value, $1->line_number,$1->token_type, $1->token_type, NULL, 1, ""); }
     | TK_IDENTIFICADOR TK_PR_STATIC type  ';'                  {$$ = createNode(AST_GLOBALVARDEC); 
                                                                 createChildren($$, $1); createChildren($$, $2);
                                                                 createChildren($$, $3); createChildren($$, $4);}
@@ -354,7 +354,11 @@ attribution:
 primitiveAttribution:
       TK_IDENTIFICADOR vectorModifier '=' expression {$$ = createNode(AST_PRIMATTR); 
                                                       createChildren($$, $1); createChildren($$, $2);
-                                                      createChildren($$, $3); createChildren($$, $4);};  
+                                                      createChildren($$, $3); createChildren($$, $4);
+                                                      if(setSymbolValue($1->token_value, $4->token_value)){
+                                                        yyerror("Variable not declared");
+                                                        return ERR_UNDECLARED;
+                                                      } };  
  //userVariable
 
 userTypeAttribution:
@@ -583,4 +587,28 @@ void libera (void *arvore){
     cleanList(nodeList);
     nodeList = NULL;
     arvore = NULL;
-}
+}/* Verificação de declarações */
+#define ERR_UNDECLARED  10 //identificador não declarado
+#define ERR_DECLARED    11 //identificador já declarado
+
+/* Uso correto de identificadores */
+#define ERR_VARIABLE    20 //identificador deve ser utilizado como variável
+#define ERR_VECTOR      21 //identificador deve ser utilizado como vetor
+#define ERR_FUNCTION    22 //identificador deve ser utilizado como função
+#define ERR_USER        23 //identificador deve ser utilizado como de usuário
+
+/* Tipos e tamanho de dados */
+#define ERR_WRONG_TYPE  30 //tipos incompatíveis
+#define ERR_STRING_TO_X 31 //coerção impossível de var do tipo string
+#define ERR_CHAR_TO_X   32 //coerção impossível de var do tipo char
+#define ERR_USER_TO_X   33 //coerção impossível de var do tipo de usuário
+
+/* Argumentos e parâmetros */
+#define ERR_MISSING_ARGS    40 //faltam argumentos 
+#define ERR_EXCESS_ARGS     41 //sobram argumentos 
+#define ERR_WRONG_TYPE_ARGS 42 //argumentos incompatíveis
+
+/* Verificação de tipos em comandos */
+#define ERR_WRONG_PAR_INPUT  50 //parâmetro não é identificador
+#define ERR_WRONG_PAR_OUTPUT 51 //parâmetro não é literal string ou expressão
+#define ERR_WRONG_PAR_RETURN 52 //parâmetro não é expressão compatível com tipo do retorno

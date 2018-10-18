@@ -22,10 +22,7 @@ void createContext(){
 //fieldList - List of fields or arguments with the respective types, it should already be allocated or NULL
 //VectorSize - If it is a vector, it should have its size, else it should be 1
 //returns 0 if the symbol exists
-int addSymbol(char * name, int line, int type, int nature, struct fieldList* fields, int vectorSize, char * value){
-
-
-
+int addSymbol(char* name, int line, int type, int nature, struct fieldList* fields, int vectorSize, char* value){
     struct context* new = malloc(sizeof(struct context));
     new->info.line = line;
     new->info.nature = nature;
@@ -119,4 +116,31 @@ struct symbolInfo findSymbolInContexts(char* name){
         tempStack = tempStack->previousContext;
     }
     return returnInfo;
+}
+
+int setSymbolValue(char* name, char* value){
+    struct contextStack* tempStack;
+    struct context* tempContext;
+    struct symbolInfo returnInfo;
+
+    struct context* new = malloc(sizeof(struct context));
+
+    tempStack = contextStack;
+    while(tempStack != NULL){
+        HASH_FIND_STR(tempStack->currentContext, name, tempContext);
+
+        if (tempContext){
+            memcpy(new, tempContext, sizeof(struct context));
+            union value val = createValue(new->info.type, value);
+            new->info.value = val;
+
+            HASH_DEL(tempStack->currentContext, tempContext);
+            free(tempContext);
+
+            HASH_ADD_STR(tempStack->currentContext, info.name, new);
+            return 0;
+        };
+        tempStack = tempStack->previousContext;
+    }
+    return -1;
 }
