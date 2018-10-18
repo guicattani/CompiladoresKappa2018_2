@@ -32,7 +32,7 @@ int addSymbol(char * name, int line, int type, int nature, struct fieldList* fie
     new->info.type = type;
     new->info.size = getSizeFromType(type, vectorSize, value);
 
-    new->info.name = _strdup(name);
+    new->info.name = strdup(name);
     union value val = createValue(type, value);
     new->info.value = val;
 
@@ -103,6 +103,20 @@ void freeFieldList(struct fieldList* fieldList){
     }
 }
 
-struct symbolInfo* findSymbolInCurrentContext(){
-    //well this is a function
+struct symbolInfo findSymbolInContexts(char* name){
+    struct contextStack* tempStack;
+    struct context* tempContext;
+    struct symbolInfo returnInfo;
+
+    tempStack = contextStack;
+    while(tempStack != NULL){
+        HASH_FIND_STR(tempStack->currentContext, name, tempContext);
+
+        if (tempContext){
+            returnInfo = tempContext->info;
+            break;
+        };
+        tempStack = tempStack->previousContext;
+    }
+    return returnInfo;
 }

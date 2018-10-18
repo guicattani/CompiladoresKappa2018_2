@@ -8,7 +8,7 @@ union value createValue(int type, char* text){
         case SPECIAL_CHARACTER: //Special Char 
         case COMPOUND_OPERATOR: //Compound Operator
         case NATUREZA_IDENTIFICADOR: //Identifier
-            value.string_value = _strdup(text);
+            value.string_value = strdup(text);
             break;
         case NATUREZA_LITERAL_INT: //Lit int
             value.int_value = atoi(text);
@@ -24,7 +24,7 @@ union value createValue(int type, char* text){
             break;
         case NATUREZA_LITERAL_CHAR: //Literal Char
         case NATUREZA_LITERAL_STRING: //Literal String
-            value.string_value = _strdup(text);
+            value.string_value = strdup(text);
             break;
 
         
