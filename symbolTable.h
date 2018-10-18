@@ -43,7 +43,7 @@ int addSymbol(char * name, int line, int type, int nature, struct fieldList* fie
 void createContext();
 void freeSymbolInfo(struct symbolInfo* info);
 void deleteContext();
-struct symbolInfo findSymbolInContexts(char* name);
+struct symbolInfo* findSymbolInContexts(char* name);
 int setSymbolValue(char* name, char* value);
 
 #endif

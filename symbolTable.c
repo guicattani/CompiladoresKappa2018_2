@@ -100,17 +100,17 @@ void freeFieldList(struct fieldList* fieldList){
     }
 }
 
-struct symbolInfo findSymbolInContexts(char* name){
+struct symbolInfo* findSymbolInContexts(char* name){
     struct contextStack* tempStack;
     struct context* tempContext;
-    struct symbolInfo returnInfo;
+    struct symbolInfo* returnInfo = NULL;
 
     tempStack = contextStack;
     while(tempStack != NULL){
         HASH_FIND_STR(tempStack->currentContext, name, tempContext);
 
         if (tempContext){
-            returnInfo = tempContext->info;
+            returnInfo = &tempContext->info;
             break;
         };
         tempStack = tempStack->previousContext;
