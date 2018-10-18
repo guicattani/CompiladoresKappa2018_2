@@ -1,4 +1,5 @@
 #include "symbolTable.h"
+#include "ASTree.h"
 #include "hashtable/uthash.h"
 #include "stdio.h"
 struct contextStack* contextStack = NULL;

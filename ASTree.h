@@ -4,21 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "auxiliar.h"
-typedef struct node{
-    int     line_number;
-    int     token_type;
-    char*   token_value;
-    
-    union value value;
-    struct node* brother;
-    struct node* child;
-} NODE;
-
-typedef struct nodeList{
-    struct node* data;
-    struct nodeList* next;
-} NODELIST;
-
 
 extern struct nodeList* nodeList;
 

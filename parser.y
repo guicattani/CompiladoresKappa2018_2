@@ -355,7 +355,7 @@ primitiveAttribution:
       TK_IDENTIFICADOR vectorModifier '=' expression {$$ = createNode(AST_PRIMATTR); 
                                                       createChildren($$, $1); createChildren($$, $2);
                                                       createChildren($$, $3); createChildren($$, $4);
-                                                      if(setSymbolValue($1->token_value, $4->token_value)){
+                                                      if(!findSymbolInContexts($1->token_value)){
                                                         yyerror("Variable not declared");
                                                         return ERR_UNDECLARED;
                                                       } };  
