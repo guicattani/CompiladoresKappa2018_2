@@ -65,8 +65,12 @@
                     "-g",
                     "-o",
                     "symbolTest",
+                    "parser.tab.c",
+                    "lex.yy.c",
                     "symbolTable.c",
+                    "symbolTableInterface.c",
                     "auxiliar.c",
+                    "ASTree.c",
                     "symbolTableTest.c"
                 ],
                 "dependsOn": [

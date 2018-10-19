@@ -1,4 +1,5 @@
 #include "symbolTable.h"
+#include <stdio.h>
 
 struct contextStack* contextStack = NULL;
 
@@ -67,6 +68,7 @@ void freeSymbolInfo(struct symbolInfo* info){
 
 //Given a FieldList, pushes a field into it and returns the new list
 struct fieldList* pushField(struct fieldList* fieldList, int type, char* name){
+    printf(" type %d name %s\n",type, name);
     if(fieldList == NULL){
         fieldList = malloc(sizeof(struct fieldList));
         fieldList->name = strdup(name);
@@ -74,11 +76,9 @@ struct fieldList* pushField(struct fieldList* fieldList, int type, char* name){
         fieldList->next = NULL;
     }
     else{
-        
         struct fieldList* new = malloc(sizeof(struct fieldList));
         new->name = strdup(name);
         new->type = type;
-        
 
         struct fieldList* temp = fieldList;
         while(temp->next != NULL)

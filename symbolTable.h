@@ -46,4 +46,7 @@ void deleteContext();
 struct symbolInfo* findSymbolInContexts(char* name);
 int setSymbolValue(char* name, char* value);
 
+struct fieldList* pushField(struct fieldList* fieldList, int type, char* name);
+void freeFieldList(struct fieldList* fieldList);
+
 #endif

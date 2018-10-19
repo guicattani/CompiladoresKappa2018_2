@@ -35,4 +35,7 @@ struct node* createLeaf(int line_number, int type, char* text);
 void liberaTree(struct node* node);
 int getAttributedStringSize(struct node* node);
 int calculateTypeInfer(struct node* node);
+
+int numberOfChildren(struct node* node);
+int numberOfSiblings(struct node* node);
 #endif

@@ -213,3 +213,16 @@ int calculateTypeInfer(struct node* node){
        nodeType == NATUREZA_LITERAL_BOOL ))
        return NATUREZA_LITERAL_FLOAT;
 }
+
+int numberOfChildren(struct node* node){
+    return numberOfSiblings(node->child);
+}
+
+int numberOfSiblings(struct node* node){
+    if(node == NULL)
+        return 0;
+    else{
+        return 1 + numberOfSiblings(node->brother);
+    }
+    
+}
