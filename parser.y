@@ -5,7 +5,7 @@
     #include <stdio.h>
     #include <string.h>
     #include "ASTree.h"
-    #include "symbolTable.h"
+    #include "symbolTableInterface.h"
 
     int yylex(void);
     void yyerror (char const *s);
@@ -244,19 +244,26 @@ globalVarDeclaration:
     TK_IDENTIFICADOR type  ';'                                 {$$ = createNode(AST_GLOBALVARDEC); 
                                                                 createChildren($$, $1); createChildren($$, $2);
                                                                 createChildren($$, $3);
-                                                                addSymbol($1->token_value, $1->line_number,$1->token_type, $1->token_type, NULL, 1, ""); }
+                                                                addSymbolFromNode($1,$2);
+                                                               }
     | TK_IDENTIFICADOR TK_PR_STATIC type  ';'                  {$$ = createNode(AST_GLOBALVARDEC); 
                                                                 createChildren($$, $1); createChildren($$, $2);
-                                                                createChildren($$, $3); createChildren($$, $4);}
+                                                                createChildren($$, $3); createChildren($$, $4);
+                                                                addSymbolFromNode($1,$3);
+                                                               }
     | TK_IDENTIFICADOR '['TK_LIT_INT']' type  ';'              {$$ = createNode(AST_GLOBALVARDEC); 
                                                                 createChildren($$, $1); createChildren($$, $2);
                                                                 createChildren($$, $3); createChildren($$, $4);
-                                                                createChildren($$, $5); createChildren($$, $6);}
+                                                                createChildren($$, $5); createChildren($$, $6);
+                                                                addSymbolFromNodeWithVector($1,$5,$3);
+                                                               }
     | TK_IDENTIFICADOR '['TK_LIT_INT']' TK_PR_STATIC type  ';' {$$ = createNode(AST_GLOBALVARDEC); 
                                                                 createChildren($$, $1); createChildren($$, $2);
                                                                 createChildren($$, $3); createChildren($$, $4);
                                                                 createChildren($$, $5); createChildren($$, $6);
-                                                                createChildren($$, $7);}; 
+                                                                createChildren($$, $7);
+                                                                addSymbolFromNodeWithVector($1,$6,$3);
+                                                                }; 
 
 //Function declaration
 functionDeclaration:
@@ -331,7 +338,8 @@ localVarDeclaration:
       primitiveType TK_IDENTIFICADOR localVarInit //If it starts with ID and is initialized 
                                                     {$$ = createNode(AST_LOCALVARDEC); 
                                                      createChildren($$, $1); createChildren($$, $2);
-                                                     createChildren($$, $3);} 
+                                                     createChildren($$, $3);
+                                                     } 
     | TK_IDENTIFICADOR TK_IDENTIFICADOR          //userType userVariable
                                                     {$$ = createNode(AST_LOCALVARDEC); createChildren($$, $1); createChildren($$, $2);};
 localVarCompleteDeclaration:
@@ -353,28 +361,39 @@ attribution:
 
 primitiveAttribution:
       TK_IDENTIFICADOR vectorModifier '=' expression {$$ = createNode(AST_PRIMATTR); 
-                                                      createChildren($$, $1); createChildren($$, $2);
-                                                      createChildren($$, $3); createChildren($$, $4);
+                                                        createChildren($$, $1); createChildren($$, $2);
+                                                        createChildren($$, $3); createChildren($$, $4);
                                                       if(!findSymbolInContexts($1->token_value)){
                                                         yyerror("Variable not declared");
-                                                        return ERR_UNDECLARED;
-                                                      } };  
+                                                        return ERR_UNDECLARED;} };  
  //userVariable
 
 userTypeAttribution:
       TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR '=' expression {$$ = createNode(AST_USERTYPEATTR); 
-                                                                                  createChildren($$, $1); createChildren($$, $2);
-                                                                                  createChildren($$, $3); createChildren($$, $4);
-                                                                                  createChildren($$, $5); createChildren($$, $6);};
+                                                                                createChildren($$, $1); createChildren($$, $2);
+                                                                                createChildren($$, $3); createChildren($$, $4);
+                                                                                createChildren($$, $5); createChildren($$, $6);
+                                                                            if(!findSymbolInContexts($1->token_value)){
+                                                                                yyerror("Variable not declared");
+                                                                                return ERR_UNDECLARED;} 
+                                                                          };
 
 simpleExpression:
-      TK_IDENTIFICADOR                          {$$ = $1;}
+      TK_IDENTIFICADOR                          {$$ = $1;
+                                                if(!findSymbolInContexts($1->token_value)){
+                                                    yyerror("Variable not declared");
+                                                    return ERR_UNDECLARED;}
+                                                }
     | functionCall                              {$$ = $1;}
     | pipeCommands                              {$$ = $1;}
     | literal                                   {$$ = $1;}
     | TK_IDENTIFICADOR  '$' TK_IDENTIFICADOR    {$$ = createNode(AST_SIMPLEEXP); 
                                                       createChildren($$, $1); createChildren($$, $2);
-                                                      createChildren($$, $3);};
+                                                      createChildren($$, $3);
+                                                if(!findSymbolInContexts($1->token_value)){
+                                                    yyerror("Variable not declared");
+                                                    return ERR_UNDECLARED;}
+                                                };
 
 expression:
     lowPrecedenceTwoFoldRecursiveExpression                                 {$$ = $1;}
@@ -412,18 +431,34 @@ oneFoldRecursiveExpression:
                                                                       createChildren($$, $1); createChildren($$, $2);
                                                                       createChildren($$, $3); createChildren($$, $4);}
 
-    | TK_IDENTIFICADOR vectorList                                    {$$ = createNode(AST_ONEFREXP); createChildren($$, $1); createChildren($$, $2);}
+    | TK_IDENTIFICADOR vectorList                                    {$$ = createNode(AST_ONEFREXP); createChildren($$, $1); createChildren($$, $2);
+                                                                      if(!findSymbolInContexts($1->token_value)){
+                                                                        yyerror("Variable not declared");
+                                                                        return ERR_UNDECLARED;}
+                                                                     }
     | unaryOperator TK_IDENTIFICADOR vectorList                      {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1); createChildren($$, $2);
-                                                                      createChildren($$, $3);}
+                                                                      createChildren($$, $3);
+                                                                      if(!findSymbolInContexts($2->token_value)){
+                                                                        yyerror("Variable not declared");
+                                                                        return ERR_UNDECLARED;}
+                                                                     }
 
     | TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR               {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1); createChildren($$, $2);
-                                                                      createChildren($$, $3); createChildren($$, $4);}
+                                                                      createChildren($$, $3); createChildren($$, $4);
+                                                                      if(!findSymbolInContexts($1->token_value)){
+                                                                        yyerror("Variable not declared");
+                                                                        return ERR_UNDECLARED;}
+                                                                    }
     | unaryOperator TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1); createChildren($$, $2);
                                                                       createChildren($$, $3); createChildren($$, $4);
-                                                                      createChildren($$, $5);};
+                                                                      createChildren($$, $5);
+                                                                      if(!findSymbolInContexts($2->token_value)){
+                                                                        yyerror("Variable not declared");
+                                                                        return ERR_UNDECLARED;}
+                                                                     };
 
 operator:
       arithmeticOperator            {$$ = $1;}
@@ -497,11 +532,19 @@ functionCallArgument:
 shiftCommand:
       TK_IDENTIFICADOR vectorModifier shift expression                      {$$ = createNode(AST_SHIFT); 
                                                                              createChildren($$, $1); createChildren($$, $2);
-                                                                             createChildren($$, $3); createChildren($$, $4);}
+                                                                             createChildren($$, $3); createChildren($$, $4);
+                                                                             if(!findSymbolInContexts($1->token_value)){
+                                                                                yyerror("Variable not declared");
+                                                                                return ERR_UNDECLARED;}
+                                                                            }
     | TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR shift expression {$$ = createNode(AST_SHIFT); 
                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                              createChildren($$, $3); createChildren($$, $4);
-                                                                             createChildren($$, $5); createChildren($$, $6);};
+                                                                             createChildren($$, $5); createChildren($$, $6);
+                                                                             if(!findSymbolInContexts($1->token_value)){
+                                                                                yyerror("Variable not declared");
+                                                                                return ERR_UNDECLARED;}
+                                                                            };
 
 //Flux Control can be of 3 kinds: Conditional, iterative or selection
 fluxControlCommand:

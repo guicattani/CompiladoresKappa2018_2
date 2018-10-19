@@ -44,7 +44,8 @@
                     "lex.yy.c",
                     "ASTree.c",
                     "symbolTable.c",
-                    "auxiliar.c"
+                    "auxiliar.c",
+                    "symbolTableInterface.c"
                 ],
                 "dependsOn": [
                     "build parser",

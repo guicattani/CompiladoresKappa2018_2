@@ -1,6 +1,5 @@
 #include "auxiliar.h"
 
-
 union value createValue(int type, char* text){
     union value value;
     switch (type){
@@ -32,7 +31,7 @@ union value createValue(int type, char* text){
     return value;
 }
 
-int getSizeFromType(int type, int vectorSize, char* name){
+int getSizeFromType(int type, int vectorSize, int sizeOfString){
     int size;
     switch(type){
         case NATUREZA_IDENTIFICADOR: //Identifier
@@ -50,7 +49,7 @@ int getSizeFromType(int type, int vectorSize, char* name){
             size = 1 * vectorSize;
             break;
         case NATUREZA_LITERAL_STRING: //Literal String
-            size = 1 * strlen(name) * vectorSize;
+            size = 1 * sizeOfString * vectorSize;
             break;
 
 
@@ -85,46 +84,17 @@ int calculateImplicitConvert(int variableType, int expressionType){
     return -1; //ERROR can't convert
 }
 
-
-int calculateTypeInfer(struct node* node){
-    if(node == NULL)
-        return 0;
-
-    int childInfer = calculateTypeInfer(node->child);
-    int brotherInfer = calculateTypeInfer(node->brother);
-
-    int nodeType = node->token_type;
-
-    if(childInfer != 0)
-        nodeType = childInfer;
-
-    if(brotherInfer == NATUREZA_LITERAL_INT &&
-       nodeType == NATUREZA_LITERAL_INT)
-       return NATUREZA_LITERAL_INT;
-       
-    if(brotherInfer == NATUREZA_LITERAL_FLOAT &&
-       nodeType == NATUREZA_LITERAL_FLOAT)
-       return NATUREZA_LITERAL_FLOAT;
-       
-    if(brotherInfer == NATUREZA_LITERAL_BOOL &&
-       nodeType == NATUREZA_LITERAL_BOOL)
-       return NATUREZA_LITERAL_BOOL;
-       
-    if(brotherInfer == NATUREZA_LITERAL_FLOAT &&
-       nodeType == NATUREZA_LITERAL_INT ||
-       brotherInfer == NATUREZA_LITERAL_INT &&
-       nodeType == NATUREZA_LITERAL_FLOAT )
-       return NATUREZA_LITERAL_FLOAT;
-       
-    if(brotherInfer == NATUREZA_LITERAL_BOOL &&
-       nodeType == NATUREZA_LITERAL_INT ||
-       brotherInfer == NATUREZA_LITERAL_INT &&
-       nodeType == NATUREZA_LITERAL_BOOL)
-       return NATUREZA_LITERAL_INT;
-
-    if(brotherInfer == NATUREZA_LITERAL_BOOL &&
-       nodeType == NATUREZA_LITERAL_FLOAT ||
-       brotherInfer == NATUREZA_LITERAL_FLOAT &&
-       nodeType == NATUREZA_LITERAL_BOOL)
-       return NATUREZA_LITERAL_FLOAT;
+int parseType(char* typeString){
+    if(strcmp(typeString, "int") == 0)
+        return NATUREZA_LITERAL_INT;
+    if(strcmp(typeString, "float") == 0)
+        return NATUREZA_LITERAL_FLOAT;
+    if(strcmp(typeString, "bool") == 0)
+        return NATUREZA_LITERAL_BOOL;
+    if(strcmp(typeString, "char") == 0)
+        return NATUREZA_LITERAL_CHAR;
+    if(strcmp(typeString, "int") == 0)
+        return NATUREZA_LITERAL_STRING;
+    else
+        return -1; //ERROR, should never occurr
 }

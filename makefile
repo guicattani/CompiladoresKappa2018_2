@@ -1,7 +1,7 @@
-all: etapa3
+all: etapa4
  
-etapa3 : lex.yy.c main.c bison ASTree.c symbolTree.c auxiliar.c
-	gcc -o etapa3 main.c lex.yy.c parser.tab.c ASTree.c symbolTable.c auxiliar.c -lfl
+etapa4 : lex.yy.c main.c bison ASTree.c symbolTree.c auxiliar.c symbolTableInterface.c
+	gcc -o etapa4 main.c lex.yy.c parser.tab.c ASTree.c symbolTable.c auxiliar.c symbolTableInterface.c -lfl
 
 lex.yy.c : scanner.l bison
 	flex scanner.l

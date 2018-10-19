@@ -1,9 +1,6 @@
 #include "symbolTable.h"
-#include "ASTree.h"
-#include "hashtable/uthash.h"
-#include "stdio.h"
-struct contextStack* contextStack = NULL;
 
+struct contextStack* contextStack = NULL;
 
 //Create a new context for the currentContext by pushing a new symbol table
 //Since it is a stack, the table has to be moved to the front of the stack
@@ -21,19 +18,18 @@ void createContext(){
 //type - type of the symbol
 //nature - Nature of the symbol (don't ask me what it means, it should be type)
 //fieldList - List of fields or arguments with the respective types, it should already be allocated or NULL
-//VectorSize - If it is a vector, it should have its size, else it should be 1
+//vectorSize - If it is a vector, it should have its size, else it should be 1
+//sizeOfString - If it is a string, it should have its size, else it should be 1
 //returns 0 if the symbol exists
-int addSymbol(char* name, int line, int type, int nature, struct fieldList* fields, int vectorSize, char* value){
+int addSymbol(char* name, int line, int type, int nature, struct fieldList* fields, int vectorSize, int sizeOfString){
     struct context* new = malloc(sizeof(struct context));
     new->info.line = line;
     new->info.nature = nature;
     new->info.type = type;
-    new->info.size = getSizeFromType(type, vectorSize, value);
+    new->info.size = getSizeFromType(type, vectorSize, sizeOfString);
 
     new->info.name = strdup(name);
-    union value val = createValue(type, value);
-    new->info.value = val;
-
+    new->info.value.string_value = strdup(name);
 
     if (fields != NULL)
         new->info.fields = fields;

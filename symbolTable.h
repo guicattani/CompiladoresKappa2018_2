@@ -39,7 +39,7 @@ typedef struct contextStack{
     struct contextStack* previousContext; //next of the stack
 } CONTEXTSTACK;
 
-int addSymbol(char * name, int line, int type, int nature, struct fieldList* fields, int vectorSize, char * value);
+int addSymbol(char * name, int line, int type, int nature, struct fieldList* fields, int vectorSize, int sizeOfString);
 void createContext();
 void freeSymbolInfo(struct symbolInfo* info);
 void deleteContext();

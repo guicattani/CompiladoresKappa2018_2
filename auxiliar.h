@@ -107,25 +107,11 @@ union value{
         char*   string_value;
     };
 
-typedef struct node{
-    int     line_number;
-    int     token_type;
-    char*   token_value;
-    
-    union value value;
-    struct node* brother;
-    struct node* child;
-} NODE;
-
-typedef struct nodeList{
-    struct node* data;
-    struct nodeList* next;
-} NODELIST;
-
 union value createValue(int type, char* text);
 
 //Given a token_value, gives back a union Value with the value in the right position
-int getSizeFromType(int type, int vectorSize, char* name);
-int calculateTypeInfer(struct node* node);
+int getSizeFromType(int type, int vectorSize, int sizeOfString);
+int parseType(char* typeString);
+
 
 #endif
