@@ -22,7 +22,11 @@ void createContext(){
 //vectorSize - If it is a vector, it should have its size, else it should be 1
 //sizeOfString - If it is a string, it should have its size, else it should be 1
 //returns 0 if the symbol exists
+//returns 1 if it is inserted correctly
 int addSymbol(char* name, int line, int type, int nature, struct fieldList* fields, int vectorSize, int sizeOfString){
+    if(findSymbolInContexts(name) != NULL)
+        return 0;
+
     struct context* new = malloc(sizeof(struct context));
     new->info.line = line;
     new->info.nature = nature;
@@ -36,6 +40,8 @@ int addSymbol(char* name, int line, int type, int nature, struct fieldList* fiel
         new->info.fields = fields;
 
     HASH_ADD_STR(contextStack->currentContext, info.name, new);
+
+    return 1;
 }
 
 //Deletes current context, frees it and pops it from the stack
@@ -97,6 +103,8 @@ void freeFieldList(struct fieldList* fieldList){
     }
 }
 
+//Find symbol in ALL contexts
+//returnInfo - symbolInfo of the symbolFound or NULL
 struct symbolInfo* findSymbolInContexts(char* name){
     struct contextStack* tempStack;
     struct context* tempContext;

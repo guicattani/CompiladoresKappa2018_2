@@ -96,5 +96,5 @@ int parseType(char* typeString){
     if(strcmp(typeString, "int") == 0)
         return NATUREZA_LITERAL_STRING;
     else
-        return -1; //ERROR, should never occurr
+        return NATUREZA_IDENTIFICADOR; //ERROR, should never occurr
 }

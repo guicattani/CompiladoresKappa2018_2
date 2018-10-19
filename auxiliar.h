@@ -16,6 +16,10 @@
 #define RESERVED_WORD               7
 #define SPECIAL_CHARACTER           8
 #define COMPOUND_OPERATOR           9
+#define NATUREZA_FUNC               10 //Natureza Vetor SÓ é utilizado na declaração de funções
+#define NATUREZA_CLASSE             11 //Natureza classe SÓ é utilizado na declaração de classes
+#define NATUREZA_VETOR              12 //Natureza vetor dá override nas outras naturezas, cheque o TIPO dele para saber do que ele é vetor
+
 
 #define AST_PROGRAMA            "Estado Programa"
 #define AST_LITERAL             "Estado literal"
@@ -98,6 +102,10 @@
 #define ERR_WRONG_PAR_INPUT     50 //parâmetro não é identificador
 #define ERR_WRONG_PAR_OUTPUT    51 //parâmetro não é literal string ou expressão
 #define ERR_WRONG_PAR_RETURN    52 //parâmetro não é expressão compatível com tipo do retorno
+
+/* Verificação de tipos existente */
+#define ERR_TYPE_UNDECLARED     60  //Tipo não declarado
+
 
 union value{
         int     int_value;
