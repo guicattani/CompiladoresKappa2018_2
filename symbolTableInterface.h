@@ -8,7 +8,7 @@
 int addSymbolFromNode(struct node* idNode, struct node* typeNode);
 int addSymbolFromNodeWithVector(struct node* idNode, struct node* typeNode, struct node* vectorSizeNode);
 void addSymbolFromNodeWithAttribution(struct node* idNode, struct node* typeNode, struct node* expressionNode);
-int  addSymbolFromNodeFunction(struct node* idNode, struct node* typeNode, struct node* fieldListNode);
+int  addSymbolFromNodeFunction(struct node* functionhead);
 int  addSymbolFromNodeClass(struct node* idNode, struct node* fieldListNode);
 
 

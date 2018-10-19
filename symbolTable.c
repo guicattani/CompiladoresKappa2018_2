@@ -25,7 +25,7 @@ void createContext(){
 //returns 1 if it is inserted correctly
 int addSymbol(char* name, int line, int type, int nature, struct fieldList* fields, int vectorSize, int sizeOfString){
     if(findSymbolInContexts(name) != NULL)
-        return 0;
+        return 1;
 
     struct context* new = malloc(sizeof(struct context));
     new->info.line = line;
@@ -41,7 +41,7 @@ int addSymbol(char* name, int line, int type, int nature, struct fieldList* fiel
 
     HASH_ADD_STR(contextStack->currentContext, info.name, new);
 
-    return 1;
+    return 0;
 }
 
 //Deletes current context, frees it and pops it from the stack
@@ -67,14 +67,15 @@ void freeSymbolInfo(struct symbolInfo* info){
     free(info->name);
     if (info->type == NATUREZA_LITERAL_STRING)
         free(info->value.string_value);
-        
+    
+    if(info->type == NATUREZA_FUNC || info->type == NATUREZA_CLASSE)
+        freeFieldList(info->fields);
 
 }
 
 
 //Given a FieldList, pushes a field into it and returns the new list
 struct fieldList* pushField(struct fieldList* fieldList, int type, char* name){
-    printf(" type %d name %s\n",type, name);
     if(fieldList == NULL){
         fieldList = malloc(sizeof(struct fieldList));
         fieldList->name = strdup(name);
@@ -85,6 +86,7 @@ struct fieldList* pushField(struct fieldList* fieldList, int type, char* name){
         struct fieldList* new = malloc(sizeof(struct fieldList));
         new->name = strdup(name);
         new->type = type;
+        new->next = NULL;
 
         struct fieldList* temp = fieldList;
         while(temp->next != NULL)
@@ -107,10 +109,11 @@ void freeFieldList(struct fieldList* fieldList){
 //returnInfo - symbolInfo of the symbolFound or NULL
 struct symbolInfo* findSymbolInContexts(char* name){
     struct contextStack* tempStack;
-    struct context* tempContext;
+    struct context* tempContext = NULL;
     struct symbolInfo* returnInfo = NULL;
 
     tempStack = contextStack;
+    
     while(tempStack != NULL){
         HASH_FIND_STR(tempStack->currentContext, name, tempContext);
 
