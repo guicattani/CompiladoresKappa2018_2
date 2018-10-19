@@ -11,6 +11,7 @@
     void yyerror (char const *s);
     
     extern int yylineno;
+    extern char* previous_text;
     extern int yycolno;
     extern char* yytext;
     extern void* arvore;
@@ -622,6 +623,7 @@ pipeCommands:
 
 
 void yyerror (char const *s){
+    free(previous_text);
     printf("Line %d, Column %d: %s near \"%s\"\n",yylineno, yycolno, s, yylval.nodo->token_value);  
 
 }

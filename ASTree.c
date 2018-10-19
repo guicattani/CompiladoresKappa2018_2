@@ -214,7 +214,7 @@ int calculateTypeInfer(struct node* node){
        return NATUREZA_LITERAL_FLOAT;
 }
 
-int numberOfChildren(struct node* node){
+        int numberOfChildren(struct node* node){
     return numberOfSiblings(node->child);
 }
 
