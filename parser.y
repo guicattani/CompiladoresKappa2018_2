@@ -352,27 +352,28 @@ command:
 commandSimple:
       localVarCompleteDeclaration   {$$ = $1; int err = addSymbolFromLocalVarDeclaration($1);
                                     if (err) { 
-                                        if (numberOfChildren($1) == 3 ) { 
+                                        int numberOfChildrenInt = numberOfChildren($1);
+                                        if (numberOfChildrenInt == 3 ) { 
                                             semanticerror(err, $1->child->brother->brother->child->brother, $1->child->brother->brother->child); 
                                         }
-                                        else if(numberOfChildren($1) == 2){ 
+                                        else if(numberOfChildrenInt == 2){ 
                                             semanticerror(err, $1->child->brother->child->brother, $1->child->brother->child); 
                                         }
-                                        else if(numberOfChildren($1) == 1){ 
+                                        else if(numberOfChildrenInt == 1){ 
                                             semanticerror(err, $1->child->child->brother, $1->child->child); 
                                         }
                                         return err;} 
                                     } 
-    | attribution                   {$$ = $1;}
-    | TK_PR_INPUT expression        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);}
-    | functionCall                  {$$ = $1;}
-    | shiftCommand                  {$$ = $1;}
-    | TK_PR_RETURN expression       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);}
-    | TK_PR_CONTINUE                {$$ = $1;}
-    | TK_PR_BREAK                   {$$ = $1;}
-    | fluxControlCommand            {$$ = $1;}
-    | pipeCommands                  {$$ = $1;}
-    | commandsBlock                 {$$ = $1;};       //TODO PIPI GOLDEN SHOWER
+    | attribution                                   {$$ = $1;}
+    | TK_PR_INPUT expression                        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);}
+    | functionCall                                  {$$ = $1;}
+    | shiftCommand                                  {$$ = $1;}
+    | TK_PR_RETURN expression                       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);}
+    | TK_PR_CONTINUE                                {$$ = $1;}
+    | TK_PR_BREAK                                   {$$ = $1;}
+    | fluxControlCommand                            {$$ = $1;}
+    | pipeCommands                                  {$$ = $1;}
+    | commandsBlock                                 {$$ = $1;};       
 
 //A variable declaration can be initialized ONLY if it has a primitive type
 localVarDeclaration:
@@ -413,7 +414,20 @@ userTypeAttribution:
                     
                                                                                 createChildren($$, $1); createChildren($$, $2);
                                                                                 createChildren($$, $3); createChildren($$, $4);
-                                                                                createChildren($$, $5); createChildren($$, $6);};
+                                                                                createChildren($$, $5); createChildren($$, $6);
+                                                                                
+                                                                                if(!isIdentifierDeclared($1)){
+                                                                                    semanticerror(ERR_UNDECLARED, $1, NULL); 
+                                                                                    return ERR_UNDECLARED;}
+                                                                                
+                                                                                if(getTypeFromUserClassField($1, $4) > NATUREZA_IDENTIFICADOR){
+                                                                                    semanticerror(ERR_CLASS_ID_NOT_FOUND, $1, NULL); 
+                                                                                    return ERR_CLASS_ID_NOT_FOUND;}
+
+                                                                                if(!isVectorEmpty($2) && !isIdentifierOfNatureClassVector($1) ){
+                                                                                    semanticerror(ERR_VECTOR, $1, NULL); 
+                                                                                    return ERR_VECTOR;}
+                                                                                };
 
 simpleExpression:
       TK_IDENTIFICADOR                          {$$ = $1;
@@ -429,7 +443,11 @@ simpleExpression:
                                                       createChildren($$, $3);
                                                  if(!isIdentifierDeclared($1)){
                                                     semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                    return ERR_UNDECLARED;} //TODO como achar campo tipo usuario
+                                                    return ERR_UNDECLARED;}
+
+                                                 if(getTypeFromUserClassField($1, $3) > NATUREZA_IDENTIFICADOR){
+                                                    semanticerror(ERR_CLASS_ID_NOT_FOUND, $1, NULL); 
+                                                    return ERR_CLASS_ID_NOT_FOUND;}
                                                 };
 
 expression:
@@ -495,6 +513,10 @@ oneFoldRecursiveExpression:
                                                                       if(!isIdentifierDeclared($1)){
                                                                         semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                                         return ERR_UNDECLARED;}
+                                                                    
+                                                                      if(getTypeFromUserClassField($1, $4) > NATUREZA_IDENTIFICADOR){
+                                                                        semanticerror(ERR_CLASS_ID_NOT_FOUND, $1, NULL); 
+                                                                        return ERR_CLASS_ID_NOT_FOUND;}
 
                                                                       if(!isVectorEmpty($2) && !isIdentifierOfNatureClassVector($1) ){
                                                                         semanticerror(ERR_VECTOR, $1, NULL); 
@@ -508,10 +530,14 @@ oneFoldRecursiveExpression:
                                                                         semanticerror(ERR_UNDECLARED, $2, NULL); 
                                                                         return ERR_UNDECLARED;}
 
+                                                                      if(getTypeFromUserClassField($2, $5) > NATUREZA_IDENTIFICADOR){
+                                                                        semanticerror(ERR_CLASS_ID_NOT_FOUND, $2, NULL); 
+                                                                        return ERR_CLASS_ID_NOT_FOUND;}
+
                                                                       if(!isVectorEmpty($3) && !isIdentifierOfNatureClassVector($2) ){
                                                                         semanticerror(ERR_VECTOR, $2, NULL); 
                                                                         return ERR_VECTOR;}
-                                                                     }; //TODO ver se campo faz parte do id
+                                                                     };
 
 operator:
       arithmeticOperator            {$$ = $1;}
@@ -598,11 +624,15 @@ shiftCommand:
                                                                              if(!isIdentifierDeclared($1)){
                                                                                 semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                                                 return ERR_UNDECLARED;}
+                                                                            
+                                                                            if(getTypeFromUserClassField($1, $4) > NATUREZA_IDENTIFICADOR){
+                                                                                semanticerror(ERR_CLASS_ID_NOT_FOUND, $1, NULL); 
+                                                                                return ERR_CLASS_ID_NOT_FOUND;}
 
                                                                             };
 
 //Flux Control can be of 3 kinds, Conditional, iterative or selection
-fluxControlCommand: //TODO context
+fluxControlCommand:
       conditionalFluxControl {$$ = $1;}
     | iterativeFluxControl   {$$ = $1;}
     | selectionFluxControl   {$$ = $1;};
@@ -700,10 +730,10 @@ void semanticerror(int err, struct node* id, struct node* type){
             break;     
         case ERR_CLASS_ID_NOT_FOUND:
             if(type == NULL){
-                printf ("Line %d, Column %d: Field not found on class \"%s\" doesn't exist.\n", id->line_number, id->col_number, id->token_value);
+                printf ("Line %d, Column %d: Field not found on class \"%s\".\n", id->line_number, id->col_number, id->token_value);
                 break;
             }
-            printf ("Line %d, Column %d: Field \"%s\" of class \"%s\" doesn't exist.\n", id->line_number, id->col_number, type->token_value, id->token_value);
+            printf ("Line %d, Column %d: Field \"%s\" of class \"%s\".\n", id->line_number, id->col_number, type->token_value, id->token_value);
             break;   
         case ERR_WRONG_TYPE:
             if(type == NULL){
@@ -748,7 +778,6 @@ void semanticerror(int err, struct node* id, struct node* type){
             break;
     }
 
-    
 }
 void descompila (void *arvore){
     showTreeRecursion(arvore, 0);

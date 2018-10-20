@@ -47,8 +47,8 @@ int addSymbolFromNodeWithVector(struct node* idNode, struct node* typeNode, stru
         return ERR_DECLARED; 
 }
 
-//given a node and its type, adds it to the current symbol table
-int addSymbolFromNodeWithAttribution(struct node* idNode, struct node* typeNode, struct node* expressionNode){
+//given a node and its type, adds it to the current symbol table 
+int addSymbolFromNodeWithAttribution(struct node* idNode, struct node* typeNode, struct node* expressionNode){ //TODO UNUSED!!!
     int typeOfTypeNode = parseType(typeNode->token_value);
 
     if(findSymbolInContexts(typeNode->token_value) == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
@@ -128,7 +128,21 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
     if(findSymbolInContexts(typeNode->token_value) == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
         return ERR_TYPE_UNDECLARED;
 
-    int stringSize = 1; //TODO calculate true stringsize based on expression
+    int stringSize = -1; //TODO calculate true stringsize based on expression
+    
+    if(typeNode->token_type == NATUREZA_LITERAL_STRING){
+        struct node* declarationNode = localVarDeclaration->child->brother->brother->child->brother->child;
+        if(declarationNode->token_type == NATUREZA_IDENTIFICADOR){
+            printf("aaaa");
+            struct symbolInfo* typeInfo = findSymbolInContexts(declarationNode->token_value);
+            stringSize = typeInfo->size;
+        }
+        else{
+            stringSize = strlen(declarationNode->token_value);
+        }
+    }
+
+
 
     //Adds symbol and checks if identifier it has been declared before
     if(addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, nature, NULL, 1, stringSize, userType) != 0)
@@ -214,20 +228,41 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
         int type = searchFieldList(classInfo->fields, classid->token_value);
         if (type == -1)
             return ERR_CLASS_ID_NOT_FOUND;
-        tested_type = type; //TODO refatorar
+        tested_type = type; 
     }
 
-    int typeInferenceOfExpression = calculateTypeInfer(expression);
-    if(typeInferenceOfExpression > NATUREZA_IDENTIFICADOR){
-        return typeInferenceOfExpression;
+    int typeInferenceOfExpression;
+    if(expression->child != NULL && expression->brother != NULL){//not a literal
+        typeInferenceOfExpression = calculateTypeInfer(expression);
+        if(typeInferenceOfExpression > NATUREZA_IDENTIFICADOR){
+            return typeInferenceOfExpression;
+        }
     }
-
-    if(calculateImplicitConvert(idInfo->type, typeInferenceOfExpression) == -1)
-        return ERR_WRONG_TYPE;
     else
-        return 0;
+        typeInferenceOfExpression = expression->token_type;
 
-    //TODO CHECK EXPRESSION review!
+    printf("here? %d %d ",idInfo->type, typeInferenceOfExpression );
+    int calculatedConvert = calculateImplicitConvert(idInfo->type, typeInferenceOfExpression);
+    if(calculatedConvert == -1)
+        return ERR_WRONG_TYPE;
+    
+    if(calculatedConvert == NATUREZA_LITERAL_STRING){
+        int stringSize;
+        if(expression->token_type == NATUREZA_IDENTIFICADOR){
+            printf("aaaa");
+            struct symbolInfo* typeInfo = findSymbolInContexts(expression->token_value);
+            stringSize = typeInfo->size;
+        }
+        else{
+            printf("bbbb"); // TODO INCOMPLETE
+            stringSize = strlen(expression->token_value) - 2; //2 because we have "" with the string
+        }
+        printf("cccc%d",stringSize);
+        //updateStringSizeOnNode(int stringSize; struct node* node);
+    }
+
+     return 0;
+
 }
 
 int checkPrimitiveAttribution(struct node* attrNode){
@@ -272,15 +307,15 @@ int calculateTypeInfer(struct node* node){
         if(referenceInfo->nature == NATUREZA_FUNC) 
              return ERR_FUNCTION;
 
-        if(referenceInfo->nature == NATUREZA_CLASSE) { //TODO func
-            if(referenceInfo->userType == NULL) //TODO review
-                return ERR_USER;
+        if(referenceInfo->nature == NATUREZA_CLASSE) {
+            if(referenceInfo->userType == NULL)
+                return ERR_WRONG_TYPE;
             
             if(node->brother == NULL || node->brother->brother == NULL )
-                return ERR_USER; // TODO specific error for expression
+                return ERR_WRONG_TYPE; //generic error because we can't determine the column
             
             int typeClassField = getTypeFromUserClassField(node, node->brother->brother);
-            if(typeClassField == -1)
+            if(typeClassField > NATUREZA_IDENTIFICADOR)
                 return ERR_CLASS_ID_NOT_FOUND;
             else
                 referenceType = typeClassField;
