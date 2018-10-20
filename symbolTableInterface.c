@@ -146,8 +146,6 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
                 return ERR_CLASS;
             if(typeInfo->nature == NATUREZA_FUNC)
                 return ERR_FUNCTION;
-
-            
         }
 
         int resultado = calculateImplicitConvert(attrType, typeOfTypeNode);
@@ -179,7 +177,6 @@ struct fieldList* createFieldList(struct node* fields){
         }
         
     }
-
 
     return fieldList;
 
@@ -250,7 +247,6 @@ int calculateTypeInfer(struct node* node){
     if(node == NULL)
         return 0;
     
-    printf("a");
     int childInfer = calculateTypeInfer(node->child);
     int brotherInfer = calculateTypeInfer(node->brother);
 
@@ -261,23 +257,19 @@ int calculateTypeInfer(struct node* node){
 
     int nodeType = node->token_type;
 
-printf("b");
+    //dereference variable
+    if(nodeType == NATUREZA_IDENTIFICADOR){
+        struct symbolInfo* typeInfo = findSymbolInContexts(node->token_value);
+         if(!typeInfo)
+             return -2;
+        if(typeInfo->nature == NATUREZA_CLASSE)
+             return -2;
+        nodeType = typeInfo->type;
+    }
+
     if(nodeType == NATUREZA_LITERAL_CHAR || nodeType == NATUREZA_LITERAL_STRING){
         return -1; //error, since we can't convert them
     }
-
-    if(nodeType == NATUREZA_IDENTIFICADOR){
-        struct symbolInfo* typeInfo = findSymbolInContexts(node->token_value);
-        // printf("name : %s", typeInfo->name);
-        // printf("nature : %d", typeInfo->nature);
-        // if(!typeInfo)
-        //     return -2;
-        // if(typeInfo->nature == NATUREZA_CLASSE)
-        //     return -2;
-            
-        nodeType = typeInfo->type;
-    }
-    printf("c");
     //if inference of child have been calculated, assume it as type
     if(childInfer != 0) 
         nodeType = childInfer;
@@ -322,7 +314,6 @@ printf("b");
 
 //1 if true, 0 if not
 int isIdentifierOfNatureVector(struct node* node){
-    printf("aaa");
     struct symbolInfo* typeInfo = findSymbolInContexts(node->token_value);
 
     if(typeInfo->nature == NATUREZA_VETOR)
@@ -333,7 +324,6 @@ int isIdentifierOfNatureVector(struct node* node){
 
 //1 if true, 0 if not
 int isIdentifierOfNatureClassVector(struct node* node){
-    printf("bbb");
     struct symbolInfo* typeInfo = findSymbolInContexts(node->token_value);
 
     if(typeInfo->nature == NATUREZA_VETOR_CLASSE)

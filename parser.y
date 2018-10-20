@@ -474,8 +474,8 @@ oneFoldRecursiveExpression:
                                                                         return ERR_UNDECLARED;}
 
                                                                       if(!isVectorEmpty($2) && !isIdentifierOfNatureVector($1) ){
-                                                                        semanticerror(ERR_VECTOR, $1, NULL); 
-                                                                        return ERR_VECTOR;}
+                                                                        semanticerror(ERR_VARIABLE, $1, NULL); 
+                                                                        return ERR_VARIABLE;
                                                                      }
     | unaryOperator TK_IDENTIFICADOR vectorList                      {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1); createChildren($$, $2);
@@ -485,8 +485,8 @@ oneFoldRecursiveExpression:
                                                                         return ERR_UNDECLARED;}
 
                                                                       if(!isVectorEmpty($3) && !isIdentifierOfNatureVector($2) ){
-                                                                        semanticerror(ERR_VECTOR, $2, NULL); 
-                                                                        return ERR_VECTOR;}
+                                                                        semanticerror(ERR_VARIABLE, $2, NULL); 
+                                                                        return ERR_VARIABLE;}
                                                                      }
 
     | TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR               {$$ = createNode(AST_ONEFREXP); 
@@ -495,10 +495,10 @@ oneFoldRecursiveExpression:
                                                                       if(!isIdentifierDeclared($1)){
                                                                         semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                                         return ERR_UNDECLARED;}
-
+                                                                        //TODO isvector
                                                                       if(!isVectorEmpty($2) && !isIdentifierOfNatureClassVector($1) ){
-                                                                        semanticerror(ERR_VECTOR, $1, NULL); 
-                                                                        return ERR_VECTOR;}
+                                                                        semanticerror(ERR_VARIABLE, $1, NULL); 
+                                                                        return ERR_VARIABLE;}
                                                                     }
     | unaryOperator TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1); createChildren($$, $2);
@@ -509,8 +509,8 @@ oneFoldRecursiveExpression:
                                                                         return ERR_UNDECLARED;}
 
                                                                       if(!isVectorEmpty($3) && !isIdentifierOfNatureClassVector($2) ){
-                                                                        semanticerror(ERR_VECTOR, $2, NULL); 
-                                                                        return ERR_VECTOR;}
+                                                                        semanticerror(ERR_VARIABLE, $2, NULL); 
+                                                                        return ERR_VARIABLE;}
                                                                      }; //TODO ver se campo faz parte do id
 
 operator:
@@ -707,7 +707,7 @@ void semanticerror(int err, struct node* id, struct node* type){
             break;   
         case ERR_WRONG_TYPE:
             if(type == NULL){
-                printf ("Line %d, Column %d: Type \"%s\" incompatible with \"%s\".\n", id->line_number, id->col_number, id->token_value);
+                printf ("Line %d, Column %d: Type \"NULL\" incompatible with \"%s\".\n", id->line_number, id->col_number, id->token_value);
                 break;
             }
             printf ("Line %d, Column %d: Type \"%s\" incompatible with \"%s\".\n", id->line_number, id->col_number, id->token_value, type->token_value);
