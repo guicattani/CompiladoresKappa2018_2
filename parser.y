@@ -475,7 +475,7 @@ oneFoldRecursiveExpression:
 
                                                                       if(!isVectorEmpty($2) && !isIdentifierOfNatureVector($1) ){
                                                                         semanticerror(ERR_VARIABLE, $1, NULL); 
-                                                                        return ERR_VARIABLE;
+                                                                        return ERR_VARIABLE;}
                                                                      }
     | unaryOperator TK_IDENTIFICADOR vectorList                      {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1); createChildren($$, $2);
