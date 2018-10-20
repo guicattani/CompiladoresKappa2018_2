@@ -257,14 +257,12 @@ true                                            {
 \n                                              {yylineno++; yycolno = 0;}
 \r                                              {yylineno++; yycolno = 0;};
 
-\t                                              { add_col();};
+\t                                              {add_col();};
 " "                                             {add_col();};
 .                                               return TOKEN_ERRO;
 %%
 int yywrap(){
-    yycolno = 0;
-    free(previous_text);
-    return 0;
+
 }
 
 int get_line_number(void){

@@ -58,6 +58,7 @@ int getSizeFromType(int type, int vectorSize, int sizeOfString){
     return size;
 }
 
+//return conversion if possible, -1 if it isn't
 int calculateImplicitConvert(int variableType, int expressionType){
     if(variableType == expressionType)
         return variableType;
@@ -72,14 +73,14 @@ int calculateImplicitConvert(int variableType, int expressionType){
         return NATUREZA_LITERAL_FLOAT;
     
     if(variableType == NATUREZA_LITERAL_BOOL && expressionType == NATUREZA_LITERAL_INT)
-        return NATUREZA_LITERAL_BOOL;
+        return NATUREZA_LITERAL_INT;
     if(variableType == NATUREZA_LITERAL_BOOL && expressionType == NATUREZA_LITERAL_FLOAT)
-        return NATUREZA_LITERAL_BOOL;
+        return NATUREZA_LITERAL_FLOAT;
 
     if(variableType == NATUREZA_LITERAL_INT && expressionType == NATUREZA_LITERAL_BOOL)
         return NATUREZA_LITERAL_INT;
     if(variableType == NATUREZA_LITERAL_INT && expressionType == NATUREZA_LITERAL_FLOAT)
-        return NATUREZA_LITERAL_INT;
+        return NATUREZA_LITERAL_FLOAT;
     
     return -1; //ERROR can't convert
 }

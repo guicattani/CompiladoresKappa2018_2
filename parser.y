@@ -348,10 +348,21 @@ command:
                                            createChildren($$, $3);};    
 
 
-//Commands without commas or case: Used in the "for" command
+//Commands without commas or case. Used in the "for" command
 commandSimple:
       localVarCompleteDeclaration   {$$ = $1; int err = addSymbolFromLocalVarDeclaration($1);
-                                    if (err) { yyerror("Semantic error"); return err;} } 
+                                    if (err) { 
+                                        if (numberOfChildren($1) == 3 ) { 
+                                            semanticerror(err, $1->child->brother->brother->child->brother, $1->child->brother->brother->child); 
+                                        }
+                                        else if(numberOfChildren($1) == 2){ 
+                                            semanticerror(err, $1->child->brother->child->brother, $1->child->brother->child); 
+                                        }
+                                        else if(numberOfChildren($1) == 1){ 
+                                            semanticerror(err, $1->child->child->brother, $1->child->child); 
+                                        }
+                                        return err;} 
+                                    } 
     | attribution                   {$$ = $1;}
     | TK_PR_INPUT expression        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);}
     | functionCall                  {$$ = $1;}
@@ -406,8 +417,8 @@ userTypeAttribution:
 
 simpleExpression:
       TK_IDENTIFICADOR                          {$$ = $1;
-                                                if(!findSymbolInContexts($1->token_value)){
-                                                    yyerror("Variable not declared");
+                                                 if(!isIdentifierDeclared($1)){
+                                                    semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                     return ERR_UNDECLARED;}
                                                 }
     | functionCall                              {$$ = $1;}
@@ -416,9 +427,9 @@ simpleExpression:
     | TK_IDENTIFICADOR  '$' TK_IDENTIFICADOR    {$$ = createNode(AST_SIMPLEEXP); 
                                                       createChildren($$, $1); createChildren($$, $2);
                                                       createChildren($$, $3);
-                                                if(!findSymbolInContexts($1->token_value)){
-                                                    yyerror("Variable not declared");
-                                                    return ERR_UNDECLARED;}
+                                                 if(!isIdentifierDeclared($1)){
+                                                    semanticerror(ERR_UNDECLARED, $1, NULL); 
+                                                    return ERR_UNDECLARED;} //TODO como achar campo tipo usuario
                                                 };
 
 expression:
@@ -458,33 +469,49 @@ oneFoldRecursiveExpression:
                                                                       createChildren($$, $3); createChildren($$, $4);}
 
     | TK_IDENTIFICADOR vectorList                                    {$$ = createNode(AST_ONEFREXP); createChildren($$, $1); createChildren($$, $2);
-                                                                      if(!findSymbolInContexts($1->token_value)){
-                                                                        yyerror("Variable not declared");
+                                                                      if(!isIdentifierDeclared($1)){
+                                                                        semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                                         return ERR_UNDECLARED;}
+
+                                                                      if(!isVectorEmpty($2) && !isIdentifierOfNatureVector($1) ){
+                                                                        semanticerror(ERR_VECTOR, $1, NULL); 
+                                                                        return ERR_VECTOR;}
                                                                      }
     | unaryOperator TK_IDENTIFICADOR vectorList                      {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1); createChildren($$, $2);
                                                                       createChildren($$, $3);
-                                                                      if(!findSymbolInContexts($2->token_value)){
-                                                                        yyerror("Variable not declared");
+                                                                      if(!isIdentifierDeclared($2)){
+                                                                        semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                                         return ERR_UNDECLARED;}
+
+                                                                      if(!isVectorEmpty($3) && !isIdentifierOfNatureVector($2) ){
+                                                                        semanticerror(ERR_VECTOR, $2, NULL); 
+                                                                        return ERR_VECTOR;}
                                                                      }
 
     | TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR               {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1); createChildren($$, $2);
                                                                       createChildren($$, $3); createChildren($$, $4);
-                                                                      if(!findSymbolInContexts($1->token_value)){
-                                                                        yyerror("Variable not declared");
+                                                                      if(!isIdentifierDeclared($1)){
+                                                                        semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                                         return ERR_UNDECLARED;}
+
+                                                                      if(!isVectorEmpty($2) && !isIdentifierOfNatureClassVector($1) ){
+                                                                        semanticerror(ERR_VECTOR, $1, NULL); 
+                                                                        return ERR_VECTOR;}
                                                                     }
     | unaryOperator TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1); createChildren($$, $2);
                                                                       createChildren($$, $3); createChildren($$, $4);
                                                                       createChildren($$, $5);
-                                                                      if(!findSymbolInContexts($2->token_value)){
-                                                                        yyerror("Variable not declared");
+                                                                      if(!isIdentifierDeclared($1)){
+                                                                        semanticerror(ERR_UNDECLARED, $2, NULL); 
                                                                         return ERR_UNDECLARED;}
-                                                                     };
+
+                                                                      if(!isVectorEmpty($3) && !isIdentifierOfNatureClassVector($2) ){
+                                                                        semanticerror(ERR_VECTOR, $2, NULL); 
+                                                                        return ERR_VECTOR;}
+                                                                     }; //TODO ver se campo faz parte do id
 
 operator:
       arithmeticOperator            {$$ = $1;}
@@ -559,21 +586,23 @@ shiftCommand:
       TK_IDENTIFICADOR vectorModifier shift expression                      {$$ = createNode(AST_SHIFT); 
                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                              createChildren($$, $3); createChildren($$, $4);
-                                                                             if(!findSymbolInContexts($1->token_value)){
-                                                                                yyerror("Variable not declared");
+                                                                             if(!isIdentifierDeclared($1)){
+                                                                                semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                                                 return ERR_UNDECLARED;}
+
                                                                             }
     | TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR shift expression {$$ = createNode(AST_SHIFT); 
                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                              createChildren($$, $3); createChildren($$, $4);
                                                                              createChildren($$, $5); createChildren($$, $6);
-                                                                             if(!findSymbolInContexts($1->token_value)){
-                                                                                yyerror("Variable not declared");
+                                                                             if(!isIdentifierDeclared($1)){
+                                                                                semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                                                 return ERR_UNDECLARED;}
+
                                                                             };
 
-//Flux Control can be of 3 kinds: Conditional, iterative or selection
-fluxControlCommand:
+//Flux Control can be of 3 kinds, Conditional, iterative or selection
+fluxControlCommand: //TODO context
       conditionalFluxControl {$$ = $1;}
     | iterativeFluxControl   {$$ = $1;}
     | selectionFluxControl   {$$ = $1;};
@@ -670,9 +699,17 @@ void semanticerror(int err, struct node* id, struct node* type){
             printf ("Line %d, Column %d: Identifier \"%s\" must not be used as user class.\n", id->line_number, id->col_number, id->token_value);
             break;     
         case ERR_CLASS_ID_NOT_FOUND:
+            if(type == NULL){
+                printf ("Line %d, Column %d: Field \"NULL\" of class \"%s\" doesn't exist.\n", id->line_number, id->col_number, id->token_value);
+                break;
+            }
             printf ("Line %d, Column %d: Field \"%s\" of class \"%s\" doesn't exist.\n", id->line_number, id->col_number, type->token_value, id->token_value);
             break;   
         case ERR_WRONG_TYPE:
+            if(type == NULL){
+                printf ("Line %d, Column %d: Type \"%s\" incompatible with \"%s\".\n", id->line_number, id->col_number, id->token_value);
+                break;
+            }
             printf ("Line %d, Column %d: Type \"%s\" incompatible with \"%s\".\n", id->line_number, id->col_number, id->token_value, type->token_value);
             break; 
         case ERR_STRING_TO_X:
@@ -703,6 +740,10 @@ void semanticerror(int err, struct node* id, struct node* type){
             printf ("Line %d, Column %d: Parameter \"%s\" is not compatible with the type of return.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_TYPE_UNDECLARED:
+            if(type == NULL){
+                printf ("Line %d, Column %d: Type \"NULL\" of identifier \"%s\" not declared.\n",id->line_number, id->col_number, id->token_value);
+                break;
+            }
             printf ("Line %d, Column %d: Type \"%s\" of identifier \"%s\" not declared.\n", id->line_number, id->col_number, type->token_value, id->token_value);
             break;
     }

@@ -171,51 +171,7 @@ int getAttributedStringSize(struct node* node){
     return strlen(node->child->brother->token_value);
 }
 
-
-int calculateTypeInfer(struct node* node){
-    if(node == NULL)
-        return 0;
-
-    int childInfer = calculateTypeInfer(node->child);
-    int brotherInfer = calculateTypeInfer(node->brother);
-
-    int nodeType = node->token_type;
-
-    if(childInfer != 0)
-        nodeType = childInfer;
-
-    if(brotherInfer == NATUREZA_LITERAL_INT &&
-       nodeType == NATUREZA_LITERAL_INT)
-       return NATUREZA_LITERAL_INT;
-       
-    if(brotherInfer == NATUREZA_LITERAL_FLOAT &&
-       nodeType == NATUREZA_LITERAL_FLOAT)
-       return NATUREZA_LITERAL_FLOAT;
-       
-    if(brotherInfer == NATUREZA_LITERAL_BOOL &&
-       nodeType == NATUREZA_LITERAL_BOOL)
-       return NATUREZA_LITERAL_BOOL;
-       
-    if( (brotherInfer == NATUREZA_LITERAL_FLOAT &&
-       nodeType == NATUREZA_LITERAL_INT) || 
-       (brotherInfer == NATUREZA_LITERAL_INT &&
-       nodeType == NATUREZA_LITERAL_FLOAT) )
-       return NATUREZA_LITERAL_FLOAT;
-       
-    if((brotherInfer == NATUREZA_LITERAL_BOOL &&
-       nodeType == NATUREZA_LITERAL_INT) || 
-       (brotherInfer == NATUREZA_LITERAL_INT &&
-       nodeType == NATUREZA_LITERAL_BOOL))
-       return NATUREZA_LITERAL_INT;
-
-    if((brotherInfer == NATUREZA_LITERAL_BOOL &&
-       nodeType == NATUREZA_LITERAL_FLOAT) ||
-        (brotherInfer == NATUREZA_LITERAL_FLOAT &&
-       nodeType == NATUREZA_LITERAL_BOOL ))
-       return NATUREZA_LITERAL_FLOAT;
-}
-
-        int numberOfChildren(struct node* node){
+    int numberOfChildren(struct node* node){
     return numberOfSiblings(node->child);
 }
 

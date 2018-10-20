@@ -149,9 +149,10 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
 
             
         }
-        if(attrType != typeOfTypeNode) //TODO COERSION
+
+        int resultado = calculateImplicitConvert(attrType, typeOfTypeNode);
+        if(resultado == -1)
             return ERR_WRONG_TYPE;
-        
     }
 
 
@@ -219,8 +220,14 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
             return ERR_CLASS_ID_NOT_FOUND;
         tested_type = type;
     }
-    return 0;
-    //TODO CHECK EXPRESSION
+
+    int typeInferenceOfExpression = calculateTypeInfer(expression);
+    if(calculateImplicitConvert(idInfo->type, typeInferenceOfExpression) == -1)
+        return ERR_WRONG_TYPE;
+    else
+        return 0;
+
+    //TODO CHECK EXPRESSION review!
 }
 
 int checkPrimitiveAttribution(struct node* attrNode){
@@ -236,5 +243,111 @@ int checkUserTypeAttribution(struct node* attrNode){
     struct node* expression = attrNode->child->brother->brother->brother->brother->brother;
     struct node* typeid = attrNode->child->brother->brother->brother;
     checkAttribution(id, vector, expression, typeid);
+}
+
+//return a coerced type, based on expression and precedence
+int calculateTypeInfer(struct node* node){
+    if(node == NULL)
+        return 0;
+    
+    printf("a");
+    int childInfer = calculateTypeInfer(node->child);
+    int brotherInfer = calculateTypeInfer(node->brother);
+
+    if(childInfer == -1 || brotherInfer == -1) //propagate error msg;
+        return -1;
+    if(childInfer == -2 || brotherInfer == -2) //propagate error msg;
+        return -2;
+
+    int nodeType = node->token_type;
+
+printf("b");
+    if(nodeType == NATUREZA_LITERAL_CHAR || nodeType == NATUREZA_LITERAL_STRING){
+        return -1; //error, since we can't convert them
+    }
+
+    if(nodeType == NATUREZA_IDENTIFICADOR){
+        struct symbolInfo* typeInfo = findSymbolInContexts(node->token_value);
+        // printf("name : %s", typeInfo->name);
+        // printf("nature : %d", typeInfo->nature);
+        // if(!typeInfo)
+        //     return -2;
+        // if(typeInfo->nature == NATUREZA_CLASSE)
+        //     return -2;
+            
+        nodeType = typeInfo->type;
+    }
+    printf("c");
+    //if inference of child have been calculated, assume it as type
+    if(childInfer != 0) 
+        nodeType = childInfer;
+
+    //if nodeType is not a literal type, ignore
+    if(nodeType < NATUREZA_LITERAL_INT  || nodeType > NATUREZA_LITERAL_BOOL){
+        return brotherInfer;
+    }
+
+    if(brotherInfer == NATUREZA_LITERAL_INT &&
+       nodeType == NATUREZA_LITERAL_INT)
+       return NATUREZA_LITERAL_INT;
+       
+    if(brotherInfer == NATUREZA_LITERAL_FLOAT &&
+       nodeType == NATUREZA_LITERAL_FLOAT)
+       return NATUREZA_LITERAL_FLOAT;
+       
+    if(brotherInfer == NATUREZA_LITERAL_BOOL &&
+       nodeType == NATUREZA_LITERAL_BOOL)
+       return NATUREZA_LITERAL_BOOL;
+       
+    if( (brotherInfer == NATUREZA_LITERAL_FLOAT &&
+       nodeType == NATUREZA_LITERAL_INT) || 
+       (brotherInfer == NATUREZA_LITERAL_INT &&
+       nodeType == NATUREZA_LITERAL_FLOAT) )
+       return NATUREZA_LITERAL_FLOAT;
+       
+    if((brotherInfer == NATUREZA_LITERAL_BOOL &&
+       nodeType == NATUREZA_LITERAL_INT) || 
+       (brotherInfer == NATUREZA_LITERAL_INT &&
+       nodeType == NATUREZA_LITERAL_BOOL))
+       return NATUREZA_LITERAL_INT;
+
+    if((brotherInfer == NATUREZA_LITERAL_BOOL &&
+       nodeType == NATUREZA_LITERAL_FLOAT) ||
+        (brotherInfer == NATUREZA_LITERAL_FLOAT &&
+       nodeType == NATUREZA_LITERAL_BOOL ))
+       return NATUREZA_LITERAL_FLOAT;
+
+    return nodeType;
+}
+
+//1 if true, 0 if not
+int isIdentifierOfNatureVector(struct node* node){
+    printf("aaa");
+    struct symbolInfo* typeInfo = findSymbolInContexts(node->token_value);
+
+    if(typeInfo->nature == NATUREZA_VETOR)
+        return 1;
+    else 
+        return 0;
+}
+
+//1 if true, 0 if not
+int isIdentifierOfNatureClassVector(struct node* node){
+    printf("bbb");
+    struct symbolInfo* typeInfo = findSymbolInContexts(node->token_value);
+
+    if(typeInfo->nature == NATUREZA_VETOR_CLASSE)
+        return 1;
+    else 
+        return 0;
+}
+
+//1 if true, 0 if not
+int isIdentifierDeclared(struct node* node){
+    struct symbolInfo* typeInfo = findSymbolInContexts(node->token_value);
+    if(typeInfo)
+        return 1;
+    else
+        return 0;
 }
 

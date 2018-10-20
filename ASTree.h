@@ -35,7 +35,7 @@ void showTree(struct node* root);
 struct node* createLeaf(int line_number, int type, char* text, int col_number);
 void liberaTree(struct node* node);
 int getAttributedStringSize(struct node* node);
-int calculateTypeInfer(struct node* node);
+
 
 int numberOfChildren(struct node* node);
 int numberOfSiblings(struct node* node);

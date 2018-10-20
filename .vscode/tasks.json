@@ -38,7 +38,7 @@
                 "command": "gcc",
                 "args": [
                     "-o",
-                    "etapa3",
+                    "etapa4",
                     "main.c",
                     "parser.tab.c",
                     "lex.yy.c",

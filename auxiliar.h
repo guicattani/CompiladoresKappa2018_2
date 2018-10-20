@@ -121,6 +121,7 @@ union value createValue(int type, char* text);
 
 //Given a token_value, gives back a union Value with the value in the right position
 int getSizeFromType(int type, int vectorSize, int sizeOfString);
+int calculateImplicitConvert(int variableType, int expressionType);
 int parseType(char* typeString);
 
 

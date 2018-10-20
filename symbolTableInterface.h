@@ -17,4 +17,10 @@ int checkPrimitiveAttribution(struct node* attrNode);
 int checkUserTypeAttribution(struct node* attrNode);
 
 struct fieldList* createFieldList(struct node* fields);
+int calculateTypeInfer(struct node* node);
+
+int isIdentifierOfNatureVector(struct node* node);
+int isIdentifierOfNatureClassVector(struct node* node);
+int isIdentifierDeclared(struct node* node);
+
 #endif
