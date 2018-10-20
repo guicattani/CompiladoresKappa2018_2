@@ -7,6 +7,7 @@
 
 typedef struct node{
     int     line_number;
+    int     col_number;
     int     token_type;
     char*   token_value;
     
@@ -31,11 +32,12 @@ struct node* createNodeOnYYVal(struct node* newNode);
 struct node* createChildren(struct node* parent, struct node* child);
 struct node* createNode(char* state);
 void showTree(struct node* root);
-struct node* createLeaf(int line_number, int type, char* text);
+struct node* createLeaf(int line_number, int type, char* text, int col_number);
 void liberaTree(struct node* node);
 int getAttributedStringSize(struct node* node);
 int calculateTypeInfer(struct node* node);
 
 int numberOfChildren(struct node* node);
 int numberOfSiblings(struct node* node);
+int isVectorEmpty(struct node* vectorNode);
 #endif

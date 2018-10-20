@@ -19,7 +19,7 @@
 #define NATUREZA_FUNC               10 //Natureza Vetor SÓ é utilizado na declaração de funções
 #define NATUREZA_CLASSE             11 //Natureza classe SÓ é utilizado na declaração de classes
 #define NATUREZA_VETOR              12 //Natureza vetor dá override nas outras naturezas, cheque o TIPO dele para saber do que ele é vetor
-
+#define NATUREZA_VETOR_CLASSE       13 //Vetor que também é uma classe hu3
 
 #define AST_PROGRAMA            "Estado Programa"
 #define AST_LITERAL             "Estado literal"
@@ -39,6 +39,7 @@
 #define AST_GLOBALVARDEC        "Estado globalVarDeclaration"
 #define AST_FUNCDEC             "Estado functionDeclaration"
 #define AST_FUNCHEAD            "Estado functionHead"
+#define AST_FUNCCOMMANDSBLOCK   "Estado functionCommandsBlock"
 #define AST_COMMANDSBLOCK       "Estado commandsBlock"
 #define AST_COMMANDSLIST        "Estado commandsList"
 #define AST_FUNCARGLIST         "Estado functionArgumentsList"
@@ -86,7 +87,8 @@
 #define ERR_VECTOR              21 //identificador deve ser utilizado como vetor
 #define ERR_FUNCTION            22 //identificador deve ser utilizado como função
 #define ERR_USER                23 //identificador deve ser utilizado como de usuário
-
+#define ERR_CLASS               24 //identificador deve ser utilizado como variável normal e não como classe
+#define ERR_CLASS_ID_NOT_FOUND  25 //Classe existe, porém o campo desejado não
 /* Tipos e tamanho de dados */
 #define ERR_WRONG_TYPE          30 //tipos incompatíveis
 #define ERR_STRING_TO_X         31 //coerção impossível de var do tipo string

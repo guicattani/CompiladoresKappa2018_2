@@ -88,6 +88,7 @@
 %type<nodo> globalVarDeclaration
 %type<nodo> functionDeclaration
 %type<nodo> functionHead
+%type<nodo> functionCommandsBlock
 %type<nodo> commandsBlock
 %type<nodo> commandsList
 %type<nodo> functionArgumentsList
@@ -277,7 +278,7 @@ functionDeclaration:
                        return err;
                     };                    
                 } 
-    commandsBlock                                 { deleteContext();
+    functionCommandsBlock                           { deleteContext();
                                                     $$ = createNode(AST_FUNCDEC);
                                                     createChildren($$, $1);
                                                     createChildren($$, $3);
@@ -290,6 +291,11 @@ functionDeclaration:
                                                        semanticerror(err, $1->child->brother->brother, $1->child->brother);
                                                        return err;
                                                    };};
+
+functionCommandsBlock:
+    '{' commandsList '}'    {$$ = createNode(AST_FUNCCOMMANDSBLOCK); 
+                             createChildren($$, $1); createChildren($$, $2);
+                             createChildren($$, $3);}; 
 
 functionHead:
       primitiveType TK_IDENTIFICADOR '(' functionArgumentsList ')'               {$$ = createNode(AST_FUNCHEAD); 
@@ -306,9 +312,10 @@ functionHead:
                                                                                   createChildren($$, $5); createChildren($$, $6);};
 
 commandsBlock:
-    '{' commandsList '}'    {$$ = createNode(AST_COMMANDSBLOCK); 
-                             createChildren($$, $1); createChildren($$, $2);
-                             createChildren($$, $3);}; 
+    { createContext(); }'{' commandsList '}'    {$$ = createNode(AST_COMMANDSBLOCK); 
+                                                createChildren($$, $2); createChildren($$, $3);
+                                                createChildren($$, $4);
+                                                deleteContext();}; 
 
 commandsList:
       command commandsList  {$$ = createNode(AST_COMMANDSLIST); createChildren($$, $1); createChildren($$, $2);}
@@ -343,7 +350,8 @@ command:
 
 //Commands without commas or case: Used in the "for" command
 commandSimple:
-      localVarCompleteDeclaration   {$$ = $1;}
+      localVarCompleteDeclaration   {$$ = $1; int err = addSymbolFromLocalVarDeclaration($1);
+                                    if (err) { yyerror("Semantic error"); return err;} } 
     | attribution                   {$$ = $1;}
     | TK_PR_INPUT expression        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);}
     | functionCall                  {$$ = $1;}
@@ -370,7 +378,7 @@ localVarCompleteDeclaration:
                                                      createChildren($$, $3);} 
     | TK_PR_STATIC localVarDeclaration             {$$ = createNode(AST_LOCALVARCDEC); createChildren($$, $1); createChildren($$, $2);}
     | TK_PR_CONST localVarDeclaration              {$$ = createNode(AST_LOCALVARCDEC); createChildren($$, $1); createChildren($$, $2);}
-    | localVarDeclaration                          {$$ = $1;};
+    | localVarDeclaration                          {$$ = createNode(AST_LOCALVARCDEC); createChildren($$, $1);};
     
 //Initialization of variable
 localVarInit:
@@ -378,27 +386,23 @@ localVarInit:
     | %empty                         {$$ = createNode(AST_LOCALVARINIT);};
 
 attribution:
-      primitiveAttribution  {$$ = $1;}
-    | userTypeAttribution   {$$ = $1;};
+      primitiveAttribution  {$$ = $1; int err = checkPrimitiveAttribution($1);
+                            if(err){ semanticerror(err, $1->child, NULL); return err;}}
+    | userTypeAttribution   {$$ = $1; int err = checkUserTypeAttribution($1);
+                            if(err){ semanticerror(err, $1->child, $1->child->brother->brother->brother); return err;}};
 
 primitiveAttribution:
       TK_IDENTIFICADOR vectorModifier '=' expression {$$ = createNode(AST_PRIMATTR); 
                                                         createChildren($$, $1); createChildren($$, $2);
-                                                        createChildren($$, $3); createChildren($$, $4);
-                                                      if(!findSymbolInContexts($1->token_value)){
-                                                        yyerror("Variable not declared");
-                                                        return ERR_UNDECLARED;} };  
+                                                        createChildren($$, $3); createChildren($$, $4);};  
  //userVariable
 
 userTypeAttribution:
       TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR '=' expression {$$ = createNode(AST_USERTYPEATTR); 
+                    
                                                                                 createChildren($$, $1); createChildren($$, $2);
                                                                                 createChildren($$, $3); createChildren($$, $4);
-                                                                                createChildren($$, $5); createChildren($$, $6);
-                                                                            if(!findSymbolInContexts($1->token_value)){
-                                                                                yyerror("Variable not declared");
-                                                                                return ERR_UNDECLARED;} 
-                                                                          };
+                                                                                createChildren($$, $5); createChildren($$, $6);};
 
 simpleExpression:
       TK_IDENTIFICADOR                          {$$ = $1;
@@ -645,55 +649,61 @@ void yyerror (char const *s){
 void semanticerror(int err, struct node* id, struct node* type){
     switch(err){
         case ERR_UNDECLARED:
-            printf ("Line %d, Column %d: Identifier \"%s\" not declared.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Identifier \"%s\" not declared.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_DECLARED:
-            printf ("Line %d, Column %d: Identifier \"%s\" already declared.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Identifier \"%s\" already declared.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_VARIABLE:
-            printf ("Line %d, Column %d: Identifier \"%s\" must be used without indexation.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Identifier \"%s\" must be used without indexation.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_VECTOR:
-            printf ("Line %d, Column %d: Identifier \"%s\" must be used with indexation.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Identifier \"%s\" must be used with indexation.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_FUNCTION:
-            printf ("Line %d, Column %d: Identifier \"%s\" must be used as function.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Identifier \"%s\" must be used as function.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_USER:
-            printf ("Line %d, Column %d: Identifier \"%s\" must be used as user class.\n", yylineno, yycolno, id->token_value);
-            break;           
+            printf ("Line %d, Column %d: Identifier \"%s\" must be used as user class.\n", id->line_number, id->col_number, id->token_value);
+            break;       
+        case ERR_CLASS:
+            printf ("Line %d, Column %d: Identifier \"%s\" must not be used as user class.\n", id->line_number, id->col_number, id->token_value);
+            break;     
+        case ERR_CLASS_ID_NOT_FOUND:
+            printf ("Line %d, Column %d: Field \"%s\" of class \"%s\" doesn't exist.\n", id->line_number, id->col_number, type->token_value, id->token_value);
+            break;   
         case ERR_WRONG_TYPE:
-            printf ("Line %d, Column %d: Type \"%s\" incompatible with \"%s\".\n", yylineno, yycolno, id->token_value, type->token_value);
+            printf ("Line %d, Column %d: Type \"%s\" incompatible with \"%s\".\n", id->line_number, id->col_number, id->token_value, type->token_value);
             break; 
         case ERR_STRING_TO_X:
-            printf ("Line %d, Column %d: Identifier \"%s\" cannot be coerced from string.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Identifier \"%s\" cannot be coerced from string.\n", id->line_number, id->col_number, id->token_value);
             break; 
         case ERR_CHAR_TO_X:
-            printf ("Line %d, Column %d: Identifier \"%s\" cannot be coerced from char.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Identifier \"%s\" cannot be coerced from char.\n", id->line_number, id->col_number, id->token_value);
             break; 
         case ERR_USER_TO_X:
-            printf ("Line %d, Column %d: Identifier \"%s\" cannot be coerced from user class.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Identifier \"%s\" cannot be coerced from user class.\n", id->line_number, id->col_number, id->token_value);
             break; 
         case ERR_MISSING_ARGS:
-            printf ("Line %d, Column %d: Identifier \"%s\" is missing arguments.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Identifier \"%s\" is missing arguments.\n", id->line_number, id->col_number, id->token_value);
             break; 
         case ERR_EXCESS_ARGS:
-            printf ("Line %d, Column %d: Identifier \"%s\" is with excess arguments.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Identifier \"%s\" is with excess arguments.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_WRONG_TYPE_ARGS:
-            printf ("Line %d, Column %d: Identifier \"%s\" types are incompatible.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Identifier \"%s\" types are incompatible.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_WRONG_PAR_INPUT:
-            printf ("Line %d, Column %d: Parameter \"%s\" is not identifier.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Parameter \"%s\" is not identifier.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_WRONG_PAR_OUTPUT:
-            printf ("Line %d, Column %d: Parameter \"%s\" is not literal string or expression.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Parameter \"%s\" is not literal string or expression.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_WRONG_PAR_RETURN:
-            printf ("Line %d, Column %d: Parameter \"%s\" is not compatible with the type of return.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Parameter \"%s\" is not compatible with the type of return.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_TYPE_UNDECLARED:
-            printf ("Line %d, Column %d: Type \"%s\" of identifier \"%s\" not declared.\n", yylineno, yycolno, type->token_value, id->token_value);
+            printf ("Line %d, Column %d: Type \"%s\" of identifier \"%s\" not declared.\n", id->line_number, id->col_number, type->token_value, id->token_value);
             break;
     }
 

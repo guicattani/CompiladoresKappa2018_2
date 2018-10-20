@@ -23,7 +23,7 @@ void createContext(){
 //sizeOfString - If it is a string, it should have its size, else it should be 1
 //returns 0 if the symbol exists
 //returns 1 if it is inserted correctly
-int addSymbol(char* name, int line, int type, int nature, struct fieldList* fields, int vectorSize, int sizeOfString){
+int addSymbol(char* name, int line, int type, int nature, struct fieldList* fields, int vectorSize, int sizeOfString, char* userType){
     if(findSymbolInContexts(name) != NULL)
         return 1;
 
@@ -35,6 +35,10 @@ int addSymbol(char* name, int line, int type, int nature, struct fieldList* fiel
 
     new->info.name = strdup(name);
     new->info.value.string_value = strdup(name);
+    new->info.userType = NULL;
+
+    if(userType != NULL)
+        new->info.userType = strdup(userType);
 
     if (fields != NULL)
         new->info.fields = fields;
@@ -152,3 +156,17 @@ int setSymbolValue(char* name, char* value){
     }
     return -1;
 }
+
+//checks if the fieldList has the name searched, and return its type.
+//Returns -1 if the name searched is not on the fieldList
+int searchFieldList(struct fieldList* fieldList, char* name){
+    struct fieldList* tmp = fieldList;
+    while (tmp != NULL){
+        if(!strcmp(tmp->name, name))
+            return tmp->type;
+        
+        tmp = tmp->next;
+    }
+    return -1;
+}
+

@@ -14,127 +14,127 @@
 %%
 int                                             {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_INT;
                                                 };
 float                                           {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_FLOAT;
                                                 };
 bool                                            { 
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_BOOL;
                                                 };
 char                                            {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_CHAR;
                                                 };
 string                                          {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_STRING;
                                                 };
 if                                              {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_IF;
                                                 };
 then                                            {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_THEN;
                                                 };
 else                                            {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_ELSE;
                                                 };
 while                                           {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_WHILE;
                                                 };
 do                                              {  
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_DO;
                                                 };
 input                                           {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_INPUT;
                                                 };
 output                                          {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_OUTPUT;
                                                 };
 return                                          {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_RETURN;
                                                 };
 const                                           {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_CONST;
                                                 };
 static                                          {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_STATIC;
                                                 };
 foreach                                         {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_FOREACH;
                                                 };
 for                                             {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_FOR;
                                                 };
 switch                                          {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_SWITCH;
                                                 };
 case                                            {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_CASE;
                                                 };
 break                                           {  
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_BREAK;
                                                 };
 continue                                        {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_CONTINUE;
                                                 };
 class                                           {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_CLASS;
                                                 };
 private                                         {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_PRIVATE;
                                                 };
 public                                          {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_PUBLIC;
                                                 };
 protected                                       {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, RESERVED_WORD, yytext, yycolno);
                                                     return TK_PR_PROTECTED;
                                                 };
 
@@ -143,52 +143,52 @@ protected                                       {
 
 \<\=                                            {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext, yycolno);
                                                     return TK_OC_LE;
                                                 };   
 \>\=                                            {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext, yycolno);
                                                     return TK_OC_GE;
                                                 };   
 \=\=                                            {  
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext, yycolno);
                                                     return TK_OC_EQ;
                                                 };   
 \!\=                                            {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext, yycolno);
                                                     return TK_OC_NE;
                                                 }; 
 \&\&                                            {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext, yycolno);
                                                     return TK_OC_AND;
                                                 };   
 \|\|                                            {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext, yycolno);
                                                     return TK_OC_OR;
                                                 };   
 \>\>                                            {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext, yycolno);
                                                     return TK_OC_SR;
                                                 };   
 \<\<                                            {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext, yycolno);
                                                     return TK_OC_SL;
                                                 };  
 \%\>\%                                          {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext, yycolno);
                                                     return TK_OC_FORWARD_PIPE;
                                                 };
 \%\|\%                                          {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, COMPOUND_OPERATOR, yytext, yycolno);
                                                     return TK_OC_BASH_PIPE;
                                                 };
 
@@ -197,13 +197,13 @@ protected                                       {
 
 \,|\;|\:|\)|\(|\]|\[|\}|\{|\+|\-|\||\?          {  
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, SPECIAL_CHARACTER, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, SPECIAL_CHARACTER, yytext, yycolno);
                                                     return yytext[0];
                                                     
                                                 }
 \*|\/|\>|\<|\=|\!|\&|\%|\#|\^|\.|\$             {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, SPECIAL_CHARACTER, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, SPECIAL_CHARACTER, yytext, yycolno);
                                                     return yytext[0];
                                                 }
 
@@ -212,37 +212,37 @@ protected                                       {
 
 [0-9]*                                          {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_INT, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_INT, yytext, yycolno);
                                                     return TK_LIT_INT;
                                                 }
 [0-9]*\.([0-9]*((e|E)(\+|\-)?[0-9]*)?)?         {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_FLOAT, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_FLOAT, yytext, yycolno);
                                                     return TK_LIT_FLOAT;
                                                 }
 false                                           {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_BOOL, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_BOOL, yytext, yycolno);
                                                     return TK_LIT_FALSE;
                                                 }
 true                                            {   
-                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_BOOL, yytext);   
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_BOOL, yytext, yycolno);   
                                                     return TK_LIT_TRUE;
                                                 }
 \'([^\'\\\n]|\\n|\\\'|\\\\)\'                   {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_CHAR, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_CHAR, yytext, yycolno);
                                                     return TK_LIT_CHAR;
                                                 }
 \"(\\\"|[^\"|\r\n|\r|\n])*\"                    {  
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_STRING, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_LITERAL_STRING, yytext, yycolno);
                                                     return TK_LIT_STRING;
                                                 }
 
 [A-Z_a-z][A-Z_a-z0-9]*                          {   
                                                     add_col();
-                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_IDENTIFICADOR, yytext);
+                                                    yylval.nodo = createLeaf(yylineno, NATUREZA_IDENTIFICADOR, yytext, yycolno);
                                                     return TK_IDENTIFICADOR;
                                                 }
     

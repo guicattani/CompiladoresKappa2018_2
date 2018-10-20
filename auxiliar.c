@@ -32,8 +32,8 @@ union value createValue(int type, char* text){
 }
 
 int getSizeFromType(int type, int vectorSize, int sizeOfString){
-    int size;
-    switch(type){
+    int size = 0;
+    switch(vectorSize){
         case NATUREZA_IDENTIFICADOR: //Identifier
             break;
         case NATUREZA_LITERAL_INT: //Lit int
@@ -93,8 +93,9 @@ int parseType(char* typeString){
         return NATUREZA_LITERAL_BOOL;
     if(strcmp(typeString, "char") == 0)
         return NATUREZA_LITERAL_CHAR;
-    if(strcmp(typeString, "int") == 0)
+    if(strcmp(typeString, "string") == 0)
         return NATUREZA_LITERAL_STRING;
     else
         return NATUREZA_IDENTIFICADOR;
 }
+

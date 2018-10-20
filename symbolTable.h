@@ -17,7 +17,7 @@ typedef struct symbolInfo{
     int nature;
     int type;
     int size;
-    
+    char* userType;
     //Info from yylval
     char* name;
     union value value;
@@ -39,7 +39,7 @@ typedef struct contextStack{
     struct contextStack* previousContext; //next of the stack
 } CONTEXTSTACK;
 
-int addSymbol(char * name, int line, int type, int nature, struct fieldList* fields, int vectorSize, int sizeOfString);
+int addSymbol(char * name, int line, int type, int nature, struct fieldList* fields, int vectorSize, int sizeOfString, char* userType);
 
 
 void createContext();
@@ -50,5 +50,5 @@ int setSymbolValue(char* name, char* value);
 
 struct fieldList* pushField(struct fieldList* fieldList, int type, char* name);
 void freeFieldList(struct fieldList* fieldList);
-
+int searchFieldList(struct fieldList* fieldList, char* name);
 #endif

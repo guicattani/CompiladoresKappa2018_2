@@ -3,17 +3,24 @@
 //given a node and its type, adds it to the current symbol table
 //Returns 1 if succesful
 //Returns 0 if symbol already exists
+//stringSize is the size of the node if it is a striing
 int addSymbolFromNode(struct node* idNode, struct node* typeNode){
 
 
 
     int typeOfTypeNode = parseType(typeNode->token_value);
+    int nature = typeOfTypeNode;
+    char* userType = NULL;
+    if (typeOfTypeNode == NATUREZA_IDENTIFICADOR){
 
+        userType = strdup(typeNode->token_value); 
+        nature = NATUREZA_CLASSE;
+    }
 
     if(findSymbolInContexts(typeNode->token_value) == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
         return ERR_TYPE_UNDECLARED;
 
-    if(addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, typeOfTypeNode, NULL, 1, 1) == 0)
+    if(addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, nature, NULL, 1, 1, userType) == 0)
         return 0;
     else 
         return ERR_DECLARED; 
@@ -22,25 +29,44 @@ int addSymbolFromNode(struct node* idNode, struct node* typeNode){
 
 //given a node and its type and a node with the vector size, adds it to the current symbol table
 int addSymbolFromNodeWithVector(struct node* idNode, struct node* typeNode, struct node* vectorSizeNode){
+    int nature = NATUREZA_VETOR;
     int typeOfTypeNode = parseType(typeNode->token_value);
+    if (typeOfTypeNode == NATUREZA_IDENTIFICADOR)
+        nature = NATUREZA_VETOR_CLASSE;
+    
+    char* userType = NULL;
+    if (typeOfTypeNode == NATUREZA_IDENTIFICADOR)
+        userType = typeNode->token_value; 
 
     if(findSymbolInContexts(typeNode->token_value) == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
         return ERR_TYPE_UNDECLARED;
 
-    if(addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, NATUREZA_VETOR, NULL, vectorSizeNode->value.int_value, 1) == 0)
+    if(addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, nature, NULL, vectorSizeNode->value.int_value, 1, userType) == 0)
         return 0;
     else 
         return ERR_DECLARED; 
 }
 
 //given a node and its type, adds it to the current symbol table
-void addSymbolFromNodeWithAttribution(struct node* idNode, struct node* typeNode, struct node* expressionNode){
+int addSymbolFromNodeWithAttribution(struct node* idNode, struct node* typeNode, struct node* expressionNode){
     int typeOfTypeNode = parseType(typeNode->token_value);
 
-    if(typeOfTypeNode == NATUREZA_LITERAL_STRING)
-        addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, typeOfTypeNode, NULL, 1, getAttributedStringSize(expressionNode) ); 
-    else
-        addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, typeOfTypeNode, NULL, 1, 1 ); 
+    if(findSymbolInContexts(typeNode->token_value) == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
+        return ERR_TYPE_UNDECLARED;
+
+    if(typeOfTypeNode == NATUREZA_LITERAL_STRING){
+        if(addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, typeOfTypeNode, NULL, 1, getAttributedStringSize(expressionNode), NULL) == 0)
+            return 0;
+        else
+            return ERR_DECLARED; 
+
+    }
+    else{
+        if(addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, typeOfTypeNode, NULL, 1, 1, NULL) == 0)
+            return 0;
+        else
+            return ERR_DECLARED; 
+    }
 }
 
 
@@ -57,15 +83,15 @@ int  addSymbolFromNodeFunction(struct node* functionhead){
         idNode = functionhead->child->brother->brother;
         typeNode = functionhead->child->brother;
         fieldListNode = functionhead->child->brother->brother->brother->brother;        
-
     }
+
     struct fieldList* fieldList = createFieldList(fieldListNode);
     int typeOfTypeNode = parseType(typeNode->token_value);
 
     if(findSymbolInContexts(typeNode->token_value) == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
         return ERR_TYPE_UNDECLARED;
 
-    if (addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, NATUREZA_FUNC, fieldList, 1, 1) == 0)
+    if (addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, NATUREZA_FUNC, fieldList, 1, 1, NULL) == 0)
         return 0;
     else
         return ERR_DECLARED; 
@@ -73,10 +99,64 @@ int  addSymbolFromNodeFunction(struct node* functionhead){
 
 int  addSymbolFromNodeClass(struct node* idNode, struct node* fieldListNode){
     struct fieldList* fieldList = createFieldList(fieldListNode);
-    if (addSymbol(idNode->token_value, idNode->line_number, NATUREZA_IDENTIFICADOR, NATUREZA_CLASSE, fieldList, 1, 1) == 0)
+    if (addSymbol(idNode->token_value, idNode->line_number, NATUREZA_IDENTIFICADOR, NATUREZA_CLASSE, fieldList, 1, 1, NULL) == 0)
         return 0;
     else
         return ERR_DECLARED; 
+}
+
+int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
+    struct node* localVarDeclaration = localVarCompleteDeclaration->child;
+    while(localVarDeclaration->brother != NULL)
+        localVarDeclaration = localVarDeclaration->brother;
+    
+    struct node* typeNode = localVarDeclaration->child; 
+    struct node* idNode = localVarDeclaration->child->brother;
+    
+    int typeOfTypeNode = parseType(typeNode->token_value);
+    int nature = typeOfTypeNode;
+
+    //Inserts UserType
+    char* userType = NULL;
+    if (typeOfTypeNode == NATUREZA_IDENTIFICADOR){
+
+        userType = strdup(typeNode->token_value); 
+        nature = NATUREZA_CLASSE;
+    }
+
+    //Checks if type has been declared
+    if(findSymbolInContexts(typeNode->token_value) == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
+        return ERR_TYPE_UNDECLARED;
+
+    int stringSize = 1; //TODO calculate true stringsize based on expression
+
+    //Adds symbol and checks if identifier it has been declared before
+    if(addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, nature, NULL, 1, stringSize, userType) != 0)
+        return ERR_DECLARED; 
+    if(numberOfChildren(localVarDeclaration->child->brother->brother) != 0){
+        //Attribution
+        struct node* type = localVarDeclaration->child->brother->brother->child->brother; //Goes into userVariableOrLiteral Node
+        int attrType = type->token_type;
+        if(attrType == NATUREZA_IDENTIFICADOR){
+            struct symbolInfo* typeInfo = findSymbolInContexts(type->token_value);
+            if(typeInfo == NULL)
+                return ERR_UNDECLARED;          
+            attrType = typeInfo->type;
+            if(typeInfo->nature == NATUREZA_CLASSE || typeInfo->nature == NATUREZA_VETOR_CLASSE)
+                return ERR_CLASS;
+            if(typeInfo->nature == NATUREZA_FUNC)
+                return ERR_FUNCTION;
+
+            
+        }
+        if(attrType != typeOfTypeNode) //TODO COERSION
+            return ERR_WRONG_TYPE;
+        
+    }
+
+
+    return 0;
+    
 }
 
 //Given a node that contains fields or functionHead
@@ -103,3 +183,58 @@ struct fieldList* createFieldList(struct node* fields){
     return fieldList;
 
 }
+
+
+
+int checkAttribution(struct node* id, struct node* vector, struct node* expression, struct node* classid){
+
+    struct symbolInfo* idInfo = findSymbolInContexts(id->token_value);
+    if(idInfo == NULL)
+        return ERR_UNDECLARED;
+        
+    if((idInfo->nature != NATUREZA_VETOR && idInfo->nature != NATUREZA_VETOR_CLASSE) && !isVectorEmpty(vector))
+        return ERR_VARIABLE;
+
+    if((idInfo->nature == NATUREZA_VETOR || idInfo->nature == NATUREZA_VETOR_CLASSE)  && isVectorEmpty(vector))
+        return ERR_VECTOR;
+
+    if(idInfo->nature == NATUREZA_FUNC)
+        return ERR_FUNCTION;
+
+    //User type has been defined but it hasn't been called correctly
+    if((idInfo->nature == NATUREZA_CLASSE || idInfo->nature == NATUREZA_VETOR_CLASSE)  && classid == NULL)
+        return ERR_USER;
+
+    
+
+    if((idInfo->nature != NATUREZA_CLASSE && idInfo->nature != NATUREZA_VETOR_CLASSE)  && classid != NULL)
+        return ERR_CLASS;    
+
+    int tested_type = idInfo->type;
+    if(classid != NULL){
+        struct symbolInfo *classInfo = findSymbolInContexts(idInfo->userType);
+        
+        int type = searchFieldList(classInfo->fields, classid->token_value);
+        if (type == -1)
+            return ERR_CLASS_ID_NOT_FOUND;
+        tested_type = type;
+    }
+    return 0;
+    //TODO CHECK EXPRESSION
+}
+
+int checkPrimitiveAttribution(struct node* attrNode){
+    struct node* id = attrNode->child;
+    struct node* vector = attrNode->child->brother;
+    struct node* expression = attrNode->child->brother->brother->brother;
+    checkAttribution(id, vector, expression, NULL);
+}
+
+int checkUserTypeAttribution(struct node* attrNode){
+    struct node* id = attrNode->child;
+    struct node* vector = attrNode->child->brother;
+    struct node* expression = attrNode->child->brother->brother->brother->brother->brother;
+    struct node* typeid = attrNode->child->brother->brother->brother;
+    checkAttribution(id, vector, expression, typeid);
+}
+

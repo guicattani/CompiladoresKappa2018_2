@@ -31,9 +31,10 @@ struct node* createNode(char* state){
     return newNode;
 }
 
-struct node* createLeaf(int line_number, int type, char* text){
+struct node* createLeaf(int line_number, int type, char* text, int col_number){
     struct node *newNode = malloc(sizeof(struct node));
     newNode->line_number = line_number;
+    newNode->col_number = col_number;
     newNode->token_type = type;
     newNode->token_value = strdup(text);
     newNode->brother = NULL;
@@ -225,4 +226,12 @@ int numberOfSiblings(struct node* node){
         return 1 + numberOfSiblings(node->brother);
     }
     
+}
+
+//Checks if a vectorModifier node is empty
+//return 1 if it is empty, 0 otherwise
+int isVectorEmpty(struct node* vectorNode){
+    if(vectorNode->child == NULL)
+        return 1;
+    else return 0;
 }
