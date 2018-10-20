@@ -341,3 +341,22 @@ int isIdentifierDeclared(struct node* node){
         return 0;
 }
 
+//return type if class field is found within class, if not, return -1
+int getTypeFromUserClassField(struct node* userClassNode, struct node* fieldNode){
+    struct symbolInfo* typeInfo = findSymbolInContexts(fieldNode->token_value);
+    struct symbolInfo* userClassInfo = findSymbolInContexts(userClassNode->token_value);
+
+    if(typeInfo || userClassInfo)
+        return -1;
+
+    struct fieldList* fieldList = userClassInfo->fields;
+    while(fieldList){
+        if(strcmp(fieldList->name,fieldNode->token_value) == 0){
+                return fieldList->type;
+            }
+        else
+            fieldList = fieldList->next;
+    }
+
+    return 0;
+}
