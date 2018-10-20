@@ -142,8 +142,8 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
             if(typeInfo == NULL)
                 return ERR_UNDECLARED;          
             attrType = typeInfo->type;
-            if(typeInfo->nature == NATUREZA_CLASSE || typeInfo->nature == NATUREZA_VETOR_CLASSE)
-                return ERR_CLASS;
+            if(typeInfo->nature == NATUREZA_CLASSE || typeInfo->nature == NATUREZA_VETOR_CLASSE) //TODO review
+                return ERR_USER;
             if(typeInfo->nature == NATUREZA_FUNC)
                 return ERR_FUNCTION;
         }
@@ -185,7 +185,6 @@ struct fieldList* createFieldList(struct node* fields){
 
 
 int checkAttribution(struct node* id, struct node* vector, struct node* expression, struct node* classid){
-
     struct symbolInfo* idInfo = findSymbolInContexts(id->token_value);
     if(idInfo == NULL)
         return ERR_UNDECLARED;
@@ -215,10 +214,14 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
         int type = searchFieldList(classInfo->fields, classid->token_value);
         if (type == -1)
             return ERR_CLASS_ID_NOT_FOUND;
-        tested_type = type;
+        tested_type = type; //TODO refatorar
     }
 
     int typeInferenceOfExpression = calculateTypeInfer(expression);
+    if(typeInferenceOfExpression > NATUREZA_IDENTIFICADOR){
+        return typeInferenceOfExpression;
+    }
+
     if(calculateImplicitConvert(idInfo->type, typeInferenceOfExpression) == -1)
         return ERR_WRONG_TYPE;
     else
@@ -246,29 +249,51 @@ int checkUserTypeAttribution(struct node* attrNode){
 int calculateTypeInfer(struct node* node){
     if(node == NULL)
         return 0;
-    
-    int childInfer = calculateTypeInfer(node->child);
-    int brotherInfer = calculateTypeInfer(node->brother);
+    if(strcmp(node->token_value , "$") == 0){
+        int brotherInfer = calculateTypeInfer(node->brother->brother);
+        
+        return brotherInfer;
+    }
+        int childInfer = calculateTypeInfer(node->child);
+        int brotherInfer = calculateTypeInfer(node->brother);
 
-    if(childInfer == -1 || brotherInfer == -1) //propagate error msg;
-        return -1;
-    if(childInfer == -2 || brotherInfer == -2) //propagate error msg;
-        return -2;
+    if(childInfer > NATUREZA_IDENTIFICADOR) //propagate error msg;
+        return childInfer;
+    if(brotherInfer > NATUREZA_IDENTIFICADOR) //propagate error msg;
+        return brotherInfer;
 
     int nodeType = node->token_type;
 
     //dereference variable
     if(nodeType == NATUREZA_IDENTIFICADOR){
-        struct symbolInfo* typeInfo = findSymbolInContexts(node->token_value);
-         if(!typeInfo)
-             return -2;
-        if(typeInfo->nature == NATUREZA_CLASSE)
-             return -2;
-        nodeType = typeInfo->type;
+        struct symbolInfo* referenceInfo = findSymbolInContexts(node->token_value);
+        int referenceType = referenceInfo->type;
+
+        if(referenceInfo->nature == NATUREZA_FUNC) 
+             return ERR_FUNCTION;
+
+        if(referenceInfo->nature == NATUREZA_CLASSE) { //TODO func
+            if(referenceInfo->userType == NULL) //TODO review
+                return ERR_USER;
+            
+            if(node->brother == NULL || node->brother->brother == NULL )
+                return ERR_USER; // TODO specific error for expression
+            
+            int typeClassField = getTypeFromUserClassField(node, node->brother->brother);
+            if(typeClassField == -1)
+                return ERR_CLASS_ID_NOT_FOUND;
+            else
+                referenceType = typeClassField;
+        }
+        
+        nodeType = referenceType;
     }
 
-    if(nodeType == NATUREZA_LITERAL_CHAR || nodeType == NATUREZA_LITERAL_STRING){
-        return -1; //error, since we can't convert them
+    if(nodeType == NATUREZA_LITERAL_CHAR){
+        return ERR_CHAR_TO_X; //error, since we can't convert them
+    }
+    if(nodeType == NATUREZA_LITERAL_STRING){
+        return ERR_STRING_TO_X; //error, since we can't convert them
     }
     //if inference of child have been calculated, assume it as type
     if(childInfer != 0) 
@@ -342,21 +367,16 @@ int isIdentifierDeclared(struct node* node){
 }
 
 //return type if class field is found within class, if not, return -1
-int getTypeFromUserClassField(struct node* userClassNode, struct node* fieldNode){
-    struct symbolInfo* typeInfo = findSymbolInContexts(fieldNode->token_value);
-    struct symbolInfo* userClassInfo = findSymbolInContexts(userClassNode->token_value);
+int getTypeFromUserClassField(struct node* variableNode,struct node* fieldClassNode){
+    struct symbolInfo *idInfo = findSymbolInContexts(variableNode->token_value);
 
-    if(typeInfo || userClassInfo)
-        return -1;
+    if(idInfo->userType == NULL)
+        return ERR_CLASS_ID_NOT_FOUND;
+    
+    struct symbolInfo *classInfo = findSymbolInContexts(idInfo->userType);
+    int type = searchFieldList(classInfo->fields, fieldClassNode->token_value);
 
-    struct fieldList* fieldList = userClassInfo->fields;
-    while(fieldList){
-        if(strcmp(fieldList->name,fieldNode->token_value) == 0){
-                return fieldList->type;
-            }
-        else
-            fieldList = fieldList->next;
-    }
-
-    return 0;
+    if (type == -1)
+            return ERR_CLASS_ID_NOT_FOUND;
+    return type;
 }

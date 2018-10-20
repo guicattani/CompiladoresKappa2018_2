@@ -23,7 +23,7 @@ int isIdentifierOfNatureVector(struct node* node);
 int isIdentifierOfNatureClassVector(struct node* node);
 int isIdentifierDeclared(struct node* node);
 
-int getTypeFromUserClassField(struct node* userClassNode, struct node* fieldNode);
+int getTypeFromUserClassField(struct node* variableNode,struct node* fieldClassNode);
 
 
 #endif
