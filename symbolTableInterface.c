@@ -133,7 +133,6 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
     if(typeNode->token_type == NATUREZA_LITERAL_STRING){
         struct node* declarationNode = localVarDeclaration->child->brother->brother->child->brother->child;
         if(declarationNode->token_type == NATUREZA_IDENTIFICADOR){
-            printf("aaaa");
             struct symbolInfo* typeInfo = findSymbolInContexts(declarationNode->token_value);
             stringSize = typeInfo->size;
         }
@@ -163,6 +162,8 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
         }
 
         int resultado = calculateImplicitConvert(attrType, typeOfTypeNode);
+
+        printf("asdasdsa");
         if(resultado == -1)
             return ERR_WRONG_TYPE;
     }
@@ -231,9 +232,10 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
         tested_type = type; 
     }
 
-    int typeInferenceOfExpression;
+    int typeInferenceOfExpression; 
     if(expression->child != NULL && expression->brother != NULL){//not a literal
         typeInferenceOfExpression = calculateTypeInfer(expression);
+        
         if(typeInferenceOfExpression > NATUREZA_IDENTIFICADOR){
             return typeInferenceOfExpression;
         }
@@ -247,13 +249,12 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
             typeInferenceOfExpression = expression->token_type;
     }
 
-    int calculatedConvert = calculateImplicitConvert(idInfo->type, typeInferenceOfExpression);
+    int calculatedConvert = calculateImplicitConvert(tested_type, typeInferenceOfExpression);
     if(calculatedConvert == -1)
         return ERR_WRONG_TYPE;
     
     if(calculatedConvert == NATUREZA_LITERAL_STRING){
         int idSize = idInfo->size;
-        printf("NAME %s\n",idInfo->name);
         if(idInfo->size < 0){
             int stringSize;
             if(expression->token_type == NATUREZA_IDENTIFICADOR){
@@ -271,7 +272,6 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
             int stringSize;
             if(expression->token_type == NATUREZA_IDENTIFICADOR){
                 struct symbolInfo* typeInfo = findSymbolInContexts(expression->token_value);
-                printf("ola %d\n", typeInfo->size);
                 stringSize = typeInfo->size;
             }
             else{
@@ -332,9 +332,9 @@ int calculateTypeInfer(struct node* node){
         if(referenceInfo->nature == NATUREZA_CLASSE) {
             if(referenceInfo->userType == NULL)
                 return ERR_WRONG_TYPE;
-            
-            if(node->brother == NULL || node->brother->brother == NULL )
+            if(node->brother == NULL || node->brother->brother == NULL ){
                 return ERR_WRONG_TYPE; //generic error because we can't determine the column
+            }
             
             int typeClassField = getTypeFromUserClassField(node, node->brother->brother);
             if(typeClassField > NATUREZA_IDENTIFICADOR)
