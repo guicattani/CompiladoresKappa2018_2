@@ -23,8 +23,12 @@ union value createValue(int type, char* text){
             break;
         case NATUREZA_LITERAL_CHAR: //Literal Char
         case NATUREZA_LITERAL_STRING: //Literal String
+        {
+            if(value.string_value != NULL)
+                free(value.string_value);
             value.string_value = strdup(text);
             break;
+        }
 
         
     }
