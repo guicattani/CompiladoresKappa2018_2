@@ -109,6 +109,9 @@
 #define ERR_TYPE_UNDECLARED     60  //Tipo não declarado
 
 #define ERR_STR_SIZE_OVERFLOW     70  //Tamanho da string recebedora é pequeno para atribuição
+/* Erro desconhecido */
+#define ERR_UNKNOWN             71
+
 union value{
         int     int_value;
         int     bool_value;

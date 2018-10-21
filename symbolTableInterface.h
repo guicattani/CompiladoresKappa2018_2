@@ -15,6 +15,7 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration);
 int checkAttribution(struct node* id, struct node* vector, struct node* expression, struct node* classid);
 int checkPrimitiveAttribution(struct node* attrNode);
 int checkUserTypeAttribution(struct node* attrNode);
+int checkFunction(struct node *functionNode);
 
 struct fieldList* createFieldList(struct node* fields);
 int calculateTypeInfer(struct node* node);
@@ -24,6 +25,7 @@ int isIdentifierOfNatureClassVector(struct node* node);
 int isIdentifierDeclared(struct node* node);
 
 int getTypeFromUserClassField(struct node* variableNode,struct node* fieldClassNode);
+
 
 
 #endif

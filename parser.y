@@ -365,10 +365,12 @@ commandSimple:
                                         return err;} 
                                     } 
     | attribution                                   {$$ = $1;}
-    | TK_PR_INPUT expression                        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);}
+    | TK_PR_INPUT expression                        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);
+                                                    int err = calculateTypeInfer($2); if(err > 6){ semanticerror(err, $1,$1); return err;}}
     | functionCall                                  {$$ = $1;}
     | shiftCommand                                  {$$ = $1;}
-    | TK_PR_RETURN expression                       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);}
+    | TK_PR_RETURN expression                       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);
+                                                    int err = calculateTypeInfer($2); if(err > 6){ semanticerror(err, $1,$1); return err;}}
     | TK_PR_CONTINUE                                {$$ = $1;}
     | TK_PR_BREAK                                   {$$ = $1;}
     | fluxControlCommand                            {$$ = $1;}
@@ -588,16 +590,18 @@ expressionList:
 functionCall:
     TK_IDENTIFICADOR '(' functionCallArguments ')' {$$ = createNode(AST_FUNCTIONCALL); 
                                                     createChildren($$, $1); createChildren($$, $2);
-                                                    createChildren($$, $3); createChildren($$, $4);};
+                                                    createChildren($$, $3); createChildren($$, $4);
+                                                    int err = checkFunction($$); if (err){ semanticerror(err, $1, NULL); return err;}
+                                                    };
 
 //Arguments can be empty or can be a list of expressions/dots
 functionCallArguments:
-      functionCallArgumentsList {$$ = $1;}
+      functionCallArgumentsList {$$ = createNode(AST_FUNCCALLARGS); createChildren($$, $1);}
     | %empty                    {$$ = createNode(AST_FUNCCALLARGS);}; 
 
 //List of Expression/Dots
 functionCallArgumentsList:
-    functionCallArgument        {$$ = $1;}
+    functionCallArgument        {$$ = createNode(AST_FUNCARGLIST); createChildren($$, $1);}
     | functionCallArgument ',' functionCallArgumentsList {$$ = createNode(AST_FUNCARGLIST); 
                                                           createChildren($$, $1); createChildren($$, $2);
                                                           createChildren($$, $3);}; 
@@ -612,23 +616,15 @@ shiftCommand:
       TK_IDENTIFICADOR vectorModifier shift expression                      {$$ = createNode(AST_SHIFT); 
                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                              createChildren($$, $3); createChildren($$, $4);
-                                                                             if(!isIdentifierDeclared($1)){
-                                                                                semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                                                return ERR_UNDECLARED;}
-
+                                                                             int err = checkPrimitiveAttribution($$);
+                                                                             if(err){ semanticerror(err, $1, NULL); return err;}
                                                                             }
     | TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR shift expression {$$ = createNode(AST_SHIFT); 
                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                              createChildren($$, $3); createChildren($$, $4);
                                                                              createChildren($$, $5); createChildren($$, $6);
-                                                                             if(!isIdentifierDeclared($1)){
-                                                                                semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                                                return ERR_UNDECLARED;}
-                                                                            
-                                                                            if(getTypeFromUserClassField($1, $4) > NATUREZA_IDENTIFICADOR){
-                                                                                semanticerror(ERR_CLASS_ID_NOT_FOUND, $1, NULL); 
-                                                                                return ERR_CLASS_ID_NOT_FOUND;}
-
+                                                                             int err = checkUserTypeAttribution($$);
+                                                                             if(err){ semanticerror(ERR_UNKNOWN, $1, $4); return err;}
                                                                             };
 
 //Flux Control can be of 3 kinds, Conditional, iterative or selection
@@ -642,12 +638,16 @@ conditionalFluxControl:
       TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock                          {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                      createChildren($$, $1); createChildren($$, $2);
                                                                                      createChildren($$, $3); createChildren($$, $4);
-                                                                                     createChildren($$, $5); createChildren($$, $6);}
+                                                                                     createChildren($$, $5); createChildren($$, $6);
+                                                                                     int err = calculateTypeInfer($3); 
+                                                                                     if(err > 6){ semanticerror(err, $1,$1); return err;}}
     | TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock TK_PR_ELSE commandsBlock {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                      createChildren($$, $1); createChildren($$, $2);
                                                                                      createChildren($$, $3); createChildren($$, $4);
                                                                                      createChildren($$, $5); createChildren($$, $6);
-                                                                                     createChildren($$, $7); createChildren($$, $8);};
+                                                                                     createChildren($$, $7); createChildren($$, $8);
+                                                                                     int err = calculateTypeInfer($3); 
+                                                                                     if(err > 6){ semanticerror(err, $1,$1); return err;}};
 
 //There are 4 variations of iterative flux control
 iterativeFluxControl:
@@ -666,11 +666,15 @@ iterativeFluxControl:
     | TK_PR_WHILE '(' expression ')' TK_PR_DO commandsBlock                                 {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                                              createChildren($$, $3); createChildren($$, $4);
-                                                                                             createChildren($$, $5); createChildren($$, $6);}
+                                                                                             createChildren($$, $5); createChildren($$, $6);
+                                                                                             int err = calculateTypeInfer($3); 
+                                                                                             if(err > 6){ semanticerror(err, $1,$1); return err;}}
     | TK_PR_DO commandsBlock TK_PR_WHILE '(' expression ')'                                 {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                                              createChildren($$, $3); createChildren($$, $4);
-                                                                                             createChildren($$, $5); createChildren($$, $6);};      
+                                                                                             createChildren($$, $5); createChildren($$, $6);
+                                                                                             int err = calculateTypeInfer($5); 
+                                                                                             if(err > 6){ semanticerror(err, $4,$4); return err;}};      
 
 //The only selection flux control is switch
 //It is important to note that bison won't check if there are cases on the commandsBlock
@@ -678,7 +682,9 @@ selectionFluxControl:
     TK_PR_SWITCH '(' expression ')' commandsBlock {$$ = createNode(AST_SELECFLUXCONT); 
                                                    createChildren($$, $1); createChildren($$, $2);
                                                    createChildren($$, $3); createChildren($$, $4);
-                                                   createChildren($$, $5);}; 
+                                                   createChildren($$, $5);
+                                                   int err = calculateTypeInfer($3); 
+                                                   if(err > 6){ semanticerror(err, $1,$1); return err;}}; 
 
 //List of commands without commas in them, used in for
 commandSimpleList:
@@ -727,7 +733,7 @@ void semanticerror(int err, struct node* id, struct node* type){
             printf ("Line %d, Column %d: Identifier \"%s\" must be used as user class.\n", id->line_number, id->col_number, id->token_value);
             break;       
         case ERR_CLASS:
-            printf ("Line %d, Column %d: Identifier \"%s\" must not be used as user class.\n", id->line_number, id->col_number, id->token_value);
+            printf ("Line %d, Column %d: Identifier \"%s\" must not be used as user class or function.\n", id->line_number, id->col_number, id->token_value);
             break;     
         case ERR_CLASS_ID_NOT_FOUND:
             if(type == NULL){
@@ -779,6 +785,9 @@ void semanticerror(int err, struct node* id, struct node* type){
             break;
         case ERR_STR_SIZE_OVERFLOW:
             printf ("Line %d, Column %d: String \"%s\" is too small to hold the attribution.\n", id->line_number, id->col_number, id->token_value);
+            break;
+        case ERR_UNKNOWN:
+            printf ("Line %d, Column %d: Unknown error.\n", yylineno, yycolno, id->token_value);
             break;
     }
     deleteAllContext();
