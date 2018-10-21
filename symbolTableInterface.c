@@ -6,8 +6,6 @@
 //stringSize is the size of the node if it is a striing
 int addSymbolFromNode(struct node* idNode, struct node* typeNode){
 
-
-
     int typeOfTypeNode = parseType(typeNode->token_value);
     int nature = typeOfTypeNode;
     char* userType = NULL;
@@ -20,11 +18,12 @@ int addSymbolFromNode(struct node* idNode, struct node* typeNode){
     if(findSymbolInContexts(typeNode->token_value) == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
         return ERR_TYPE_UNDECLARED;
 
-    if(addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, nature, NULL, 1, 1, userType) == 0)
-        return 0;
-    else 
-        return ERR_DECLARED; 
+    int err = addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, nature, NULL, 1, 1, userType);
+    
+    if(userType != NULL)
+        free(userType);
 
+    return err;
 }
 
 //given a node and its type and a node with the vector size, adds it to the current symbol table

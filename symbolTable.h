@@ -45,6 +45,7 @@ int addSymbol(char * name, int line, int type, int nature, struct fieldList* fie
 void createContext();
 void freeSymbolInfo(struct symbolInfo* info);
 void deleteContext();
+void deleteAllContext();
 struct symbolInfo* findSymbolInContexts(char* name);
 int updateStringSizeOnNode(char* name, int stringSize);
 

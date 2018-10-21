@@ -66,13 +66,35 @@ void deleteContext(){
 
 }
 
+//Deletes current context, frees it and pops it from the stack
+void deleteAllContext(){
+    while(contextStack != NULL){
+        struct context* currentSymbol, *tmp;
+
+        //Frees the hash of current context
+        HASH_ITER(hh, contextStack->currentContext, currentSymbol, tmp) {
+            HASH_DEL(contextStack->currentContext,currentSymbol);  /* delete; users advances to next */
+            freeSymbolInfo(&(currentSymbol->info));            
+            free(currentSymbol);
+        }
+
+        //Frees the top of the stack and moves the stack
+        struct contextStack* top = contextStack;
+        contextStack = contextStack->previousContext;
+        free(top);
+    }
+}
+
 //Frees a symbol
 void freeSymbolInfo(struct symbolInfo* info){
     free(info->name);
     if (info->type == NATUREZA_LITERAL_STRING)
         free(info->value.string_value);
     
-    if(info->type == NATUREZA_FUNC || info->type == NATUREZA_CLASSE)
+    if (info->userType != NULL)
+        free(info->userType);
+    
+    if(info->type == NATUREZA_FUNC || info->type == NATUREZA_CLASSE || info->type == NATUREZA_VETOR_CLASSE)
         freeFieldList(info->fields);
 
 }
