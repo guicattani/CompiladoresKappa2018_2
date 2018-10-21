@@ -512,6 +512,11 @@ int checkFunction(struct node *functionNode){
 
 }
 
+int checkFunctionPipe(struct node *functionPipeNode){
+    checkFunction(functionPipeNode->child);
+
+    struct symbolInfo *pipeInfo = findSymbolInContexts(functionPipeNode->child->token_value);
+}
 
 
 
