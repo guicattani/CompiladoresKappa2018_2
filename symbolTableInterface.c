@@ -161,8 +161,6 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
         }
 
         int resultado = calculateImplicitConvert(attrType, typeOfTypeNode);
-
-        printf("asdasdsa");
         if(resultado == -1)
             return ERR_WRONG_TYPE;
     }
@@ -244,8 +242,9 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
             struct symbolInfo* referenceInfo = findSymbolInContexts(expression->token_value);
             typeInferenceOfExpression = referenceInfo->type;
         }
-        else
-            typeInferenceOfExpression = expression->token_type;
+        else{
+            typeInferenceOfExpression = calculateTypeInfer(expression);
+        }
     }
 
     int calculatedConvert = calculateImplicitConvert(tested_type, typeInferenceOfExpression);
@@ -334,7 +333,6 @@ int calculateTypeInfer(struct node* node){
             if(node->brother == NULL || node->brother->brother == NULL ){
                 return ERR_WRONG_TYPE; //generic error because we can't determine the column
             }
-            
             int typeClassField = getTypeFromUserClassField(node, node->brother->brother);
             if(typeClassField > NATUREZA_IDENTIFICADOR)
                 return ERR_CLASS_ID_NOT_FOUND;

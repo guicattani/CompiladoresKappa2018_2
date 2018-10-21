@@ -656,13 +656,17 @@ iterativeFluxControl:
                                                                                                     createChildren($$, $3); createChildren($$, $4);
                                                                                                     createChildren($$, $5); createChildren($$, $6);
                                                                                                     createChildren($$, $7);}
-    | TK_PR_FOR '(' commandSimpleList ':' expression ':' commandSimpleList ')' commandsBlock //The command list is of simple commands
+    | TK_PR_FOR '(' {createContext();} commandSimpleList ':' expression ':' commandSimpleList ')' functionCommandsBlock  //The command list is of simple commands
                                                                                             {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1); createChildren($$, $2);
-                                                                                             createChildren($$, $3); createChildren($$, $4);
-                                                                                             createChildren($$, $5); createChildren($$, $6);
-                                                                                             createChildren($$, $7); createChildren($$, $8);
-                                                                                             createChildren($$, $9);}
+                                                                                             createChildren($$, $4); createChildren($$, $5);
+                                                                                             createChildren($$, $6); createChildren($$, $7);
+                                                                                             createChildren($$, $8); createChildren($$, $9);
+                                                                                             createChildren($$, $10);
+                                                                                             int err = calculateTypeInfer($4); 
+                                                                                             if(err < 6){ err = calculateTypeInfer($7); }
+                                                                                             else if(err > 6){ semanticerror(err, $1,$1); return err;}
+                                                                                             deleteContext();}
     | TK_PR_WHILE '(' expression ')' TK_PR_DO commandsBlock                                 {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                                              createChildren($$, $3); createChildren($$, $4);
