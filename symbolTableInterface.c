@@ -1,5 +1,7 @@
 #include "symbolTableInterface.h"
 
+struct field field;
+
 //given a node and its type, adds it to the current symbol table
 //Returns 1 if succesful
 //Returns 0 if symbol already exists
@@ -436,91 +438,50 @@ int getTypeFromUserClassField(struct node* variableNode,struct node* fieldClassN
 
 }
 
-int checkFunction(struct node *functionNode){
-    struct node* idNode = functionNode->child;
-    struct node* functionCallArgument = functionNode->child;
-    struct symbolInfo* idInfo = findSymbolInContexts(idNode->token_value);
-    printf("oi2\n"); 
-    if(idInfo == NULL)
-        return ERR_UNDECLARED;
+int checkFunctionPipe(struct node *functionPipeNode){
+    if(!strcmp(functionPipeNode->child->token_value, AST_PIPECOMMANDS)){
+        int err = checkFunctionPipe(functionPipeNode->child);
+        if (err) return err;
 
-    if(idInfo->nature == NATUREZA_CLASSE)
-        return ERR_USER;
-    
-    if(idInfo->nature == NATUREZA_IDENTIFICADOR)
-        return ERR_CLASS;
-    
-    if(idInfo->nature == NATUREZA_VETOR || idInfo->nature == NATUREZA_VETOR_CLASSE)
-        return ERR_VECTOR;
 
-    if(idInfo->nature != NATUREZA_FUNC)
-        return ERR_UNKNOWN;
-    
+        err = checkFunction(functionPipeNode->child->brother->brother, field.type, field.userType);
+        if (err) return err;
 
-    if(idInfo->nature == NATUREZA_FUNC){
-        printf("oi3\n"); 
-        struct fieldList* field = idInfo->fields;
-        struct node* functionCallArguments = functionNode->child->brother->brother;
-        if(field == NULL && functionCallArguments->child != NULL)
-            return ERR_EXCESS_ARGS;
+        struct symbolInfo * funcInfo = findSymbolInContexts(functionPipeNode->child->brother->brother->token_value);
+        field.type = funcInfo->type;
+        field.userType = funcInfo->userType;
+
+        return 0;
         
-        if(field != NULL && functionCallArguments->child == NULL)
-            return ERR_MISSING_ARGS;
 
-        if(field == NULL && functionCallArguments->child == NULL)
-            return 0;
-        printf("oi\n");        
-        //both are not NULL
-        struct node* functionCallArgumentList = functionCallArguments->child;
-        while(field != NULL && functionCallArgumentList != NULL){
-            int fieldType = field->type;
-            //Gets the expression Type
-            if(functionCallArgumentList == NULL)
-                return ERR_MISSING_ARGS;
 
-            struct node* argument = functionCallArgumentList->child;
+    }else if(!strcmp(functionPipeNode->child->token_value, AST_FUNCTIONCALL)){
 
-            if(!strcmp(argument->token_value, "."))
-                return ERR_WRONG_TYPE_ARGS;
+        struct symbolInfo *funcInfo = findSymbolInContexts(functionPipeNode->child->token_value);
+        
+        int err = checkFunction(functionPipeNode->child, -1, NULL);
+        if (err) return err;
 
-            int expressionType = calculateTypeInfer(argument);
-            if(expressionType > 6)
-                return expressionType;
-            
-            if(expressionType != fieldType)
-                return ERR_WRONG_TYPE_ARGS;
+        int funcType = funcInfo->type;
+        char* funcUserType = funcInfo->userType;
 
-            if(numberOfChildren(functionCallArgumentList) == 1)
-                functionCallArgumentList = NULL;
-            else functionCallArgumentList = functionCallArgumentList->child->brother->brother;
+        err = checkFunction(functionPipeNode->child->brother->brother, funcType, funcUserType);
+        if (err) return err;
 
-            field = field->next;
-        }
-
-        if(field == NULL && functionCallArgumentList == NULL)
-            return 0;
-        if(field == NULL && functionCallArgumentList != NULL)
-            return ERR_EXCESS_ARGS;
-        if(field != NULL && functionCallArgumentList == NULL)
-            return ERR_MISSING_ARGS;        
-
+        funcInfo = findSymbolInContexts(functionPipeNode->child->brother->brother->token_value);
+        field.type = funcInfo->type;
+        field.userType = funcInfo->userType;
+        
+        return 0;
 
     }
 
-
 }
 
-int checkFunctionPipe(struct node *functionPipeNode, int type){
-    checkFunction(functionPipeNode->child);
-
-    struct symbolInfo *pipeInfo = findSymbolInContexts(functionPipeNode->child->token_value);
-}
-
-int checkFunctionPipeInner(struct node *functionNode, int type){
+int checkFunction(struct node *functionNode, int type, char *userType){
     struct node* idNode = functionNode->child;
     struct node* functionCallArgument = functionNode->child;
     struct symbolInfo* idInfo = findSymbolInContexts(idNode->token_value);
-    printf("oi2\n"); 
     if(idInfo == NULL)
         return ERR_UNDECLARED;
 
@@ -537,8 +498,7 @@ int checkFunctionPipeInner(struct node *functionNode, int type){
         return ERR_UNKNOWN;
     
 
-    if(idInfo->nature == NATUREZA_FUNC){
-        printf("oi3\n"); 
+    if(idInfo->nature == NATUREZA_FUNC){ 
         struct fieldList* field = idInfo->fields;
         struct node* functionCallArguments = functionNode->child->brother->brother;
         if(field == NULL && functionCallArguments->child != NULL)
@@ -548,8 +508,7 @@ int checkFunctionPipeInner(struct node *functionNode, int type){
             return ERR_MISSING_ARGS;
 
         if(field == NULL && functionCallArguments->child == NULL)
-            return 0;
-        printf("oi\n");        
+            return 0;        
         //both are not NULL
         struct node* functionCallArgumentList = functionCallArguments->child;
         while(field != NULL && functionCallArgumentList != NULL){
@@ -561,9 +520,10 @@ int checkFunctionPipeInner(struct node *functionNode, int type){
             struct node* argument = functionCallArgumentList->child;
             
             int expressionType;
-
-            if(!strcmp(argument->token_value, ".")){
+            char* expressionName;
+            if(!strcmp(argument->token_value, ".") && type != -1){
                 expressionType = type;
+                expressionName = userType;
             }
             else{
                 expressionType = calculateTypeInfer(argument);
@@ -579,6 +539,11 @@ int checkFunctionPipeInner(struct node *functionNode, int type){
                 functionCallArgumentList = NULL;
             else functionCallArgumentList = functionCallArgumentList->child->brother->brother;
 
+            if (field->type == NATUREZA_IDENTIFICADOR && expressionType == NATUREZA_IDENTIFICADOR){
+                if(strcmp(field->name, expressionName))
+                    return ERR_WRONG_TYPE_ARGS;
+            }
+
             field = field->next;
         }
 
@@ -589,7 +554,7 @@ int checkFunctionPipeInner(struct node *functionNode, int type){
         if(field != NULL && functionCallArgumentList == NULL)
             return ERR_MISSING_ARGS;        
 
-
+        return 0;
     }
 }
 

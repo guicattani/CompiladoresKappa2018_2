@@ -591,7 +591,7 @@ functionCall:
     TK_IDENTIFICADOR '(' functionCallArguments ')' {$$ = createNode(AST_FUNCTIONCALL); 
                                                     createChildren($$, $1); createChildren($$, $2);
                                                     createChildren($$, $3); createChildren($$, $4);
-                                                    int err = checkFunction($$); if (err){ semanticerror(err, $1, NULL); return err;}
+                                                    int err = checkFunction($$, -1, NULL); if (err){ semanticerror(err, $1, NULL); return err;}
                                                     };
 
 //Arguments can be empty or can be a list of expressions/dots
