@@ -108,6 +108,7 @@
 /* Verificação de tipos existente */
 #define ERR_TYPE_UNDECLARED     60  //Tipo não declarado
 
+#define ERR_STR_SIZE_OVERFLOW     70  //Tamanho da string recebedora é pequeno para atribuição
 union value{
         int     int_value;
         int     bool_value;

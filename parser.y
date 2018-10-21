@@ -776,6 +776,9 @@ void semanticerror(int err, struct node* id, struct node* type){
             }
             printf ("Line %d, Column %d: Type \"%s\" of identifier \"%s\" not declared.\n", id->line_number, id->col_number, type->token_value, id->token_value);
             break;
+        case ERR_STR_SIZE_OVERFLOW:
+            printf ("Line %d, Column %d: String \"%s\" is too small to hold the attribution.\n", id->line_number, id->col_number, id->token_value);
+            break;
     }
 
 }

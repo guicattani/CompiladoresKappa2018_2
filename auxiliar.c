@@ -33,7 +33,7 @@ union value createValue(int type, char* text){
 
 int getSizeFromType(int type, int vectorSize, int sizeOfString){
     int size = 0;
-    switch(vectorSize){
+    switch(type){
         case NATUREZA_IDENTIFICADOR: //Identifier
             break;
         case NATUREZA_LITERAL_INT: //Lit int
@@ -49,7 +49,7 @@ int getSizeFromType(int type, int vectorSize, int sizeOfString){
             size = 1 * vectorSize;
             break;
         case NATUREZA_LITERAL_STRING: //Literal String
-            size = 1 * sizeOfString * vectorSize;
+            size = -1;
             break;
 
 

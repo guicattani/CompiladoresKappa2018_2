@@ -130,7 +130,7 @@ struct symbolInfo* findSymbolInContexts(char* name){
     return returnInfo;
 }
 
-int setSymbolValue(char* name, char* value){
+int updateStringSizeOnNode(char* name, int stringSize){
     struct contextStack* tempStack;
     struct context* tempContext;
     struct symbolInfo returnInfo;
@@ -143,8 +143,7 @@ int setSymbolValue(char* name, char* value){
 
         if (tempContext){
             memcpy(new, tempContext, sizeof(struct context));
-            union value val = createValue(new->info.type, value);
-            new->info.value = val;
+            new->info.size =  stringSize;
 
             HASH_DEL(tempStack->currentContext, tempContext);
             free(tempContext);

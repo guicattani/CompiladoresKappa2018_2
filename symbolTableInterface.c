@@ -55,7 +55,7 @@ int addSymbolFromNodeWithAttribution(struct node* idNode, struct node* typeNode,
         return ERR_TYPE_UNDECLARED;
 
     if(typeOfTypeNode == NATUREZA_LITERAL_STRING){
-        if(addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, typeOfTypeNode, NULL, 1, getAttributedStringSize(expressionNode), NULL) == 0)
+        if(addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, typeOfTypeNode, NULL, 1, -1, NULL) == 0)
             return 0;
         else
             return ERR_DECLARED; 
@@ -238,27 +238,49 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
             return typeInferenceOfExpression;
         }
     }
-    else
-        typeInferenceOfExpression = expression->token_type;
+    else{ //simple expression, has only one string
+        if(expression->token_type == NATUREZA_IDENTIFICADOR){
+            struct symbolInfo* referenceInfo = findSymbolInContexts(expression->token_value);
+            typeInferenceOfExpression = referenceInfo->type;
+        }
+        else
+            typeInferenceOfExpression = expression->token_type;
+    }
 
-    printf("here? %d %d ",idInfo->type, typeInferenceOfExpression );
     int calculatedConvert = calculateImplicitConvert(idInfo->type, typeInferenceOfExpression);
     if(calculatedConvert == -1)
         return ERR_WRONG_TYPE;
     
     if(calculatedConvert == NATUREZA_LITERAL_STRING){
-        int stringSize;
-        if(expression->token_type == NATUREZA_IDENTIFICADOR){
-            printf("aaaa");
-            struct symbolInfo* typeInfo = findSymbolInContexts(expression->token_value);
-            stringSize = typeInfo->size;
+        int idSize = idInfo->size;
+        printf("NAME %s\n",idInfo->name);
+        if(idInfo->size < 0){
+            int stringSize;
+            if(expression->token_type == NATUREZA_IDENTIFICADOR){
+                struct symbolInfo* typeInfo = findSymbolInContexts(expression->token_value);
+                stringSize = typeInfo->size;
+                if(stringSize < 0)
+                    return 0;
+            }
+            else{
+                stringSize = strlen(expression->token_value) - 2; //2 because we have "" with the string
+            }
+            updateStringSizeOnNode(idInfo->name, stringSize);
         }
         else{
-            printf("bbbb"); // TODO INCOMPLETE
-            stringSize = strlen(expression->token_value) - 2; //2 because we have "" with the string
+            int stringSize;
+            if(expression->token_type == NATUREZA_IDENTIFICADOR){
+                struct symbolInfo* typeInfo = findSymbolInContexts(expression->token_value);
+                printf("ola %d\n", typeInfo->size);
+                stringSize = typeInfo->size;
+            }
+            else{
+                stringSize = strlen(expression->token_value) - 2; //2 because we have "" with the string
+            }
+            if(stringSize > idSize){
+                return ERR_STR_SIZE_OVERFLOW;
+            }
         }
-        printf("cccc%d",stringSize);
-        //updateStringSizeOnNode(int stringSize; struct node* node);
     }
 
      return 0;
