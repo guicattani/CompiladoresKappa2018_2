@@ -133,7 +133,7 @@
 %%
 
 programa:
-    {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2);};
+    {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2); deleteContext();};
                       | %empty {arvore = createNode(AST_PROGRAMA);};
 
 
@@ -702,6 +702,7 @@ pipeCommands:
 void yyerror (char const *s){
     free(previous_text);
     printf("Line %d, Column %d: %s near \"%s\"\n",yylineno, yycolno, s, yylval.nodo->token_value);  
+    deleteAllContext();
 
 }
 
@@ -780,7 +781,7 @@ void semanticerror(int err, struct node* id, struct node* type){
             printf ("Line %d, Column %d: String \"%s\" is too small to hold the attribution.\n", id->line_number, id->col_number, id->token_value);
             break;
     }
-
+    deleteAllContext();
 }
 void descompila (void *arvore){
     showTreeRecursion(arvore, 0);
