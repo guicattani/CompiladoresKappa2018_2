@@ -697,7 +697,8 @@ commandSimpleList:
 pipeCommands:
       functionCall pipe functionCall {$$ = createNode(AST_PIPECOMMANDS); 
                                       createChildren($$, $1); createChildren($$, $2);
-                                      createChildren($$, $3);}
+                                      createChildren($$, $3);
+                                      }
     | pipeCommands pipe functionCall {$$ = createNode(AST_PIPECOMMANDS); 
                                       createChildren($$, $1); createChildren($$, $2);
                                       createChildren($$, $3);};

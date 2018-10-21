@@ -512,12 +512,88 @@ int checkFunction(struct node *functionNode){
 
 }
 
-int checkFunctionPipe(struct node *functionPipeNode){
+int checkFunctionPipe(struct node *functionPipeNode, int type){
     checkFunction(functionPipeNode->child);
 
     struct symbolInfo *pipeInfo = findSymbolInContexts(functionPipeNode->child->token_value);
 }
 
+int checkFunctionPipeInner(struct node *functionNode, int type){
+    struct node* idNode = functionNode->child;
+    struct node* functionCallArgument = functionNode->child;
+    struct symbolInfo* idInfo = findSymbolInContexts(idNode->token_value);
+    printf("oi2\n"); 
+    if(idInfo == NULL)
+        return ERR_UNDECLARED;
+
+    if(idInfo->nature == NATUREZA_CLASSE)
+        return ERR_USER;
+    
+    if(idInfo->nature == NATUREZA_IDENTIFICADOR)
+        return ERR_CLASS;
+    
+    if(idInfo->nature == NATUREZA_VETOR || idInfo->nature == NATUREZA_VETOR_CLASSE)
+        return ERR_VECTOR;
+
+    if(idInfo->nature != NATUREZA_FUNC)
+        return ERR_UNKNOWN;
+    
+
+    if(idInfo->nature == NATUREZA_FUNC){
+        printf("oi3\n"); 
+        struct fieldList* field = idInfo->fields;
+        struct node* functionCallArguments = functionNode->child->brother->brother;
+        if(field == NULL && functionCallArguments->child != NULL)
+            return ERR_EXCESS_ARGS;
+        
+        if(field != NULL && functionCallArguments->child == NULL)
+            return ERR_MISSING_ARGS;
+
+        if(field == NULL && functionCallArguments->child == NULL)
+            return 0;
+        printf("oi\n");        
+        //both are not NULL
+        struct node* functionCallArgumentList = functionCallArguments->child;
+        while(field != NULL && functionCallArgumentList != NULL){
+            int fieldType = field->type;
+            //Gets the expression Type
+            if(functionCallArgumentList == NULL)
+                return ERR_MISSING_ARGS;
+
+            struct node* argument = functionCallArgumentList->child;
+            
+            int expressionType;
+
+            if(!strcmp(argument->token_value, ".")){
+                expressionType = type;
+            }
+            else{
+                expressionType = calculateTypeInfer(argument);
+            }
+
+            if(expressionType > 6)
+                return expressionType;
+            
+            if(expressionType != fieldType)
+                return ERR_WRONG_TYPE_ARGS;
+
+            if(numberOfChildren(functionCallArgumentList) == 1)
+                functionCallArgumentList = NULL;
+            else functionCallArgumentList = functionCallArgumentList->child->brother->brother;
+
+            field = field->next;
+        }
+
+        if(field == NULL && functionCallArgumentList == NULL)
+            return 0;
+        if(field == NULL && functionCallArgumentList != NULL)
+            return ERR_EXCESS_ARGS;
+        if(field != NULL && functionCallArgumentList == NULL)
+            return ERR_MISSING_ARGS;        
+
+
+    }
+}
 
 
 

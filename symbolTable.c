@@ -88,7 +88,7 @@ void deleteAllContext(){
 //Frees a symbol
 void freeSymbolInfo(struct symbolInfo* info){
     free(info->name);
-    if (info->type == NATUREZA_LITERAL_STRING)
+    if (info->value.string_value != NULL)
         free(info->value.string_value);
     
     if (info->userType != NULL)
