@@ -94,14 +94,14 @@ void freeSymbolInfo(struct symbolInfo* info){
     if (info->userType != NULL)
         free(info->userType);
     
-    if(info->type == NATUREZA_FUNC || info->type == NATUREZA_CLASSE || info->type == NATUREZA_VETOR_CLASSE)
-        freeFieldList(info->fields);
+    freeFieldList(info->fields);
 
 }
 
 
 //Given a FieldList, pushes a field into it and returns the new list
 struct fieldList* pushField(struct fieldList* fieldList, int type, char* name){
+    printf("inserindo: %s\n", name);
     if(fieldList == NULL){
         fieldList = malloc(sizeof(struct fieldList));
         fieldList->name = strdup(name);
@@ -124,6 +124,7 @@ struct fieldList* pushField(struct fieldList* fieldList, int type, char* name){
 
 void freeFieldList(struct fieldList* fieldList){
     while(fieldList != NULL){
+        printf("%s\n\n", fieldList->name);
         free(fieldList->name);
         struct fieldList* temp = fieldList;
         fieldList= fieldList->next;
