@@ -223,7 +223,7 @@ classDeclaration:
      createChildren($$, $5); createChildren($$, $6);
      createChildren($$, $7);
      int err = addSymbolFromNodeClass($3, $5);
-     if (err) { semanticerror(err, $3, NULL); return err; } };
+     if (err) { semanticerror(err, $3, NULL); exit(err); } };
 
 // fields are type and id inside classes that can't contain user-classes nor initialization of values
 fields:
@@ -241,20 +241,20 @@ globalVarDeclaration:
                                                                 createChildren($$, $1); createChildren($$, $2);
                                                                 createChildren($$, $3);
                                                                 int err = addSymbolFromNode($1,$2);
-                                                                if (err) { semanticerror(err, $1, $2); return err; } 
+                                                                if (err) { semanticerror(err, $1, $2); exit(err); } 
                                                                }
     | TK_IDENTIFICADOR TK_PR_STATIC type  ';'                  {$$ = createNode(AST_GLOBALVARDEC); 
                                                                 createChildren($$, $1); createChildren($$, $2);
                                                                 createChildren($$, $3); createChildren($$, $4);
                                                                 int err = addSymbolFromNode($1,$3);
-                                                                if (err) { semanticerror(err, $1, $3); return err; }
+                                                                if (err) { semanticerror(err, $1, $3); exit(err); }
                                                                }
     | TK_IDENTIFICADOR '['TK_LIT_INT']' type  ';'              {$$ = createNode(AST_GLOBALVARDEC); 
                                                                 createChildren($$, $1); createChildren($$, $2);
                                                                 createChildren($$, $3); createChildren($$, $4);
                                                                 createChildren($$, $5); createChildren($$, $6);
                                                                 int err = addSymbolFromNodeWithVector($1,$5,$3);
-                                                                if (err) { semanticerror(err, $1, $5); return err; }
+                                                                if (err) { semanticerror(err, $1, $5); exit(err); }
                                                                }
     | TK_IDENTIFICADOR '['TK_LIT_INT']' TK_PR_STATIC type  ';' {$$ = createNode(AST_GLOBALVARDEC); 
                                                                 createChildren($$, $1); createChildren($$, $2);
@@ -262,7 +262,7 @@ globalVarDeclaration:
                                                                 createChildren($$, $5); createChildren($$, $6);
                                                                 createChildren($$, $7);
                                                                 int err = addSymbolFromNodeWithVector($1,$6,$3);
-                                                                if (err) { semanticerror(err, $1, $6); return err; }
+                                                                if (err) { semanticerror(err, $1, $6); exit(err); }
                                                                 }; 
 
 //Function declaration
@@ -271,11 +271,11 @@ functionDeclaration:
                     int err = addSymbolFromNodeFunction($1);
                     if (err && numberOfChildren($1) == 5 ) { 
                        semanticerror(err, $1->child->brother, $1->child); 
-                       return err;
+                       exit(err);
                     }
                     else if (err && numberOfChildren($1) == 6){
                        semanticerror(err, $1->child->brother->brother, $1->child->brother);
-                       return err;
+                       exit(err);
                     };                    
                 } 
     functionCommandsBlock                           { deleteContext();
@@ -285,11 +285,11 @@ functionDeclaration:
                                                     int err = addSymbolFromNodeFunction($1);
                                                     if (err && numberOfChildren($1) == 5 ) { 
                                                         semanticerror(err, $1->child->brother, $1->child); 
-                                                        return err;
+                                                        exit(err);
                                                     }
                                                    else if (err && numberOfChildren($1) == 6){
                                                        semanticerror(err, $1->child->brother->brother, $1->child->brother);
-                                                       return err;
+                                                       exit(err);
                                                    };};
 
 functionCommandsBlock:
@@ -362,19 +362,19 @@ commandSimple:
                                         else if(numberOfChildrenInt == 1){ 
                                             semanticerror(err, $1->child->child->brother, $1->child->child); 
                                         }
-                                        return err;} 
+                                        exit(err);} 
                                     } 
     | attribution                                   {$$ = $1;}
     | TK_PR_INPUT expression                        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);
-                                                    int err = calculateTypeInfer($2); if(err > 6){ semanticerror(err, $1,$1); return err;}}
-    | functionCall                                  {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1, NULL); return err;}}
+                                                    int err = calculateTypeInfer($2); if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
+    | functionCall                                  {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1, NULL); exit(err);}}
     | shiftCommand                                  {$$ = $1;}
     | TK_PR_RETURN expression                       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);
-                                                    int err = calculateTypeInfer($2); if(err > 6){ semanticerror(err, $1,$1); return err;}}
+                                                    int err = calculateTypeInfer($2); if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
     | TK_PR_CONTINUE                                {$$ = $1;}
     | TK_PR_BREAK                                   {$$ = $1;}
     | fluxControlCommand                            {$$ = $1;}
-    | pipeCommands                                  {$$ = $1; int err = checkFunctionPipe($1); if (err){ semanticerror(err, $1, NULL); return err;}}
+    | pipeCommands                                  {$$ = $1; int err = checkFunctionPipe($1); if (err){ semanticerror(err, $1, NULL); exit(err);}}
     | commandsBlock                                 {$$ = $1;};       
 
 //A variable declaration can be initialized ONLY if it has a primitive type
@@ -401,9 +401,9 @@ localVarInit:
 
 attribution:
       primitiveAttribution  {$$ = $1; int err = checkPrimitiveAttribution($1);
-                            if(err){ semanticerror(err, $1->child, NULL); return err;}}
+                            if(err){ semanticerror(err, $1->child, NULL); exit(err);}}
     | userTypeAttribution   {$$ = $1; int err = checkUserTypeAttribution($1);
-                            if(err){ semanticerror(err, $1->child, $1->child->brother->brother->brother); return err;}};
+                            if(err){ semanticerror(err, $1->child, $1->child->brother->brother->brother); exit(err);}};
 
 primitiveAttribution:
       TK_IDENTIFICADOR vectorModifier '=' expression {$$ = createNode(AST_PRIMATTR); 
@@ -420,22 +420,22 @@ userTypeAttribution:
                                                                                 
                                                                                 if(!isIdentifierDeclared($1)){
                                                                                     semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                                                    return ERR_UNDECLARED;}
+                                                                                    exit(ERR_UNDECLARED);}
                                                                                 
                                                                                 if(getTypeFromUserClassField($1, $4) > NATUREZA_IDENTIFICADOR){
                                                                                     semanticerror(ERR_CLASS_ID_NOT_FOUND, $1, NULL); 
-                                                                                    return ERR_CLASS_ID_NOT_FOUND;}
+                                                                                    exit(ERR_CLASS_ID_NOT_FOUND);}
 
                                                                                 if(!isVectorEmpty($2) && !isIdentifierOfNatureClassVector($1) ){
                                                                                     semanticerror(ERR_VECTOR, $1, NULL); 
-                                                                                    return ERR_VECTOR;}
+                                                                                    exit(ERR_VECTOR);}
                                                                                 };
 
 simpleExpression:
       TK_IDENTIFICADOR                          {$$ = $1;
                                                  if(!isIdentifierDeclared($1)){
                                                     semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                    return ERR_UNDECLARED;}
+                                                    exit(ERR_UNDECLARED);}
                                                 }
     | functionCall                              {$$ = $1;}
     | pipeCommands                              {$$ = $1;}
@@ -445,11 +445,11 @@ simpleExpression:
                                                       createChildren($$, $3);
                                                  if(!isIdentifierDeclared($1)){
                                                     semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                    return ERR_UNDECLARED;}
+                                                    exit(ERR_UNDECLARED);}
 
                                                  if(getTypeFromUserClassField($1, $3) > NATUREZA_IDENTIFICADOR){
                                                     semanticerror(ERR_CLASS_ID_NOT_FOUND, $1, NULL); 
-                                                    return ERR_CLASS_ID_NOT_FOUND;}
+                                                    exit(ERR_CLASS_ID_NOT_FOUND);}
                                                 };
 
 expression:
@@ -491,22 +491,22 @@ oneFoldRecursiveExpression:
     | TK_IDENTIFICADOR vectorList                                    {$$ = createNode(AST_ONEFREXP); createChildren($$, $1); createChildren($$, $2);
                                                                       if(!isIdentifierDeclared($1)){
                                                                         semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                                        return ERR_UNDECLARED;}
+                                                                        exit(ERR_UNDECLARED);}
 
                                                                       if(!isVectorEmpty($2) && !isIdentifierOfNatureVector($1) ){
                                                                         semanticerror(ERR_VECTOR, $1, NULL); 
-                                                                        return ERR_VECTOR;}
+                                                                        exit(ERR_VECTOR);}
                                                                      }
     | unaryOperator TK_IDENTIFICADOR vectorList                      {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1); createChildren($$, $2);
                                                                       createChildren($$, $3);
                                                                       if(!isIdentifierDeclared($2)){
                                                                         semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                                        return ERR_UNDECLARED;}
+                                                                        exit(ERR_UNDECLARED);}
 
                                                                       if(!isVectorEmpty($3) && !isIdentifierOfNatureVector($2) ){
                                                                         semanticerror(ERR_VECTOR, $2, NULL); 
-                                                                        return ERR_VECTOR;}
+                                                                        exit(ERR_VECTOR);}
                                                                      }
 
     | TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR               {$$ = createNode(AST_ONEFREXP); 
@@ -514,15 +514,15 @@ oneFoldRecursiveExpression:
                                                                       createChildren($$, $3); createChildren($$, $4);
                                                                       if(!isIdentifierDeclared($1)){
                                                                         semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                                        return ERR_UNDECLARED;}
+                                                                        exit(ERR_UNDECLARED);}
                                                                     
                                                                       if(getTypeFromUserClassField($1, $4) > NATUREZA_IDENTIFICADOR){
                                                                         semanticerror(ERR_CLASS_ID_NOT_FOUND, $1, NULL); 
-                                                                        return ERR_CLASS_ID_NOT_FOUND;}
+                                                                        exit(ERR_CLASS_ID_NOT_FOUND);}
 
                                                                       if(!isVectorEmpty($2) && !isIdentifierOfNatureClassVector($1) ){
                                                                         semanticerror(ERR_VECTOR, $1, NULL); 
-                                                                        return ERR_VECTOR;}
+                                                                        exit(ERR_VECTOR);}
                                                                     }
     | unaryOperator TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1); createChildren($$, $2);
@@ -530,15 +530,15 @@ oneFoldRecursiveExpression:
                                                                       createChildren($$, $5);
                                                                       if(!isIdentifierDeclared($1)){
                                                                         semanticerror(ERR_UNDECLARED, $2, NULL); 
-                                                                        return ERR_UNDECLARED;}
+                                                                        exit(ERR_UNDECLARED);}
 
                                                                       if(getTypeFromUserClassField($2, $5) > NATUREZA_IDENTIFICADOR){
                                                                         semanticerror(ERR_CLASS_ID_NOT_FOUND, $2, NULL); 
-                                                                        return ERR_CLASS_ID_NOT_FOUND;}
+                                                                        exit(ERR_CLASS_ID_NOT_FOUND);}
 
                                                                       if(!isVectorEmpty($3) && !isIdentifierOfNatureClassVector($2) ){
                                                                         semanticerror(ERR_VECTOR, $2, NULL); 
-                                                                        return ERR_VECTOR;}
+                                                                        exit(ERR_VECTOR);}
                                                                      };
 
 operator:
@@ -582,12 +582,12 @@ comparisonOperator:
 
 expressionList:
       expression                     {$$ = $1;
-                                      int err = calculateTypeInfer($1); if (err > 6){printf("%d\n", err); yyerror("Semantic error"); return err;}}
+                                      int err = calculateTypeInfer($1); if (err > 6){printf("%d\n", err); yyerror("Semantic error"); exit(err);}}
 
     | expression ',' expressionList  {$$ = createNode(AST_EXPLIST); 
                                       createChildren($$, $1); createChildren($$, $2);
                                       createChildren($$, $3);
-                                      int err = calculateTypeInfer($1); if (err > 6){yyerror("Semantic error"); return err;}
+                                      int err = calculateTypeInfer($1); if (err > 6){yyerror("Semantic error"); exit(err);}
                                       }; 
 
 //Function call has a very straight forward approach
@@ -621,14 +621,14 @@ shiftCommand:
                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                              createChildren($$, $3); createChildren($$, $4);
                                                                              int err = checkPrimitiveAttribution($$);
-                                                                             if(err){ semanticerror(err, $1, NULL); return err;}
+                                                                             if(err){ semanticerror(err, $1, NULL); exit(err);}
                                                                             }
     | TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR shift expression {$$ = createNode(AST_SHIFT); 
                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                              createChildren($$, $3); createChildren($$, $4);
                                                                              createChildren($$, $5); createChildren($$, $6);
                                                                              int err = checkUserTypeAttribution($$);
-                                                                             if(err){ semanticerror(ERR_UNKNOWN, $1, $4); return err;}
+                                                                             if(err){ semanticerror(ERR_UNKNOWN, $1, $4); exit(err);}
                                                                             };
 
 //Flux Control can be of 3 kinds, Conditional, iterative or selection
@@ -644,14 +644,14 @@ conditionalFluxControl:
                                                                                      createChildren($$, $3); createChildren($$, $4);
                                                                                      createChildren($$, $5); createChildren($$, $6);
                                                                                      int err = calculateTypeInfer($3); 
-                                                                                     if(err > 6){ semanticerror(err, $1,$1); return err;}}
+                                                                                     if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
     | TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock TK_PR_ELSE commandsBlock {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                      createChildren($$, $1); createChildren($$, $2);
                                                                                      createChildren($$, $3); createChildren($$, $4);
                                                                                      createChildren($$, $5); createChildren($$, $6);
                                                                                      createChildren($$, $7); createChildren($$, $8);
                                                                                      int err = calculateTypeInfer($3); 
-                                                                                     if(err > 6){ semanticerror(err, $1,$1); return err;}};
+                                                                                     if(err > 6){ semanticerror(err, $1,$1); exit(err);}};
 
 //There are 4 variations of iterative flux control
 iterativeFluxControl:
@@ -669,20 +669,20 @@ iterativeFluxControl:
                                                                                              createChildren($$, $10);
                                                                                              int err = calculateTypeInfer($4); 
                                                                                              if(err < 6){ err = calculateTypeInfer($7); }
-                                                                                             else if(err > 6){ semanticerror(err, $1,$1); return err;}
+                                                                                             else if(err > 6){ semanticerror(err, $1,$1); exit(err);}
                                                                                              deleteContext();}
     | TK_PR_WHILE '(' expression ')' TK_PR_DO commandsBlock                                 {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                                              createChildren($$, $3); createChildren($$, $4);
                                                                                              createChildren($$, $5); createChildren($$, $6);
                                                                                              int err = calculateTypeInfer($3); 
-                                                                                             if(err > 6){ semanticerror(err, $1,$1); return err;}}
+                                                                                             if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
     | TK_PR_DO commandsBlock TK_PR_WHILE '(' expression ')'                                 {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                                              createChildren($$, $3); createChildren($$, $4);
                                                                                              createChildren($$, $5); createChildren($$, $6);
                                                                                              int err = calculateTypeInfer($5); 
-                                                                                             if(err > 6){ semanticerror(err, $4,$4); return err;}};      
+                                                                                             if(err > 6){ semanticerror(err, $4,$4); exit(err);}};      
 
 //The only selection flux control is switch
 //It is important to note that bison won't check if there are cases on the commandsBlock
@@ -692,7 +692,7 @@ selectionFluxControl:
                                                    createChildren($$, $3); createChildren($$, $4);
                                                    createChildren($$, $5);
                                                    int err = calculateTypeInfer($3); 
-                                                   if(err > 6){ semanticerror(err, $1,$1); return err;}}; 
+                                                   if(err > 6){ semanticerror(err, $1,$1); exit(err);}}; 
 
 //List of commands without commas in them, used in for
 commandSimpleList:

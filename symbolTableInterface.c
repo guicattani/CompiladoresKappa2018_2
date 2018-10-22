@@ -158,8 +158,9 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
             attrType = typeInfo->type;
             if(typeInfo->nature == NATUREZA_CLASSE || typeInfo->nature == NATUREZA_VETOR_CLASSE) //TODO review
                 return ERR_USER;
-            if(typeInfo->nature == NATUREZA_FUNC)
+            if(typeInfo->nature == NATUREZA_FUNC){
                 return ERR_FUNCTION;
+            }
         }
 
         int resultado = calculateImplicitConvert(attrType, typeOfTypeNode);
@@ -209,8 +210,9 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
     if((idInfo->nature == NATUREZA_VETOR || idInfo->nature == NATUREZA_VETOR_CLASSE)  && isVectorEmpty(vector))
         return ERR_VECTOR;
 
-    if(idInfo->nature == NATUREZA_FUNC)
+    if(idInfo->nature == NATUREZA_FUNC){
         return ERR_FUNCTION;
+    }
 
     //User type has been defined but it hasn't been called correctly
     if((idInfo->nature == NATUREZA_CLASSE || idInfo->nature == NATUREZA_VETOR_CLASSE)  && classid == NULL)
@@ -326,14 +328,17 @@ int calculateTypeInfer(struct node* node){
         struct symbolInfo* referenceInfo = findSymbolInContexts(node->token_value);
         int referenceType = referenceInfo->type;
 
-        if(referenceInfo->nature == NATUREZA_FUNC) 
-             return ERR_FUNCTION;
+        if(referenceInfo->nature == NATUREZA_FUNC) {
+            referenceInfo = findSymbolInContexts(referenceInfo->name);
+            return referenceInfo->type;
+        }
 
         if(referenceInfo->nature == NATUREZA_CLASSE) {
-            if(referenceInfo->userType == NULL)
+            if(referenceInfo->userType == NULL){
                 return ERR_WRONG_TYPE;
+            }
             if(node->brother == NULL || node->brother->brother == NULL ){
-                return ERR_WRONG_TYPE; //generic error because we can't determine the column
+                return referenceType; //generic error because we can't determine the column
             }
             int typeClassField = getTypeFromUserClassField(node, node->brother->brother);
             if(typeClassField > NATUREZA_IDENTIFICADOR)
