@@ -582,7 +582,7 @@ comparisonOperator:
 
 expressionList:
       expression                     {$$ = $1;
-                                      int err = calculateTypeInfer($1); if (err > 6){printf("%d\n", err); yyerror("Semantic error"); exit(err);}}
+                                      int err = calculateTypeInfer($1); if (err > 6){yyerror("Semantic error"); exit(err);}}
 
     | expression ',' expressionList  {$$ = createNode(AST_EXPLIST); 
                                       createChildren($$, $1); createChildren($$, $2);

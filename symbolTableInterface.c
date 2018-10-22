@@ -304,8 +304,23 @@ int checkUserTypeAttribution(struct node* attrNode){
     checkAttribution(id, vector, expression, typeid);
 }
 
-//return a coerced type, based on expression and precedence
 int calculateTypeInfer(struct node* node){
+    if(node != NULL && node->brother == NULL && node->child == NULL){
+        int referenceType = node->token_type;
+        if(referenceType == NATUREZA_IDENTIFICADOR){
+            struct symbolInfo* referenceInfo = findSymbolInContexts(node->token_value);
+            int referenceType = referenceInfo->type;
+            
+        }
+        return referenceType;
+    }
+    else
+        return  calculateTypeInferRecursion(node);
+}
+
+
+//return a coerced type, based on expression and precedence
+int calculateTypeInferRecursion(struct node* node){
     if(node == NULL)
         return 0;
     if(strcmp(node->token_value , "$") == 0){
@@ -540,12 +555,10 @@ int checkFunction(struct node *functionNode, int type, char *userType){
             else{
                 if(numberOfChildren(argument))
                 expressionType = calculateTypeInfer(argument);
-                printf("%d", expressionType);
             }
 
             if(expressionType > 6)
                 return expressionType;
-            printf("%d %d \n", expressionType, field->type);
             if(expressionType != fieldType)
                 return ERR_WRONG_TYPE_ARGS;
 
