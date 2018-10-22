@@ -447,7 +447,9 @@ int checkFunctionPipe(struct node *functionPipeNode){
         err = checkFunction(functionPipeNode->child->brother->brother, field.type, field.userType);
         if (err) return err;
 
-        struct symbolInfo * funcInfo = findSymbolInContexts(functionPipeNode->child->brother->brother->token_value);
+        struct symbolInfo * funcInfo = findSymbolInContexts(functionPipeNode->child->brother->brother->child->token_value);
+        if(funcInfo == NULL)
+            return ERR_UNDECLARED;
         field.type = funcInfo->type;
         field.userType = funcInfo->userType;
 
@@ -456,19 +458,23 @@ int checkFunctionPipe(struct node *functionPipeNode){
 
 
     }else if(!strcmp(functionPipeNode->child->token_value, AST_FUNCTIONCALL)){
+        struct symbolInfo *funcInfo = findSymbolInContexts(functionPipeNode->child->child->token_value);
+        if(funcInfo == NULL)
+            return ERR_UNDECLARED;
 
-        struct symbolInfo *funcInfo = findSymbolInContexts(functionPipeNode->child->token_value);
-        
         int err = checkFunction(functionPipeNode->child, -1, NULL);
         if (err) return err;
 
         int funcType = funcInfo->type;
         char* funcUserType = funcInfo->userType;
-
+        
         err = checkFunction(functionPipeNode->child->brother->brother, funcType, funcUserType);
         if (err) return err;
 
-        funcInfo = findSymbolInContexts(functionPipeNode->child->brother->brother->token_value);
+        funcInfo = findSymbolInContexts(functionPipeNode->child->brother->brother->child->token_value);
+        if(funcInfo == NULL)
+            return ERR_UNDECLARED;
+
         field.type = funcInfo->type;
         field.userType = funcInfo->userType;
         
@@ -524,14 +530,17 @@ int checkFunction(struct node *functionNode, int type, char *userType){
             if(!strcmp(argument->token_value, ".") && type != -1){
                 expressionType = type;
                 expressionName = userType;
+                
             }
             else{
+                if(numberOfChildren(argument))
                 expressionType = calculateTypeInfer(argument);
+                printf("%d", expressionType);
             }
 
             if(expressionType > 6)
                 return expressionType;
-            
+            printf("%d %d \n", expressionType, field->type);
             if(expressionType != fieldType)
                 return ERR_WRONG_TYPE_ARGS;
 

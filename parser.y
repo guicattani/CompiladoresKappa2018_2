@@ -367,14 +367,14 @@ commandSimple:
     | attribution                                   {$$ = $1;}
     | TK_PR_INPUT expression                        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);
                                                     int err = calculateTypeInfer($2); if(err > 6){ semanticerror(err, $1,$1); return err;}}
-    | functionCall                                  {$$ = $1;}
+    | functionCall                                  {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1, NULL); return err;}}
     | shiftCommand                                  {$$ = $1;}
     | TK_PR_RETURN expression                       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);
                                                     int err = calculateTypeInfer($2); if(err > 6){ semanticerror(err, $1,$1); return err;}}
     | TK_PR_CONTINUE                                {$$ = $1;}
     | TK_PR_BREAK                                   {$$ = $1;}
     | fluxControlCommand                            {$$ = $1;}
-    | pipeCommands                                  {$$ = $1;}
+    | pipeCommands                                  {$$ = $1; int err = checkFunctionPipe($1); if (err){ semanticerror(err, $1, NULL); return err;}}
     | commandsBlock                                 {$$ = $1;};       
 
 //A variable declaration can be initialized ONLY if it has a primitive type
@@ -581,17 +581,21 @@ comparisonOperator:
 
 
 expressionList:
-      expression                     {$$ = $1;}
+      expression                     {$$ = $1;
+                                      int err = calculateTypeInfer($1); if (err > 6){printf("%d\n", err); yyerror("Semantic error"); return err;}}
+
     | expression ',' expressionList  {$$ = createNode(AST_EXPLIST); 
                                       createChildren($$, $1); createChildren($$, $2);
-                                      createChildren($$, $3);}; 
+                                      createChildren($$, $3);
+                                      int err = calculateTypeInfer($1); if (err > 6){yyerror("Semantic error"); return err;}
+                                      }; 
 
 //Function call has a very straight forward approach
 functionCall:
     TK_IDENTIFICADOR '(' functionCallArguments ')' {$$ = createNode(AST_FUNCTIONCALL); 
                                                     createChildren($$, $1); createChildren($$, $2);
                                                     createChildren($$, $3); createChildren($$, $4);
-                                                    int err = checkFunction($$, -1, NULL); if (err){ semanticerror(err, $1, NULL); return err;}
+                                                    
                                                     };
 
 //Arguments can be empty or can be a list of expressions/dots
@@ -651,11 +655,11 @@ conditionalFluxControl:
 
 //There are 4 variations of iterative flux control
 iterativeFluxControl:
-      TK_PR_FOREACH '(' TK_IDENTIFICADOR ':' expressionList ')' commandsBlock               {$$ = createNode(AST_CONDFLUXCONT); 
+      TK_PR_FOREACH '(' {createContext();}  TK_IDENTIFICADOR ':' commandSimpleList ')' commandsBlock {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                                     createChildren($$, $1); createChildren($$, $2);
-                                                                                                    createChildren($$, $3); createChildren($$, $4);
-                                                                                                    createChildren($$, $5); createChildren($$, $6);
-                                                                                                    createChildren($$, $7);}
+                                                                                                    createChildren($$, $4); createChildren($$, $5);
+                                                                                                    createChildren($$, $6); createChildren($$, $7);
+                                                                                                    createChildren($$, $8); deleteContext();}
     | TK_PR_FOR '(' {createContext();} commandSimpleList ':' expression ':' commandSimpleList ')' functionCommandsBlock  //The command list is of simple commands
                                                                                             {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1); createChildren($$, $2);
