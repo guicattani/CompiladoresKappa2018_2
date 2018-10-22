@@ -25,6 +25,7 @@ int checkFunctionPipe(struct node *functionPipeNode);
 
 struct fieldList* createFieldList(struct node* fields);
 int calculateTypeInfer(struct node* node);
+int calculateTypeInferRecursion(struct node* node);
 
 int isIdentifierOfNatureVector(struct node* node);
 int isIdentifierOfNatureClassVector(struct node* node);

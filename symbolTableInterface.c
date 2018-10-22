@@ -162,6 +162,8 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
                 return ERR_FUNCTION;
         }
 
+        printf("%d %d", attrType,typeOfTypeNode);
+
         int resultado = calculateImplicitConvert(attrType, typeOfTypeNode);
         if(resultado == -1)
             return ERR_WRONG_TYPE;
@@ -301,9 +303,23 @@ int checkUserTypeAttribution(struct node* attrNode){
     struct node* typeid = attrNode->child->brother->brother->brother;
     checkAttribution(id, vector, expression, typeid);
 }
+int calculateTypeInfer(struct node* node){
+    if(node != NULL && node->brother == NULL && node->child == NULL){
+        int referenceType = node->token_type;
+        if(referenceType == NATUREZA_IDENTIFICADOR){
+            struct symbolInfo* referenceInfo = findSymbolInContexts(node->token_value);
+            int referenceType = referenceInfo->type;
+            
+        }
+        return referenceType;
+    }
+    else
+        return  calculateTypeInferRecursion(node);
+}
+
 
 //return a coerced type, based on expression and precedence
-int calculateTypeInfer(struct node* node){
+int calculateTypeInferRecursion(struct node* node){
     if(node == NULL)
         return 0;
     if(strcmp(node->token_value , "$") == 0){
@@ -532,16 +548,18 @@ int checkFunction(struct node *functionNode, int type, char *userType){
             if(expressionType > 6)
                 return expressionType;
             
-            if(expressionType != fieldType)
+            if(expressionType != fieldType){
                 return ERR_WRONG_TYPE_ARGS;
+            }
 
             if(numberOfChildren(functionCallArgumentList) == 1)
                 functionCallArgumentList = NULL;
             else functionCallArgumentList = functionCallArgumentList->child->brother->brother;
 
             if (field->type == NATUREZA_IDENTIFICADOR && expressionType == NATUREZA_IDENTIFICADOR){
-                if(strcmp(field->name, expressionName))
+                if(strcmp(field->name, expressionName)){
                     return ERR_WRONG_TYPE_ARGS;
+                }
             }
 
             field = field->next;
