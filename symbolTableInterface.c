@@ -200,6 +200,7 @@ struct fieldList* createFieldList(struct node* fields){
 
 
 int checkAttribution(struct node* id, struct node* vector, struct node* expression, struct node* classid){
+    printf("name %s\n", expression->token_value );
     struct symbolInfo* idInfo = findSymbolInContexts(id->token_value);
     if(idInfo == NULL)
         return ERR_UNDECLARED;
@@ -250,8 +251,9 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
             typeInferenceOfExpression = calculateTypeInfer(expression);
         }
     }
-
+    printf("%d %d", tested_type, typeInferenceOfExpression);
     int calculatedConvert = calculateImplicitConvert(tested_type, typeInferenceOfExpression);
+    printf("bbbbbb %d",calculatedConvert);
     if(calculatedConvert == -1)
         return ERR_WRONG_TYPE;
     
@@ -310,7 +312,6 @@ int calculateTypeInfer(struct node* node){
         if(referenceType == NATUREZA_IDENTIFICADOR){
             struct symbolInfo* referenceInfo = findSymbolInContexts(node->token_value);
             int referenceType = referenceInfo->type;
-            
         }
         return referenceType;
     }
