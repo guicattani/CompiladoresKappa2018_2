@@ -267,8 +267,9 @@ globalVarDeclaration:
 
 //Function declaration
 functionDeclaration:
-    functionHead {createContext(); 
+    functionHead {
                     int err = addSymbolFromNodeFunction($1);
+                    createContext(); 
                     if (err && numberOfChildren($1) == 5 ) { 
                        semanticerror(err, $1->child->brother, $1->child); 
                        exit(err);
@@ -278,19 +279,13 @@ functionDeclaration:
                        exit(err);
                     };                    
                 } 
-    functionCommandsBlock                           { deleteContext();
+    functionCommandsBlock                           { 
                                                     $$ = createNode(AST_FUNCDEC);
                                                     createChildren($$, $1);
                                                     createChildren($$, $3);
-                                                    int err = addSymbolFromNodeFunction($1);
-                                                    if (err && numberOfChildren($1) == 5 ) { 
-                                                        semanticerror(err, $1->child->brother, $1->child); 
-                                                        exit(err);
-                                                    }
-                                                   else if (err && numberOfChildren($1) == 6){
-                                                       semanticerror(err, $1->child->brother->brother, $1->child->brother);
-                                                       exit(err);
-                                                   };};
+                                                    deleteContext();
+                                                    
+                                                   };
 
 functionCommandsBlock:
     '{' commandsList '}'    {$$ = createNode(AST_FUNCCOMMANDSBLOCK); 
@@ -367,14 +362,14 @@ commandSimple:
     | attribution                                   {$$ = $1;}
     | TK_PR_INPUT expression                        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);
                                                     int err = calculateTypeInfer($2); if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
-    | functionCall                                  {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1, NULL); exit(err);}}
+    | functionCall                                  {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, NULL); exit(err);}}
     | shiftCommand                                  {$$ = $1;}
     | TK_PR_RETURN expression                       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);
                                                     int err = calculateTypeInfer($2); if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
     | TK_PR_CONTINUE                                {$$ = $1;}
     | TK_PR_BREAK                                   {$$ = $1;}
     | fluxControlCommand                            {$$ = $1;}
-    | pipeCommands                                  {$$ = $1; int err = checkFunctionPipe($1); if (err){ semanticerror(err, $1, NULL); exit(err);}}
+    | pipeCommands                                  {$$ = $1; int err = checkFunctionPipe($1); if (err){ semanticerror(err, $1->child, NULL); exit(err);}}
     | commandsBlock                                 {$$ = $1;};       
 
 //A variable declaration can be initialized ONLY if it has a primitive type
@@ -437,8 +432,8 @@ simpleExpression:
                                                     semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                     exit(ERR_UNDECLARED);}
                                                 }
-    | functionCall                              {$$ = $1;}
-    | pipeCommands                              {$$ = $1;}
+    | functionCall                              {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, $1->child);exit(err); }}
+    | pipeCommands                              {$$ = $1; int err = checkFunctionPipe($1); if (err){ semanticerror(err, $1->child, $1->child);exit(err); }}
     | literal                                   {$$ = $1;}
     | TK_IDENTIFICADOR  '$' TK_IDENTIFICADOR    {$$ = createNode(AST_SIMPLEEXP); 
                                                       createChildren($$, $1); createChildren($$, $2);
@@ -796,7 +791,7 @@ void semanticerror(int err, struct node* id, struct node* type){
             printf ("Line %d, Column %d: String \"%s\" is too small to hold the attribution.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_UNKNOWN:
-            printf ("Line %d, Column %d: Unknown error.\n", yylineno, yycolno, id->token_value);
+            printf ("Line %d, Column %d: Unknown error.\n", yylineno, yycolno);
             break;
     }
     deleteAllContext();

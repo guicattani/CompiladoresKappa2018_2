@@ -93,7 +93,7 @@
 #define ERR_WRONG_TYPE          30 //tipos incompatíveis
 #define ERR_STRING_TO_X         31 //coerção impossível de var do tipo string
 #define ERR_CHAR_TO_X           32 //coerção impossível de var do tipo char
-#define ERR_USER_TO_X           33 //coerção impossível de var do tipo de usuário
+#define ERR_USER_TO_X            33 //coerção impossível de var do tipo de usuário
 
 /* Argumentos e parâmetros */
 #define ERR_MISSING_ARGS        40 //faltam argumentos 

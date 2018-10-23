@@ -200,7 +200,6 @@ struct fieldList* createFieldList(struct node* fields){
 
 
 int checkAttribution(struct node* id, struct node* vector, struct node* expression, struct node* classid){
-    printf("name %s\n", expression->token_value );
     struct symbolInfo* idInfo = findSymbolInContexts(id->token_value);
     if(idInfo == NULL)
         return ERR_UNDECLARED;
@@ -251,9 +250,7 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
             typeInferenceOfExpression = calculateTypeInfer(expression);
         }
     }
-    printf("%d %d", tested_type, typeInferenceOfExpression);
     int calculatedConvert = calculateImplicitConvert(tested_type, typeInferenceOfExpression);
-    printf("bbbbbb %d",calculatedConvert);
     if(calculatedConvert == -1)
         return ERR_WRONG_TYPE;
     
@@ -324,13 +321,31 @@ int calculateTypeInfer(struct node* node){
 int calculateTypeInferRecursion(struct node* node){
     if(node == NULL)
         return 0;
+        
     if(strcmp(node->token_value , "$") == 0){
         int brotherInfer = calculateTypeInfer(node->brother->brother);
         
         return brotherInfer;
     }
-        int childInfer = calculateTypeInfer(node->child);
-        int brotherInfer = calculateTypeInfer(node->brother);
+    if(strcmp(node->token_value , "(") == 0){
+        while(node->brother != NULL){
+            node = node->brother;
+            if(strcmp(node->brother->token_value , ")") == 0){
+                node = node->brother;
+                break;
+            }
+        }
+    } 
+    
+    int childInfer = calculateTypeInfer(node->child);
+    int brotherInfer = calculateTypeInfer(node->brother);
+
+    if(childInfer == NATUREZA_LITERAL_CHAR || childInfer == NATUREZA_LITERAL_STRING){
+        return ERR_CHAR_TO_X; //error, since we can't convert them
+    }
+    if(brotherInfer == NATUREZA_LITERAL_CHAR || brotherInfer == NATUREZA_LITERAL_STRING){
+        return ERR_STRING_TO_X; //error, since we can't convert them
+    }
 
     if(childInfer > NATUREZA_IDENTIFICADOR) //propagate error msg;
         return childInfer;
@@ -365,13 +380,8 @@ int calculateTypeInferRecursion(struct node* node){
         
         nodeType = referenceType;
     }
-
-    if(nodeType == NATUREZA_LITERAL_CHAR){
-        return ERR_CHAR_TO_X; //error, since we can't convert them
-    }
-    if(nodeType == NATUREZA_LITERAL_STRING){
-        return ERR_STRING_TO_X; //error, since we can't convert them
-    }
+    
+   
     //if inference of child have been calculated, assume it as type
     if(childInfer != 0) 
         nodeType = childInfer;
@@ -507,11 +517,11 @@ int checkFunctionPipe(struct node *functionPipeNode){
 
 int checkFunction(struct node *functionNode, int type, char *userType){
     struct node* idNode = functionNode->child;
+    
     struct node* functionCallArgument = functionNode->child;
     struct symbolInfo* idInfo = findSymbolInContexts(idNode->token_value);
     if(idInfo == NULL)
         return ERR_UNDECLARED;
-
     if(idInfo->nature == NATUREZA_CLASSE)
         return ERR_USER;
     
@@ -527,7 +537,9 @@ int checkFunction(struct node *functionNode, int type, char *userType){
 
     if(idInfo->nature == NATUREZA_FUNC){ 
         struct fieldList* field = idInfo->fields;
+        
         struct node* functionCallArguments = functionNode->child->brother->brother;
+        
         if(field == NULL && functionCallArguments->child != NULL)
             return ERR_EXCESS_ARGS;
         
@@ -535,9 +547,10 @@ int checkFunction(struct node *functionNode, int type, char *userType){
             return ERR_MISSING_ARGS;
 
         if(field == NULL && functionCallArguments->child == NULL)
-            return 0;        
+            return 0; 
         //both are not NULL
         struct node* functionCallArgumentList = functionCallArguments->child;
+        
         while(field != NULL && functionCallArgumentList != NULL){
             int fieldType = field->type;
             //Gets the expression Type
@@ -545,12 +558,12 @@ int checkFunction(struct node *functionNode, int type, char *userType){
                 return ERR_MISSING_ARGS;
 
             struct node* argument = functionCallArgumentList->child;
-            
             int expressionType;
             char* expressionName;
             if(!strcmp(argument->token_value, ".") && type != -1){
                 expressionType = type;
-                expressionName = userType;
+                if(userType != NULL)
+                    expressionName = userType;
                 
             }
             else{
@@ -586,5 +599,22 @@ int checkFunction(struct node *functionNode, int type, char *userType){
     }
 }
 
+void insertSymbolsFunction(struct node *function){
+    char* name;
+    if (numberOfChildren(function) == 5){
+        name = function->child->brother->token_value;      
 
+    }   
+    else if (numberOfChildren(function) == 6){
+        name = function->child->brother->brother->token_value;
+    }
+    struct symbolInfo* idInfo = findSymbolInContexts(function->child->token_value);
+    
+    struct fieldList* fieldList = idInfo->fields;
+    while(fieldList != NULL){
+        addSymbol(fieldList->name, idInfo->line, fieldList->type, fieldList->type, NULL, 1, -1, NULL);
+        fieldList = fieldList->next;
+    }
+
+}
 

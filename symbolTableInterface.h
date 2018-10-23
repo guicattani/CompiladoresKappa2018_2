@@ -32,7 +32,7 @@ int isIdentifierOfNatureClassVector(struct node* node);
 int isIdentifierDeclared(struct node* node);
 
 int getTypeFromUserClassField(struct node* variableNode,struct node* fieldClassNode);
-
+void insertSymbolsFunction(struct node *function);
 
 
 #endif
