@@ -361,11 +361,11 @@ commandSimple:
                                     } 
     | attribution                                   {$$ = $1;}
     | TK_PR_INPUT expression                        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);
-                                                    int err = calculateTypeInfer($2); if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
+                                                    int err = calculateTypeInfer($2, NULL); if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
     | functionCall                                  {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, NULL); exit(err);}}
     | shiftCommand                                  {$$ = $1;}
     | TK_PR_RETURN expression                       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);
-                                                    int err = calculateTypeInfer($2); if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
+                                                    int err = calculateTypeInfer($2, NULL); if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
     | TK_PR_CONTINUE                                {$$ = $1;}
     | TK_PR_BREAK                                   {$$ = $1;}
     | fluxControlCommand                            {$$ = $1;}
@@ -577,12 +577,12 @@ comparisonOperator:
 
 expressionList:
       expression                     {$$ = $1;
-                                      int err = calculateTypeInfer($1); if (err > 6){yyerror("Semantic error"); exit(err);}}
+                                      int err = calculateTypeInfer($1, NULL); if (err > 6){yyerror("Semantic error"); exit(err);}}
 
     | expression ',' expressionList  {$$ = createNode(AST_EXPLIST); 
                                       createChildren($$, $1); createChildren($$, $2);
                                       createChildren($$, $3);
-                                      int err = calculateTypeInfer($1); if (err > 6){yyerror("Semantic error"); exit(err);}
+                                      int err = calculateTypeInfer($1, NULL); if (err > 6){yyerror("Semantic error"); exit(err);}
                                       }; 
 
 //Function call has a very straight forward approach
@@ -608,7 +608,8 @@ functionCallArgumentsList:
 //Argument can be expression or dot
 functionCallArgument:
       '.'           {$$ = $1;}
-    | expression    {$$ = $1;};
+    | expression    {$$ = createNode(AST_FUNCARGLIST); 
+                          createChildren($$, $1);};
 
 //Shift command is straightforward too
 shiftCommand:
@@ -638,14 +639,14 @@ conditionalFluxControl:
                                                                                      createChildren($$, $1); createChildren($$, $2);
                                                                                      createChildren($$, $3); createChildren($$, $4);
                                                                                      createChildren($$, $5); createChildren($$, $6);
-                                                                                     int err = calculateTypeInfer($3); 
+                                                                                     int err = calculateTypeInfer($3, NULL); 
                                                                                      if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
     | TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock TK_PR_ELSE commandsBlock {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                      createChildren($$, $1); createChildren($$, $2);
                                                                                      createChildren($$, $3); createChildren($$, $4);
                                                                                      createChildren($$, $5); createChildren($$, $6);
                                                                                      createChildren($$, $7); createChildren($$, $8);
-                                                                                     int err = calculateTypeInfer($3); 
+                                                                                     int err = calculateTypeInfer($3,NULL); 
                                                                                      if(err > 6){ semanticerror(err, $1,$1); exit(err);}};
 
 //There are 4 variations of iterative flux control
@@ -662,21 +663,21 @@ iterativeFluxControl:
                                                                                              createChildren($$, $6); createChildren($$, $7);
                                                                                              createChildren($$, $8); createChildren($$, $9);
                                                                                              createChildren($$, $10);
-                                                                                             int err = calculateTypeInfer($4); 
-                                                                                             if(err < 6){ err = calculateTypeInfer($7); }
+                                                                                             int err = calculateTypeInfer($4, NULL); 
+                                                                                             if(err < 6){ err = calculateTypeInfer($7, NULL); }
                                                                                              else if(err > 6){ semanticerror(err, $1,$1); exit(err);}
                                                                                              deleteContext();}
     | TK_PR_WHILE '(' expression ')' TK_PR_DO commandsBlock                                 {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                                              createChildren($$, $3); createChildren($$, $4);
                                                                                              createChildren($$, $5); createChildren($$, $6);
-                                                                                             int err = calculateTypeInfer($3); 
+                                                                                             int err = calculateTypeInfer($3, NULL); 
                                                                                              if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
     | TK_PR_DO commandsBlock TK_PR_WHILE '(' expression ')'                                 {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1); createChildren($$, $2);
                                                                                              createChildren($$, $3); createChildren($$, $4);
                                                                                              createChildren($$, $5); createChildren($$, $6);
-                                                                                             int err = calculateTypeInfer($5); 
+                                                                                             int err = calculateTypeInfer($5, NULL); 
                                                                                              if(err > 6){ semanticerror(err, $4,$4); exit(err);}};      
 
 //The only selection flux control is switch
@@ -686,7 +687,7 @@ selectionFluxControl:
                                                    createChildren($$, $1); createChildren($$, $2);
                                                    createChildren($$, $3); createChildren($$, $4);
                                                    createChildren($$, $5);
-                                                   int err = calculateTypeInfer($3); 
+                                                   int err = calculateTypeInfer($3, NULL); 
                                                    if(err > 6){ semanticerror(err, $1,$1); exit(err);}}; 
 
 //List of commands without commas in them, used in for
@@ -701,10 +702,14 @@ pipeCommands:
       functionCall pipe functionCall {$$ = createNode(AST_PIPECOMMANDS); 
                                       createChildren($$, $1); createChildren($$, $2);
                                       createChildren($$, $3);
+                                      int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, NULL); exit(err);}
+                                      else {
+                                          err = checkFunction($3, -1, NULL); if (err){ semanticerror(err, $3->child, NULL); exit(err);}}
                                       }
     | pipeCommands pipe functionCall {$$ = createNode(AST_PIPECOMMANDS); 
                                       createChildren($$, $1); createChildren($$, $2);
-                                      createChildren($$, $3);};
+                                      createChildren($$, $3);
+                                      };
 
 %%
 

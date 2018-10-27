@@ -100,11 +100,17 @@ void freeSymbolInfo(struct symbolInfo* info){
 
 
 //Given a FieldList, pushes a field into it and returns the new list
-struct fieldList* pushField(struct fieldList* fieldList, int type, char* name){
+struct fieldList* pushField(struct fieldList* fieldList, int type, char* name, char* userType){
     if(fieldList == NULL){
         fieldList = malloc(sizeof(struct fieldList));
         fieldList->name = strdup(name);
         fieldList->type = type;
+        if(type == NATUREZA_IDENTIFICADOR){
+            fieldList->userType = strdup(userType);
+        }
+        else{
+            fieldList->userType = NULL;
+        }
         fieldList->next = NULL;
     }
     else{
@@ -124,6 +130,9 @@ struct fieldList* pushField(struct fieldList* fieldList, int type, char* name){
 void freeFieldList(struct fieldList* fieldList){
     while(fieldList != NULL){
         free(fieldList->name);
+        if(fieldList != NULL){
+            free(fieldList->userType);
+        }
         struct fieldList* temp = fieldList;
         fieldList= fieldList->next;
         free(temp);
@@ -179,11 +188,17 @@ int updateStringSizeOnNode(char* name, int stringSize){
 
 //checks if the fieldList has the name searched, and return its type.
 //Returns -1 if the name searched is not on the fieldList
-int searchFieldList(struct fieldList* fieldList, char* name){
+int searchFieldList(struct fieldList* fieldList, char* name, char* userType){
     struct fieldList* tmp = fieldList;
     while (tmp != NULL){
         if(!strcmp(tmp->name, name))
+            if(tmp->type == NATUREZA_IDENTIFICADOR){
+                if(tmp->userType != NULL){
+                    userType = tmp->userType;
+                }
+            }
             return tmp->type;
+
         
         tmp = tmp->next;
     }

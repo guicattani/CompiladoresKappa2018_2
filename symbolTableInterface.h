@@ -24,7 +24,7 @@ int checkFunction(struct node *functionNode, int type, char *userType);
 int checkFunctionPipe(struct node *functionPipeNode);
 
 struct fieldList* createFieldList(struct node* fields);
-int calculateTypeInfer(struct node* node);
+int calculateTypeInfer(struct node* node, char* userType);
 int calculateTypeInferRecursion(struct node* node);
 
 int isIdentifierOfNatureVector(struct node* node);

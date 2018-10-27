@@ -178,13 +178,13 @@ struct fieldList* createFieldList(struct node* fields){
     struct fieldList* fieldList = NULL;
     if(strcmp(fields->token_value,"Estado fields") == 0 || strcmp(fields->token_value, "Estado functionArgumentsList")){
         if(numberOfChildren(fields) == 3){
-            fieldList = pushField(fieldList, parseType(fields->child->brother->token_value), fields->child->brother->brother->token_value);
+            fieldList = pushField(fieldList, parseType(fields->child->brother->token_value), fields->child->brother->brother->token_value, fields->child->brother->token_value);
 
         }
         else if(numberOfChildren(fields) == 5){
             struct node* nodeIterator = fields;
             while(nodeIterator != NULL){
-                fieldList = pushField(fieldList, parseType(nodeIterator->child->brother->token_value), nodeIterator->child->brother->brother->token_value);
+                fieldList = pushField(fieldList, parseType(nodeIterator->child->brother->token_value), nodeIterator->child->brother->brother->token_value, nodeIterator->child->brother->token_value);
                 if (numberOfChildren(nodeIterator) == 5){
                     nodeIterator = nodeIterator->child->brother->brother->brother->brother; }
                 else nodeIterator = NULL;
@@ -224,18 +224,20 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
         return ERR_CLASS;    
 
     int tested_type = idInfo->type;
+    char* userTypeField = NULL;
     if(classid != NULL){
         struct symbolInfo *classInfo = findSymbolInContexts(idInfo->userType);
         
-        int type = searchFieldList(classInfo->fields, classid->token_value);
+        int type = searchFieldList(classInfo->fields, classid->token_value, userTypeField);
         if (type == -1)
             return ERR_CLASS_ID_NOT_FOUND;
         tested_type = type; 
     }
 
     int typeInferenceOfExpression; 
+    char* userTypeTypeInfer = NULL;
     if(expression->child != NULL && expression->brother != NULL){//not a literal
-        typeInferenceOfExpression = calculateTypeInfer(expression);
+        typeInferenceOfExpression = calculateTypeInfer(expression, userTypeTypeInfer);
         
         if(typeInferenceOfExpression > NATUREZA_IDENTIFICADOR){
             return typeInferenceOfExpression;
@@ -247,7 +249,7 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
             typeInferenceOfExpression = referenceInfo->type;
         }
         else{
-            typeInferenceOfExpression = calculateTypeInfer(expression);
+            typeInferenceOfExpression = calculateTypeInfer(expression, userTypeTypeInfer);
         }
     }
     int calculatedConvert = calculateImplicitConvert(tested_type, typeInferenceOfExpression);
@@ -303,12 +305,16 @@ int checkUserTypeAttribution(struct node* attrNode){
     checkAttribution(id, vector, expression, typeid);
 }
 
-int calculateTypeInfer(struct node* node){
-    if(node != NULL && node->brother == NULL && node->child == NULL){
-        int referenceType = node->token_type;
+int calculateTypeInfer(struct node* node, char* userType){
+    if(node != NULL && node->brother == NULL && node->child->brother == NULL){
+        int referenceType = node->child->token_type;
         if(referenceType == NATUREZA_IDENTIFICADOR){
-            struct symbolInfo* referenceInfo = findSymbolInContexts(node->token_value);
+            struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
             int referenceType = referenceInfo->type;
+            if(referenceInfo->nature == NATUREZA_CLASSE || referenceInfo->nature == NATUREZA_VETOR_CLASSE){
+                *userType = *referenceInfo->userType;
+                return NATUREZA_IDENTIFICADOR;
+            }
         }
         return referenceType;
     }
@@ -323,7 +329,7 @@ int calculateTypeInferRecursion(struct node* node){
         return 0;
         
     if(strcmp(node->token_value , "$") == 0){
-        int brotherInfer = calculateTypeInfer(node->brother->brother);
+        int brotherInfer = calculateTypeInferRecursion(node->brother->brother);
         
         return brotherInfer;
     }
@@ -337,8 +343,8 @@ int calculateTypeInferRecursion(struct node* node){
         }
     } 
     
-    int childInfer = calculateTypeInfer(node->child);
-    int brotherInfer = calculateTypeInfer(node->brother);
+    int childInfer = calculateTypeInferRecursion(node->child);
+    int brotherInfer = calculateTypeInferRecursion(node->brother);
 
     if(childInfer == NATUREZA_LITERAL_CHAR || childInfer == NATUREZA_LITERAL_STRING){
         return ERR_CHAR_TO_X; //error, since we can't convert them
@@ -355,8 +361,9 @@ int calculateTypeInferRecursion(struct node* node){
     int nodeType = node->token_type;
 
     //dereference variable
+    struct symbolInfo* referenceInfo;
     if(nodeType == NATUREZA_IDENTIFICADOR){
-        struct symbolInfo* referenceInfo = findSymbolInContexts(node->token_value);
+        referenceInfo = findSymbolInContexts(node->token_value);
         int referenceType = referenceInfo->type;
 
         if(referenceInfo->nature == NATUREZA_FUNC) {
@@ -369,7 +376,7 @@ int calculateTypeInferRecursion(struct node* node){
                 return ERR_WRONG_TYPE;
             }
             if(node->brother == NULL || node->brother->brother == NULL ){
-                return referenceType; //generic error because we can't determine the column
+                return referenceType;
             }
             int typeClassField = getTypeFromUserClassField(node, node->brother->brother);
             if(typeClassField > NATUREZA_IDENTIFICADOR)
@@ -385,9 +392,10 @@ int calculateTypeInferRecursion(struct node* node){
     //if inference of child have been calculated, assume it as type
     if(childInfer != 0) 
         nodeType = childInfer;
-
     //if nodeType is not a literal type, ignore
     if(nodeType < NATUREZA_LITERAL_INT  || nodeType > NATUREZA_LITERAL_BOOL){
+        if(nodeType == NATUREZA_IDENTIFICADOR && referenceInfo->userType)
+            return NATUREZA_IDENTIFICADOR;
         return brotherInfer;
     }
 
@@ -461,7 +469,8 @@ int getTypeFromUserClassField(struct node* variableNode,struct node* fieldClassN
         return ERR_CLASS_ID_NOT_FOUND;
     
     struct symbolInfo *classInfo = findSymbolInContexts(idInfo->userType);
-    int type = searchFieldList(classInfo->fields, fieldClassNode->token_value);
+    char* userType = NULL;
+    int type = searchFieldList(classInfo->fields, fieldClassNode->token_value, userType);
 
     if (type == -1)
             return ERR_CLASS_ID_NOT_FOUND;
@@ -517,7 +526,7 @@ int checkFunctionPipe(struct node *functionPipeNode){
 
 int checkFunction(struct node *functionNode, int type, char *userType){
     struct node* idNode = functionNode->child;
-    
+
     struct node* functionCallArgument = functionNode->child;
     struct symbolInfo* idInfo = findSymbolInContexts(idNode->token_value);
     if(idInfo == NULL)
@@ -534,7 +543,6 @@ int checkFunction(struct node *functionNode, int type, char *userType){
     if(idInfo->nature != NATUREZA_FUNC)
         return ERR_UNKNOWN;
     
-
     if(idInfo->nature == NATUREZA_FUNC){ 
         struct fieldList* field = idInfo->fields;
         
@@ -558,23 +566,36 @@ int checkFunction(struct node *functionNode, int type, char *userType){
                 return ERR_MISSING_ARGS;
 
             struct node* argument = functionCallArgumentList->child;
-            int expressionType;
+            int expressionType = ERR_UNKNOWN;
             char* expressionName;
             if(!strcmp(argument->token_value, ".") && type != -1){
                 expressionType = type;
                 if(userType != NULL)
                     expressionName = userType;
-                
             }
             else{
-                if(numberOfChildren(argument))
-                expressionType = calculateTypeInfer(argument);
-            }
+                if(numberOfChildren(argument)){
+                    char* userType = malloc(sizeof(char)*20);
+                    expressionType = calculateTypeInfer(argument, userType);
 
+                    if(expressionType == NATUREZA_IDENTIFICADOR && fieldType == NATUREZA_IDENTIFICADOR){
+                        if(strcmp(field->userType, userType) == 0){
+                            free(userType);
+                            return 0;
+                        }
+                        else{
+                            return ERR_WRONG_TYPE_ARGS; //RIGHT ERROR?
+                        }
+                    }
+                    free(userType);
+                }
+            }
+                
             if(expressionType > 6)
                 return expressionType;
-            if(expressionType != fieldType)
+            if(expressionType != fieldType){
                 return ERR_WRONG_TYPE_ARGS;
+            }
 
             if(numberOfChildren(functionCallArgumentList) == 1)
                 functionCallArgumentList = NULL;
