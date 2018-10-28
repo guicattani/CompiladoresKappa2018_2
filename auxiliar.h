@@ -21,6 +21,16 @@
 #define NATUREZA_VETOR              12 //Natureza vetor dá override nas outras naturezas, cheque o TIPO dele para saber do que ele é vetor
 #define NATUREZA_VETOR_CLASSE       13 //Vetor que também é uma classe hu3
 
+#define IMPLICIT_CONVERT_INT_TO_FLOAT   200
+#define IMPLICIT_CONVERT_INT_TO_BOOL    201
+
+#define IMPLICIT_CONVERT_FLOAT_TO_INT   202
+#define IMPLICIT_CONVERT_FLOAT_TO_BOOL  203
+
+#define IMPLICIT_CONVERT_BOOL_TO_INT    204
+#define IMPLICIT_CONVERT_BOOL_TO_FLOAT  205
+
+
 #define AST_PROGRAMA            "Estado Programa"
 #define AST_LITERAL             "Estado literal"
 #define AST_PIPE                "Estado pipe"

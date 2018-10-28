@@ -237,7 +237,7 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
     int typeInferenceOfExpression; 
     char* userTypeTypeInfer = NULL;
     if(expression->child != NULL || expression->brother != NULL){//not a literal
-        typeInferenceOfExpression = calculateTypeInfer(expression, userTypeTypeInfer);
+        typeInferenceOfExpression = calculateTypeInfer(expression, userTypeTypeInfer, -1);
 
         if(typeInferenceOfExpression > NATUREZA_IDENTIFICADOR){
             return typeInferenceOfExpression;
@@ -249,7 +249,7 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
             typeInferenceOfExpression = referenceInfo->type;
         }
         else{
-            typeInferenceOfExpression = calculateTypeInfer(expression, userTypeTypeInfer);
+            typeInferenceOfExpression = calculateTypeInfer(expression, userTypeTypeInfer, -1);
         }
 
         if(typeInferenceOfExpression > NATUREZA_IDENTIFICADOR){
@@ -299,7 +299,7 @@ int checkPrimitiveAttribution(struct node* attrNode){
     struct node* vector = attrNode->child->brother;
     struct node* expression = attrNode->child->brother->brother->brother;
 
-    return checkAttribution(id, vector, expression, NULL);;
+    return checkAttribution(id, vector, expression, NULL);
 }
 
 int checkUserTypeAttribution(struct node* attrNode){
@@ -308,10 +308,10 @@ int checkUserTypeAttribution(struct node* attrNode){
     struct node* expression = attrNode->child->brother->brother->brother->brother->brother;
     struct node* typeid = attrNode->child->brother->brother->brother;
     
-    return checkAttribution(id, vector, expression, typeid);;
+    return checkAttribution(id, vector, expression, typeid);
 }
 
-int calculateTypeInfer(struct node* node, char* userType){
+int calculateTypeInfer(struct node* node, char* userType, int typeOfAttribution){
     if(node->typeInfered > 0){
         return node->typeInfered;
     }
@@ -328,18 +328,18 @@ int calculateTypeInfer(struct node* node, char* userType){
         return referenceType;
     }
     else {
-        return calculateTypeInferRecursion(node);
+        return calculateTypeInferRecursion(node, typeOfAttribution);
     }
 }
 
 
 //return a coerced type, based on expression and precedence
-int calculateTypeInferRecursion(struct node* node){
+int calculateTypeInferRecursion(struct node* node, int typeOfAttribution){
     if(node == NULL)
         return 0;
         
     if(strcmp(node->token_value , "$") == 0){
-        int brotherInfer = calculateTypeInferRecursion(node->brother->brother);
+        int brotherInfer = calculateTypeInferRecursion(node->brother->brother, typeOfAttribution);
         
         return brotherInfer;
     }
@@ -353,8 +353,8 @@ int calculateTypeInferRecursion(struct node* node){
         }
     } 
     
-    int childInfer = calculateTypeInferRecursion(node->child);
-    int brotherInfer = calculateTypeInferRecursion(node->brother);
+    int childInfer = calculateTypeInferRecursion(node->child, typeOfAttribution);
+    int brotherInfer = calculateTypeInferRecursion(node->brother, typeOfAttribution);
 
 
     if(childInfer == NATUREZA_LITERAL_CHAR){
@@ -417,37 +417,82 @@ int calculateTypeInferRecursion(struct node* node){
         return brotherInfer;
     }
 
+    int precedenceConversion = -1;
+
     if(brotherInfer == NATUREZA_LITERAL_INT &&
-       nodeType == NATUREZA_LITERAL_INT)
-       return NATUREZA_LITERAL_INT;
+       nodeType == NATUREZA_LITERAL_INT){
+       precedenceConversion = NATUREZA_LITERAL_INT;
+    }
        
     if(brotherInfer == NATUREZA_LITERAL_FLOAT &&
-       nodeType == NATUREZA_LITERAL_FLOAT)
-       return NATUREZA_LITERAL_FLOAT;
+       nodeType == NATUREZA_LITERAL_FLOAT){
+        precedenceConversion = NATUREZA_LITERAL_FLOAT;
+    }
        
     if(brotherInfer == NATUREZA_LITERAL_BOOL &&
-       nodeType == NATUREZA_LITERAL_BOOL)
-       return NATUREZA_LITERAL_BOOL;
+       nodeType == NATUREZA_LITERAL_BOOL){
+        precedenceConversion = NATUREZA_LITERAL_BOOL;
+    }
        
     if( (brotherInfer == NATUREZA_LITERAL_FLOAT &&
        nodeType == NATUREZA_LITERAL_INT) || 
        (brotherInfer == NATUREZA_LITERAL_INT &&
-       nodeType == NATUREZA_LITERAL_FLOAT) )
-       return NATUREZA_LITERAL_FLOAT;
+       nodeType == NATUREZA_LITERAL_FLOAT) ) {
+       precedenceConversion = NATUREZA_LITERAL_FLOAT;
+    }
        
     if((brotherInfer == NATUREZA_LITERAL_BOOL &&
        nodeType == NATUREZA_LITERAL_INT) || 
        (brotherInfer == NATUREZA_LITERAL_INT &&
-       nodeType == NATUREZA_LITERAL_BOOL))
-       return NATUREZA_LITERAL_INT;
+       nodeType == NATUREZA_LITERAL_BOOL)) {
+       precedenceConversion = NATUREZA_LITERAL_INT;
+    }
 
     if((brotherInfer == NATUREZA_LITERAL_BOOL &&
        nodeType == NATUREZA_LITERAL_FLOAT) ||
         (brotherInfer == NATUREZA_LITERAL_FLOAT &&
-       nodeType == NATUREZA_LITERAL_BOOL ))
-       return NATUREZA_LITERAL_FLOAT;
+       nodeType == NATUREZA_LITERAL_BOOL )) {
+       precedenceConversion = NATUREZA_LITERAL_FLOAT;
+    }
+
+
+    if(precedenceConversion > 0){
+        node->implicitConversion = returnImplicitConversionCode(nodeType, typeOfAttribution);
+        return precedenceConversion;
+    }
 
     return nodeType;
+}
+
+int returnImplicitConversionCode(int attributionType, int literalType){
+    if(attributionType < 0)
+        return -1;
+
+    if(literalType == NATUREZA_LITERAL_INT){
+        if(attributionType == NATUREZA_LITERAL_INT)
+            return 0;
+        if(attributionType == NATUREZA_LITERAL_FLOAT)
+            return IMPLICIT_CONVERT_INT_TO_FLOAT;
+        if(attributionType == NATUREZA_LITERAL_BOOL)
+            return IMPLICIT_CONVERT_INT_TO_BOOL;
+    }
+    if(literalType == NATUREZA_LITERAL_FLOAT){
+        if(attributionType == NATUREZA_LITERAL_INT)
+            return IMPLICIT_CONVERT_FLOAT_TO_INT;
+        if(attributionType == NATUREZA_LITERAL_FLOAT)
+            return 0;
+        if(attributionType == NATUREZA_LITERAL_BOOL)
+            return IMPLICIT_CONVERT_FLOAT_TO_BOOL;
+    }
+    if(literalType == NATUREZA_LITERAL_BOOL){
+        if(attributionType == NATUREZA_LITERAL_INT)
+            return IMPLICIT_CONVERT_BOOL_TO_INT;
+        if(attributionType == NATUREZA_LITERAL_FLOAT)
+            return IMPLICIT_CONVERT_BOOL_TO_FLOAT;
+        if(attributionType == NATUREZA_LITERAL_BOOL)
+            return 0;
+    }
+    return -1;
 }
 
 //1 if true, 0 if not
@@ -594,7 +639,7 @@ int checkFunction(struct node *functionNode, int type, char *userType){
             else{
                 if(numberOfChildren(argument)){
                     char* userType = malloc(sizeof(char)*20);
-                    expressionType = calculateTypeInfer(argument, userType);
+                    expressionType = calculateTypeInfer(argument, userType, -1);
 
                     if(expressionType == NATUREZA_IDENTIFICADOR && fieldType == NATUREZA_IDENTIFICADOR){
                         if(strcmp(field->userType, userType) == 0){

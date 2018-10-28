@@ -363,7 +363,7 @@ commandSimple:
     | TK_PR_INPUT expression                        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1, -1); 
 
                                                      //expression
-                                                     int typeInfer = calculateTypeInfer($2, NULL);
+                                                     int typeInfer = calculateTypeInfer($2, NULL, -1);
                                                      createChildren($$, $2, typeInfer);
                                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);}
                                                      //expression end
@@ -373,7 +373,7 @@ commandSimple:
     | TK_PR_RETURN expression                       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1, -1); 
 
                                                      //expression
-                                                     int typeInfer = calculateTypeInfer($2, NULL);
+                                                     int typeInfer = calculateTypeInfer($2, NULL, -1);
                                                      createChildren($$, $2, typeInfer);
                                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
                                                      //expression end
@@ -465,7 +465,7 @@ expression:
                                                                                   createChildren($$, $1, -1); createChildren($$, $2, -1);
 
                                                                                   //expression
-                                                                                  int typeInfer = calculateTypeInfer($1, NULL);
+                                                                                  int typeInfer = calculateTypeInfer($1, NULL, -1);
                                                                                   createChildren($$, $3, typeInfer);
                                                                                   if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);}
                                                                                   //expression end
@@ -473,7 +473,7 @@ expression:
                                                                                   createChildren($$, $4, -1);
 
                                                                                   //expression
-                                                                                  typeInfer = calculateTypeInfer($1, NULL);
+                                                                                  typeInfer = calculateTypeInfer($1, NULL, -1);
                                                                                   createChildren($$, $5, typeInfer);
                                                                                   if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
                                                                                   //expression end
@@ -505,7 +505,7 @@ oneFoldRecursiveExpression:
                                                                       createChildren($$, $1, -1); 
 
                                                                       //expression
-                                                                      int typeInfer = calculateTypeInfer($1, NULL);
+                                                                      int typeInfer = calculateTypeInfer($1, NULL, -1);
                                                                       createChildren($$, $2, typeInfer);
                                                                       if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
                                                                       //expression end
@@ -516,7 +516,7 @@ oneFoldRecursiveExpression:
                                                                       createChildren($$, $1, -1); createChildren($$, $2, -1);
 
                                                                       //expression
-                                                                      int typeInfer = calculateTypeInfer($1, NULL);
+                                                                      int typeInfer = calculateTypeInfer($1, NULL, -1);
                                                                       createChildren($$, $3, typeInfer);
                                                                       if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
                                                                       //expression end
@@ -619,7 +619,7 @@ expressionList:
       expression                     {$$ = $1;
 
                                       //expression
-                                      int typeInfer = calculateTypeInfer($1, NULL);
+                                      int typeInfer = calculateTypeInfer($1, NULL, -1);
                                       createChildren($$, $1, typeInfer);
                                       if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
                                       //expression end
@@ -628,7 +628,7 @@ expressionList:
     | expression ',' expressionList  {$$ = createNode(AST_EXPLIST); 
 
                                       //expression
-                                      int typeInfer = calculateTypeInfer($1, NULL);
+                                      int typeInfer = calculateTypeInfer($1, NULL, -1);
                                       createChildren($$, $1, typeInfer);
                                       if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
                                       //expression end
@@ -662,7 +662,7 @@ functionCallArgument:
     | expression    {$$ = createNode(AST_FUNCARGLIST); 
 
                           //expression
-                          int typeInfer = calculateTypeInfer($1, NULL);
+                          int typeInfer = calculateTypeInfer($1, NULL, -1);
                           createChildren($$, $1, typeInfer);
                           if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
                           //expression end
@@ -675,7 +675,7 @@ shiftCommand:
                                                                              createChildren($$, $3, -1);
 
                                                                              //expression
-                                                                             int typeInfer = calculateTypeInfer($1, NULL);
+                                                                             int typeInfer = calculateTypeInfer($1, NULL, -1);
                                                                              createChildren($$, $4, typeInfer);
                                                                              if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
                                                                              //expression end
@@ -689,7 +689,7 @@ shiftCommand:
                                                                              createChildren($$, $5, -1);
 
                                                                              //expression
-                                                                             int typeInfer = calculateTypeInfer($1, NULL);
+                                                                             int typeInfer = calculateTypeInfer($1, NULL, -1);
                                                                              createChildren($$, $2, typeInfer);
                                                                              if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
                                                                              //expression end
@@ -708,14 +708,14 @@ fluxControlCommand:
 conditionalFluxControl:
       TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock                          {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                      createChildren($$, $2, -1);
-                                                                                     int typeInfer = calculateTypeInfer($1, NULL);
+                                                                                     int typeInfer = calculateTypeInfer($1, NULL, -1);
                                                                                      createChildren($$, $1, typeInfer);
                                                                                      createChildren($$, $3, -1); createChildren($$, $4, -1);
                                                                                      createChildren($$, $5, -1); createChildren($$, $6, -1);
                                                                                      //expression
                                                                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} }
     | TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock TK_PR_ELSE commandsBlock {$$ = createNode(AST_CONDFLUXCONT); 
-                                                                                     int typeInfer = calculateTypeInfer($1, NULL);
+                                                                                     int typeInfer = calculateTypeInfer($1, NULL, -1);
                                                                                      createChildren($$, $1, typeInfer);
                                                                                      createChildren($$, $2, -1);
                                                                                      createChildren($$, $3, -1); createChildren($$, $4, -1);
@@ -736,7 +736,7 @@ iterativeFluxControl:
                                                                                              createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                                              
                                                                                              //expression
-                                                                                             int typeInfer = calculateTypeInfer($4, NULL);
+                                                                                             int typeInfer = calculateTypeInfer($4, NULL, -1);
                                                                                              createChildren($$, $4, typeInfer);
                                                                                              if(typeInfer > 6){deleteContext(); semanticerror(typeInfer, $1,$1); exit(typeInfer);}
                                                                                              //expression end
@@ -750,7 +750,7 @@ iterativeFluxControl:
                                                                                              createChildren($$, $1, -1); createChildren($$, $2, -1);
 
                                                                                              //expression
-                                                                                             int typeInfer = calculateTypeInfer($4, NULL);
+                                                                                             int typeInfer = calculateTypeInfer($4, NULL, -1);
                                                                                              createChildren($$, $3, typeInfer);
                                                                                              if(typeInfer > 6){semanticerror(typeInfer, $1,$1); exit(typeInfer);}
                                                                                              //expression end
@@ -763,7 +763,7 @@ iterativeFluxControl:
                                                                                              createChildren($$, $3, -1); createChildren($$, $4, -1);
 
                                                                                              //expression
-                                                                                             int typeInfer = calculateTypeInfer($5, NULL);
+                                                                                             int typeInfer = calculateTypeInfer($5, NULL, -1);
                                                                                              createChildren($$, $5, typeInfer);
                                                                                              if(typeInfer > 6){semanticerror(typeInfer, $1,$1); exit(typeInfer); }
                                                                                              //expression end
@@ -778,7 +778,7 @@ selectionFluxControl:
                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
 
                                                    //expression
-                                                   int typeInfer = calculateTypeInfer($4, NULL);
+                                                   int typeInfer = calculateTypeInfer($4, NULL, -1);
                                                    createChildren($$, $3, typeInfer);
                                                    if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer); }
                                                    //expression end
