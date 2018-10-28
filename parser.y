@@ -660,12 +660,7 @@ functionCallArgumentsList:
 functionCallArgument:
       '.'           {$$ = $1;}
     | expression    {$$ = createNode(AST_FUNCARGLIST); 
-
-                          //expression
-                          int typeInfer = calculateTypeInfer($1, NULL, -1);
-                          createChildren($$, $1, typeInfer);
-                          if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
-                          //expression end
+                          createChildren($$, $1, -1);
                           };
 
 //Shift command is straightforward too
