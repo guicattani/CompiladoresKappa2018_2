@@ -236,9 +236,9 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
 
     int typeInferenceOfExpression; 
     char* userTypeTypeInfer = NULL;
-    if(expression->child != NULL && expression->brother != NULL){//not a literal
+    if(expression->child != NULL || expression->brother != NULL){//not a literal
         typeInferenceOfExpression = calculateTypeInfer(expression, userTypeTypeInfer);
-        
+
         if(typeInferenceOfExpression > NATUREZA_IDENTIFICADOR){
             return typeInferenceOfExpression;
         }
@@ -251,7 +251,12 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
         else{
             typeInferenceOfExpression = calculateTypeInfer(expression, userTypeTypeInfer);
         }
+
+        if(typeInferenceOfExpression > NATUREZA_IDENTIFICADOR){
+            return typeInferenceOfExpression;
+        }
     }
+
     int calculatedConvert = calculateImplicitConvert(tested_type, typeInferenceOfExpression);
     if(calculatedConvert == -1)
         return ERR_WRONG_TYPE;
@@ -286,17 +291,15 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
         }
     }
 
-     return 0;
-
+    return 0;
 }
 
 int checkPrimitiveAttribution(struct node* attrNode){
     struct node* id = attrNode->child;
     struct node* vector = attrNode->child->brother;
     struct node* expression = attrNode->child->brother->brother->brother;
-    checkAttribution(id, vector, expression, NULL);
 
-    return 0;
+    return checkAttribution(id, vector, expression, NULL);;
 }
 
 int checkUserTypeAttribution(struct node* attrNode){
@@ -304,17 +307,15 @@ int checkUserTypeAttribution(struct node* attrNode){
     struct node* vector = attrNode->child->brother;
     struct node* expression = attrNode->child->brother->brother->brother->brother->brother;
     struct node* typeid = attrNode->child->brother->brother->brother;
-    checkAttribution(id, vector, expression, typeid);
     
-    return 0;
+    return checkAttribution(id, vector, expression, typeid);;
 }
 
 int calculateTypeInfer(struct node* node, char* userType){
     if(node->typeInfered > 0){
         return node->typeInfered;
     }
-    
-    if(node != NULL && node->brother == NULL && node->child->brother == NULL){
+    if(node != NULL && node->brother == NULL && node->child != NULL &&node->child->brother == NULL){
         int referenceType = node->child->token_type;
         if(referenceType == NATUREZA_IDENTIFICADOR){
             struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
@@ -326,8 +327,9 @@ int calculateTypeInfer(struct node* node, char* userType){
         }
         return referenceType;
     }
-    else
-        return  calculateTypeInferRecursion(node);
+    else {
+        return calculateTypeInferRecursion(node);
+    }
 }
 
 
@@ -354,11 +356,18 @@ int calculateTypeInferRecursion(struct node* node){
     int childInfer = calculateTypeInferRecursion(node->child);
     int brotherInfer = calculateTypeInferRecursion(node->brother);
 
-    if(childInfer == NATUREZA_LITERAL_CHAR || childInfer == NATUREZA_LITERAL_STRING){
+
+    if(childInfer == NATUREZA_LITERAL_CHAR){
         return ERR_CHAR_TO_X; //error, since we can't convert them
     }
-    if(brotherInfer == NATUREZA_LITERAL_CHAR || brotherInfer == NATUREZA_LITERAL_STRING){
-        return ERR_STRING_TO_X; //error, since we can't convert them
+    if(brotherInfer == NATUREZA_LITERAL_CHAR ){
+        return ERR_CHAR_TO_X; 
+    }
+    if(brotherInfer == NATUREZA_LITERAL_STRING){
+        return ERR_STRING_TO_X; 
+    }
+    if(childInfer == NATUREZA_LITERAL_STRING){
+        return ERR_STRING_TO_X;
     }
 
     if(childInfer > NATUREZA_IDENTIFICADOR) //propagate error msg;
@@ -397,9 +406,10 @@ int calculateTypeInferRecursion(struct node* node){
     }
     
    
-    //if inference of child have been calculated, assume it as type
-    if(childInfer != 0) 
+    //if inference of child has been calculated, assume it as type
+    if(childInfer != 0) {
         nodeType = childInfer;
+    }
     //if nodeType is not a literal type, ignore
     if(nodeType < NATUREZA_LITERAL_INT  || nodeType > NATUREZA_LITERAL_BOOL){
         if(nodeType == NATUREZA_IDENTIFICADOR && referenceInfo->userType)

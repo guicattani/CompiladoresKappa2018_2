@@ -361,17 +361,23 @@ commandSimple:
                                     } 
     | attribution                                   {$$ = $1;}
     | TK_PR_INPUT expression                        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1, -1); 
-                                                    //expression
-                                                    int typeInfer = calculateTypeInfer($2, NULL);
-                                                    createChildren($$, $2, typeInfer);
-                                                    if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);}}
+
+                                                     //expression
+                                                     int typeInfer = calculateTypeInfer($2, NULL);
+                                                     createChildren($$, $2, typeInfer);
+                                                     if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);}
+                                                     //expression end
+                                                    }
     | functionCall                                  {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, NULL); exit(err);}}
     | shiftCommand                                  {$$ = $1;}
     | TK_PR_RETURN expression                       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1, -1); 
-                                                    //expression
-                                                    int typeInfer = calculateTypeInfer($2, NULL);
-                                                    createChildren($$, $2, typeInfer);
-                                                    if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} }
+
+                                                     //expression
+                                                     int typeInfer = calculateTypeInfer($2, NULL);
+                                                     createChildren($$, $2, typeInfer);
+                                                     if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
+                                                     //expression end
+                                                    }
     | TK_PR_CONTINUE                                {$$ = $1;}
     | TK_PR_BREAK                                   {$$ = $1;}
     | fluxControlCommand                            {$$ = $1;}
@@ -455,10 +461,23 @@ simpleExpression:
 
 expression:
     lowPrecedenceTwoFoldRecursiveExpression                                 {$$ = $1;}
-    | lowPrecedenceTwoFoldRecursiveExpression '?' expression ':' expression {$$ = createNode(AST_EXPRESSION); 
+    | lowPrecedenceTwoFoldRecursiveExpression '?' expression ':' expression {$$ = createNode(AST_EXPRESSION);
                                                                                   createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                                  createChildren($$, $3, -1); createChildren($$, $4, -1);
-                                                                                  createChildren($$, $5, -1);};
+
+                                                                                  //expression
+                                                                                  int typeInfer = calculateTypeInfer($1, NULL);
+                                                                                  createChildren($$, $3, typeInfer);
+                                                                                  if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);}
+                                                                                  //expression end
+
+                                                                                  createChildren($$, $4, -1);
+
+                                                                                  //expression
+                                                                                  typeInfer = calculateTypeInfer($1, NULL);
+                                                                                  createChildren($$, $5, typeInfer);
+                                                                                  if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
+                                                                                  //expression end
+                                                                                  };
 
 lowPrecedenceTwoFoldRecursiveExpression:
     mediumPrecedenceTwoFoldRecursiveExpression                                                    {$$ = $1;}
@@ -483,11 +502,26 @@ oneFoldRecursiveExpression:
     | unaryOperator simpleExpression                                 {$$ = createNode(AST_ONEFREXP); createChildren($$, $1, -1); createChildren($$, $2, -1);}
 
     | '(' expression ')'                                             {$$ = createNode(AST_ONEFREXP); 
-                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                      createChildren($$, $3, -1);}
+                                                                      createChildren($$, $1, -1); 
+
+                                                                      //expression
+                                                                      int typeInfer = calculateTypeInfer($1, NULL);
+                                                                      createChildren($$, $2, typeInfer);
+                                                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
+                                                                      //expression end
+
+                                                                      createChildren($$, $3, -1);
+                                                                     }
     | unaryOperator '(' expression ')'                               {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                      createChildren($$, $3, -1); createChildren($$, $4, -1);}
+
+                                                                      //expression
+                                                                      int typeInfer = calculateTypeInfer($1, NULL);
+                                                                      createChildren($$, $3, typeInfer);
+                                                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
+                                                                      //expression end
+
+                                                                      createChildren($$, $4, -1);}
 
     | TK_IDENTIFICADOR vectorList                                    {$$ = createNode(AST_ONEFREXP); createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                       if(!isIdentifierDeclared($1)){
@@ -583,18 +617,24 @@ comparisonOperator:
 
 expressionList:
       expression                     {$$ = $1;
-                                    //expression
-                                    int typeInfer = calculateTypeInfer($1, NULL);
-                                    createChildren($$, $1, typeInfer);
-                                    if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} }
 
-    | expression ',' expressionList  {$$ = createNode(AST_EXPLIST); 
+                                      //expression
                                       int typeInfer = calculateTypeInfer($1, NULL);
                                       createChildren($$, $1, typeInfer);
-                                      createChildren($$, $2, -1);
-                                      createChildren($$, $3, -1);
+                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
+                                      //expression end
+                                     }
+
+    | expression ',' expressionList  {$$ = createNode(AST_EXPLIST); 
+
                                       //expression
-                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} }
+                                      int typeInfer = calculateTypeInfer($1, NULL);
+                                      createChildren($$, $1, typeInfer);
+                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
+                                      //expression end
+
+                                      createChildren($$, $2, -1); createChildren($$, $3, -1);
+                                      }
 
 //Function call has a very straight forward approach
 functionCall:
@@ -620,20 +660,40 @@ functionCallArgumentsList:
 functionCallArgument:
       '.'           {$$ = $1;}
     | expression    {$$ = createNode(AST_FUNCARGLIST); 
-                          createChildren($$, $1, -1);};
+
+                          //expression
+                          int typeInfer = calculateTypeInfer($1, NULL);
+                          createChildren($$, $1, typeInfer);
+                          if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
+                          //expression end
+                          };
 
 //Shift command is straightforward too
 shiftCommand:
       TK_IDENTIFICADOR vectorModifier shift expression                      {$$ = createNode(AST_SHIFT); 
                                                                              createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                             createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                             createChildren($$, $3, -1);
+
+                                                                             //expression
+                                                                             int typeInfer = calculateTypeInfer($1, NULL);
+                                                                             createChildren($$, $4, typeInfer);
+                                                                             if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
+                                                                             //expression end
+                                                                             
                                                                              int err = checkPrimitiveAttribution($$);
                                                                              if(err){ semanticerror(err, $1, NULL); exit(err);}
                                                                             }
     | TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR shift expression {$$ = createNode(AST_SHIFT); 
                                                                              createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                              createChildren($$, $3, -1); createChildren($$, $4, -1);
-                                                                             createChildren($$, $5, -1); createChildren($$, $6, -1);
+                                                                             createChildren($$, $5, -1);
+
+                                                                             //expression
+                                                                             int typeInfer = calculateTypeInfer($1, NULL);
+                                                                             createChildren($$, $2, typeInfer);
+                                                                             if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
+                                                                             //expression end
+
                                                                              int err = checkUserTypeAttribution($$);
                                                                              if(err){ semanticerror(ERR_UNKNOWN, $1, $4); exit(err);}
                                                                             };
@@ -647,9 +707,9 @@ fluxControlCommand:
 //Conditional flux is if (exp) then {...} else {...}, with the else being optional
 conditionalFluxControl:
       TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock                          {$$ = createNode(AST_CONDFLUXCONT); 
+                                                                                     createChildren($$, $2, -1);
                                                                                      int typeInfer = calculateTypeInfer($1, NULL);
                                                                                      createChildren($$, $1, typeInfer);
-                                                                                     createChildren($$, $2, -1);
                                                                                      createChildren($$, $3, -1); createChildren($$, $4, -1);
                                                                                      createChildren($$, $5, -1); createChildren($$, $6, -1);
                                                                                      //expression
@@ -674,42 +734,58 @@ iterativeFluxControl:
     | TK_PR_FOR '(' {createContext();} commandSimpleList ':' expression ':' commandSimpleList ')' functionCommandsBlock  //The command list is of simple commands
                                                                                             {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                             
+                                                                                             //expression
                                                                                              int typeInfer = calculateTypeInfer($4, NULL);
                                                                                              createChildren($$, $4, typeInfer);
+                                                                                             if(typeInfer > 6){deleteContext(); semanticerror(typeInfer, $1,$1); exit(typeInfer);}
+                                                                                             //expression end
+
                                                                                              createChildren($$, $5, -1); //$4 is typeinfered
                                                                                              createChildren($$, $6, -1); createChildren($$, $7, -1);
                                                                                              createChildren($$, $8, -1); createChildren($$, $9, -1);
                                                                                              createChildren($$, $10, -1);
-                                                                                             //expression
-                                                                                             if(typeInfer > 6){deleteContext(); semanticerror(typeInfer, $1,$1); exit(typeInfer); }}
+                                                                                             }
     | TK_PR_WHILE '(' expression ')' TK_PR_DO commandsBlock                                  {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1, -1); createChildren($$, $2, -1);
+
+                                                                                             //expression
                                                                                              int typeInfer = calculateTypeInfer($4, NULL);
                                                                                              createChildren($$, $3, typeInfer);
-                                                                                             createChildren($$, $4, -1); //$3 is typeinfered
+                                                                                             if(typeInfer > 6){semanticerror(typeInfer, $1,$1); exit(typeInfer);}
+                                                                                             //expression end
+
+                                                                                             createChildren($$, $4, -1); 
                                                                                              createChildren($$, $5, -1); createChildren($$, $6, -1);
-                                                                                             //expression
-                                                                                             if(typeInfer > 6){semanticerror(typeInfer, $1,$1); exit(typeInfer); }}
+                                                                                             }
     | TK_PR_DO commandsBlock TK_PR_WHILE '(' expression ')'                                 {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                                              createChildren($$, $3, -1); createChildren($$, $4, -1);
+
+                                                                                             //expression
                                                                                              int typeInfer = calculateTypeInfer($5, NULL);
                                                                                              createChildren($$, $5, typeInfer);
-                                                                                             createChildren($$, $6, -1); //$5 is typeinfered
-                                                                                             //expression
-                                                                                             if(typeInfer > 6){semanticerror(typeInfer, $1,$1); exit(typeInfer); }};      
+                                                                                             if(typeInfer > 6){semanticerror(typeInfer, $1,$1); exit(typeInfer); }
+                                                                                             //expression end
+
+                                                                                             createChildren($$, $6, -1); 
+                                                                                             };      
 
 //The only selection flux control is switch
 //It is important to note that bison won't check if there are cases on the commandsBlock
 selectionFluxControl:
     TK_PR_SWITCH '(' expression ')' commandsBlock {$$ = createNode(AST_SELECFLUXCONT); 
                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
+
+                                                   //expression
                                                    int typeInfer = calculateTypeInfer($4, NULL);
                                                    createChildren($$, $3, typeInfer);
+                                                   if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer); }
+                                                   //expression end
+
                                                    createChildren($$, $4, -1);
                                                    createChildren($$, $5, -1);
-                                                   //expression
-                                                   if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer); }};
+                                                   };
 
 //List of commands without commas in them, used in for
 commandSimpleList:
@@ -737,12 +813,16 @@ pipeCommands:
 
 void yyerror (char const *s){
     free(previous_text);
-    printf("Line %d, Column %d: %s near \"%s\"\n",yylineno, yycolno, s, yylval.nodo->token_value);  
+    printf ("Line %d, Column %d: %s near \"%s\"\n",yylineno, yycolno, s, yylval.nodo->token_value);  
     deleteAllContext();
 
 }
 
 void semanticerror(int err, struct node* id, struct node* type){
+    while(id->child != NULL){
+        id = id->child;
+    }
+
     switch(err){
         case ERR_UNDECLARED:
             printf ("Line %d, Column %d: Identifier \"%s\" not declared.\n", id->line_number, id->col_number, id->token_value);
