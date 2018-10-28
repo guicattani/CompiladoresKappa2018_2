@@ -10,6 +10,9 @@ typedef struct node{
     int     col_number;
     int     token_type;
     char*   token_value;
+
+    int typeInfered;        //this type will have precedence over "type" as it is the typeinfered of the expression below it
+    int implicitConversion; //marks the node for implicit conversion, useful for code generation
     
     union value value;
     struct node* brother;
@@ -29,7 +32,7 @@ void cleanList(struct nodeList* node);
 
 void showTreeRecursion(struct node* currentNode, int treeLevel);
 struct node* createNodeOnYYVal(struct node* newNode);
-struct node* createChildren(struct node* parent, struct node* child);
+struct node* createChildren(struct node* parent, struct node* child, int typeInfered);
 struct node* createNode(char* state);
 void showTree(struct node* root);
 struct node* createLeaf(int line_number, int type, char* text, int col_number);

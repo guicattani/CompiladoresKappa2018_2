@@ -20,6 +20,7 @@ typedef struct symbolInfo{
     int type;
     int size;
     char* userType;
+
     //Info from yylval
     char* name;
     union value value;

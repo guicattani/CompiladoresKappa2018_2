@@ -2,7 +2,7 @@
 
 struct nodeList* nodeList = NULL;
 
-struct node* createChildren(struct node* parent, struct node* child){
+struct node* createChildren(struct node* parent, struct node* child, int typeInfered){
      struct node* nodeIterator;
      
      if(parent->child != NULL){
@@ -16,6 +16,9 @@ struct node* createChildren(struct node* parent, struct node* child){
      else{
          parent->child = child;
     }
+
+    parent->typeInfered = typeInfered;
+    
     return parent;
 }
 
@@ -26,6 +29,9 @@ struct node* createNode(char* state){
 	newNode->child = NULL; 
     newNode->value.string_value = NULL;
     newNode->token_type = 0;
+
+    newNode->typeInfered = 0;
+    newNode->implicitConversion = 0;
 
     nodeList = insertList(nodeList, newNode);
     return newNode;

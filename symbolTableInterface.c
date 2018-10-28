@@ -295,6 +295,8 @@ int checkPrimitiveAttribution(struct node* attrNode){
     struct node* vector = attrNode->child->brother;
     struct node* expression = attrNode->child->brother->brother->brother;
     checkAttribution(id, vector, expression, NULL);
+
+    return 0;
 }
 
 int checkUserTypeAttribution(struct node* attrNode){
@@ -303,9 +305,15 @@ int checkUserTypeAttribution(struct node* attrNode){
     struct node* expression = attrNode->child->brother->brother->brother->brother->brother;
     struct node* typeid = attrNode->child->brother->brother->brother;
     checkAttribution(id, vector, expression, typeid);
+    
+    return 0;
 }
 
 int calculateTypeInfer(struct node* node, char* userType){
+    if(node->typeInfered > 0){
+        return node->typeInfered;
+    }
+    
     if(node != NULL && node->brother == NULL && node->child->brother == NULL){
         int referenceType = node->child->token_type;
         if(referenceType == NATUREZA_IDENTIFICADOR){

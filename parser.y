@@ -133,7 +133,7 @@
 %%
 
 programa:
-    {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2); deleteContext();};
+    {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2, -1); deleteContext();};
                       | %empty {arvore = createNode(AST_PROGRAMA);};
 
 
@@ -185,22 +185,22 @@ constModifier:
 
 vectorModifier:
      '[' expression ']' vectorModifier  {$$ = createNode(AST_VECTORMOD); 
-                                         createChildren($$, $1); createChildren($$, $2);
-                                         createChildren($$, $3); createChildren($$, $4);}
+                                         createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                         createChildren($$, $3, -1); createChildren($$, $4, -1);}
     | %empty                            {$$ = createNode(AST_VECTORMOD);};
 
 vectorList:
       '[' expression ']'            {$$ = createNode(AST_VECTORLIST); 
-                                         createChildren($$, $1); createChildren($$, $2);
-                                         createChildren($$, $3);}
+                                         createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                         createChildren($$, $3, -1);}
     | vectorList '[' expression ']' {$$ = createNode(AST_VECTORLIST); 
-                                         createChildren($$, $1); createChildren($$, $2);
-                                         createChildren($$, $3); createChildren($$, $4);};
+                                         createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                         createChildren($$, $3, -1); createChildren($$, $4, -1);};
 /*obvious stuff end */
 
 code:
       declaration       {$$ = $1;}
-    | declaration code  {$$ = createNode(AST_CODE); createChildren($$, $1); createChildren($$, $2);};
+    | declaration code  {$$ = createNode(AST_CODE); createChildren($$, $1, -1); createChildren($$, $2, -1);};
 
 declaration:
       classDeclaration      {$$ = $1;}
@@ -218,49 +218,49 @@ declaration:
 classDeclaration:
     accessModifiers TK_PR_CLASS TK_IDENTIFICADOR '[' fields ']' ';'
     {$$ = createNode(AST_CLASSDEC); 
-     createChildren($$, $1); createChildren($$, $2);
-     createChildren($$, $3); createChildren($$, $4);
-     createChildren($$, $5); createChildren($$, $6);
-     createChildren($$, $7);
+     createChildren($$, $1, -1); createChildren($$, $2, -1);
+     createChildren($$, $3, -1); createChildren($$, $4, -1);
+     createChildren($$, $5, -1); createChildren($$, $6, -1);
+     createChildren($$, $7, -1);
      int err = addSymbolFromNodeClass($3, $5);
      if (err) { semanticerror(err, $3, NULL); exit(err); } };
 
 // fields are type and id inside classes that can't contain user-classes nor initialization of values
 fields:
       accessModifiers primitiveType TK_IDENTIFICADOR            {$$ = createNode(AST_FIELDS); 
-                                                                 createChildren($$, $1); createChildren($$, $2);
-                                                                 createChildren($$, $3);}
+                                                                 createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                 createChildren($$, $3, -1);}
     | accessModifiers primitiveType TK_IDENTIFICADOR ':' fields {$$ = createNode(AST_FIELDS); 
-                                                                 createChildren($$, $1); createChildren($$, $2);
-                                                                 createChildren($$, $3); createChildren($$, $4);
-                                                                 createChildren($$, $5);}; 
+                                                                 createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                 createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                 createChildren($$, $5, -1);}; 
 
 //Declaration of global variables
 globalVarDeclaration:
     TK_IDENTIFICADOR type  ';'                                 {$$ = createNode(AST_GLOBALVARDEC); 
-                                                                createChildren($$, $1); createChildren($$, $2);
-                                                                createChildren($$, $3);
+                                                                createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                createChildren($$, $3, -1);
                                                                 int err = addSymbolFromNode($1,$2);
                                                                 if (err) { semanticerror(err, $1, $2); exit(err); } 
                                                                }
     | TK_IDENTIFICADOR TK_PR_STATIC type  ';'                  {$$ = createNode(AST_GLOBALVARDEC); 
-                                                                createChildren($$, $1); createChildren($$, $2);
-                                                                createChildren($$, $3); createChildren($$, $4);
+                                                                createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                createChildren($$, $3, -1); createChildren($$, $4, -1);
                                                                 int err = addSymbolFromNode($1,$3);
                                                                 if (err) { semanticerror(err, $1, $3); exit(err); }
                                                                }
     | TK_IDENTIFICADOR '['TK_LIT_INT']' type  ';'              {$$ = createNode(AST_GLOBALVARDEC); 
-                                                                createChildren($$, $1); createChildren($$, $2);
-                                                                createChildren($$, $3); createChildren($$, $4);
-                                                                createChildren($$, $5); createChildren($$, $6);
+                                                                createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                createChildren($$, $5, -1); createChildren($$, $6, -1);
                                                                 int err = addSymbolFromNodeWithVector($1,$5,$3);
                                                                 if (err) { semanticerror(err, $1, $5); exit(err); }
                                                                }
     | TK_IDENTIFICADOR '['TK_LIT_INT']' TK_PR_STATIC type  ';' {$$ = createNode(AST_GLOBALVARDEC); 
-                                                                createChildren($$, $1); createChildren($$, $2);
-                                                                createChildren($$, $3); createChildren($$, $4);
-                                                                createChildren($$, $5); createChildren($$, $6);
-                                                                createChildren($$, $7);
+                                                                createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                createChildren($$, $5, -1); createChildren($$, $6, -1);
+                                                                createChildren($$, $7, -1);
                                                                 int err = addSymbolFromNodeWithVector($1,$6,$3);
                                                                 if (err) { semanticerror(err, $1, $6); exit(err); }
                                                                 }; 
@@ -281,39 +281,39 @@ functionDeclaration:
                 } 
     functionCommandsBlock                           { 
                                                     $$ = createNode(AST_FUNCDEC);
-                                                    createChildren($$, $1);
-                                                    createChildren($$, $3);
+                                                    createChildren($$, $1, -1);
+                                                    createChildren($$, $3, -1);
                                                     deleteContext();
                                                     
                                                    };
 
 functionCommandsBlock:
     '{' commandsList '}'    {$$ = createNode(AST_FUNCCOMMANDSBLOCK); 
-                             createChildren($$, $1); createChildren($$, $2);
-                             createChildren($$, $3);}; 
+                             createChildren($$, $1, -1); createChildren($$, $2, -1);
+                             createChildren($$, $3, -1);}; 
 
 functionHead:
       primitiveType TK_IDENTIFICADOR '(' functionArgumentsList ')'               {$$ = createNode(AST_FUNCHEAD); 
-                                                                                  createChildren($$, $1); createChildren($$, $2);
-                                                                                  createChildren($$, $3); createChildren($$, $4);
-                                                                                  createChildren($$, $5);}
+                                                                                  createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                  createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                                  createChildren($$, $5, -1);}
     | TK_IDENTIFICADOR TK_IDENTIFICADOR '(' functionArgumentsList ')'            {$$ = createNode(AST_FUNCHEAD); 
-                                                                                  createChildren($$, $1); createChildren($$, $2);
-                                                                                  createChildren($$, $3); createChildren($$, $4);
-                                                                                  createChildren($$, $5);}
+                                                                                  createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                  createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                                  createChildren($$, $5, -1);}
     | TK_PR_STATIC primitiveType TK_IDENTIFICADOR  '(' functionArgumentsList ')' {$$ = createNode(AST_FUNCHEAD); 
-                                                                                  createChildren($$, $1); createChildren($$, $2);
-                                                                                  createChildren($$, $3); createChildren($$, $4);
-                                                                                  createChildren($$, $5); createChildren($$, $6);};
+                                                                                  createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                  createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                                  createChildren($$, $5, -1); createChildren($$, $6, -1);};
 
 commandsBlock:
     { createContext(); }'{' commandsList '}'    {$$ = createNode(AST_COMMANDSBLOCK); 
-                                                createChildren($$, $2); createChildren($$, $3);
-                                                createChildren($$, $4);
+                                                createChildren($$, $2, -1); createChildren($$, $3, -1);
+                                                createChildren($$, $4, -1);
                                                 deleteContext();}; 
 
 commandsList:
-      command commandsList  {$$ = createNode(AST_COMMANDSLIST); createChildren($$, $1); createChildren($$, $2);}
+      command commandsList  {$$ = createNode(AST_COMMANDSLIST); createChildren($$, $1, -1); createChildren($$, $2, -1);}
     | %empty                {$$ = createNode(AST_COMMANDSLIST);};
 
 functionArgumentsList:
@@ -322,25 +322,25 @@ functionArgumentsList:
 
 functionArgumentElements:
       constModifier type TK_IDENTIFICADOR                              {$$ = createNode(AST_FUNCARGELEM); 
-                                                                        createChildren($$, $1); createChildren($$, $2);
-                                                                        createChildren($$, $3);}
+                                                                        createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                        createChildren($$, $3, -1);}
     | constModifier type TK_IDENTIFICADOR ',' functionArgumentElements {$$ = createNode(AST_FUNCARGELEM); 
-                                                                        createChildren($$, $1); createChildren($$, $2);
-                                                                        createChildren($$, $3); createChildren($$, $4);
-                                                                        createChildren($$, $5);};
+                                                                        createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                        createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                        createChildren($$, $5, -1);};
 
 //All Commands, it can be anypart of a simple command or it can be a case/output
 command:
       commandSimple ';'              //All simple commands finish with a ';' 
-                                     {$$ = createNode(AST_COMMAND); createChildren($$, $1); createChildren($$, $2);}
+                                     {$$ = createNode(AST_COMMAND); createChildren($$, $1, -1); createChildren($$, $2, -1);}
     | TK_PR_OUTPUT expressionList ';'//Output has parenthesis and thus is not a simple command
                                      {$$ = createNode(AST_COMMAND); 
-                                           createChildren($$, $1); createChildren($$, $2);
-                                           createChildren($$, $3);}
+                                           createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                           createChildren($$, $3, -1);}
     | TK_PR_CASE TK_LIT_INT ':'      //case from switch cannot end in ';'
                                      {$$ = createNode(AST_COMMAND); 
-                                           createChildren($$, $1); createChildren($$, $2);
-                                           createChildren($$, $3);};    
+                                           createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                           createChildren($$, $3, -1);};    
 
 
 //Commands without commas or case. Used in the "for" command
@@ -360,12 +360,18 @@ commandSimple:
                                         exit(err);} 
                                     } 
     | attribution                                   {$$ = $1;}
-    | TK_PR_INPUT expression                        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);
-                                                    int err = calculateTypeInfer($2, NULL); if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
+    | TK_PR_INPUT expression                        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1, -1); 
+                                                    //expression
+                                                    int typeInfer = calculateTypeInfer($2, NULL);
+                                                    createChildren($$, $2, typeInfer);
+                                                    if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);}}
     | functionCall                                  {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, NULL); exit(err);}}
     | shiftCommand                                  {$$ = $1;}
-    | TK_PR_RETURN expression                       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1); createChildren($$, $2);
-                                                    int err = calculateTypeInfer($2, NULL); if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
+    | TK_PR_RETURN expression                       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1, -1); 
+                                                    //expression
+                                                    int typeInfer = calculateTypeInfer($2, NULL);
+                                                    createChildren($$, $2, typeInfer);
+                                                    if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} }
     | TK_PR_CONTINUE                                {$$ = $1;}
     | TK_PR_BREAK                                   {$$ = $1;}
     | fluxControlCommand                            {$$ = $1;}
@@ -376,22 +382,22 @@ commandSimple:
 localVarDeclaration:
       primitiveType TK_IDENTIFICADOR localVarInit //If it starts with ID and is initialized 
                                                     {$$ = createNode(AST_LOCALVARDEC); 
-                                                     createChildren($$, $1); createChildren($$, $2);
-                                                     createChildren($$, $3);
+                                                     createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                     createChildren($$, $3, -1);
                                                      } 
     | TK_IDENTIFICADOR TK_IDENTIFICADOR          //userType userVariable
-                                                    {$$ = createNode(AST_LOCALVARDEC); createChildren($$, $1); createChildren($$, $2);};
+                                                    {$$ = createNode(AST_LOCALVARDEC); createChildren($$, $1, -1); createChildren($$, $2, -1);};
 localVarCompleteDeclaration:
       TK_PR_STATIC TK_PR_CONST localVarDeclaration {$$ = createNode(AST_LOCALVARCDEC); 
-                                                     createChildren($$, $1); createChildren($$, $2);
-                                                     createChildren($$, $3);} 
-    | TK_PR_STATIC localVarDeclaration             {$$ = createNode(AST_LOCALVARCDEC); createChildren($$, $1); createChildren($$, $2);}
-    | TK_PR_CONST localVarDeclaration              {$$ = createNode(AST_LOCALVARCDEC); createChildren($$, $1); createChildren($$, $2);}
-    | localVarDeclaration                          {$$ = createNode(AST_LOCALVARCDEC); createChildren($$, $1);};
+                                                     createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                     createChildren($$, $3, -1);} 
+    | TK_PR_STATIC localVarDeclaration             {$$ = createNode(AST_LOCALVARCDEC); createChildren($$, $1, -1); createChildren($$, $2, -1);}
+    | TK_PR_CONST localVarDeclaration              {$$ = createNode(AST_LOCALVARCDEC); createChildren($$, $1, -1); createChildren($$, $2, -1);}
+    | localVarDeclaration                          {$$ = createNode(AST_LOCALVARCDEC); createChildren($$, $1, -1);};
     
 //Initialization of variable
 localVarInit:
-      TK_OC_LE userVariableOrLiteral {$$ = createNode(AST_LOCALVARINIT); createChildren($$, $1); createChildren($$, $2);}
+      TK_OC_LE userVariableOrLiteral {$$ = createNode(AST_LOCALVARINIT); createChildren($$, $1, -1); createChildren($$, $2, -1);}
     | %empty                         {$$ = createNode(AST_LOCALVARINIT);};
 
 attribution:
@@ -402,16 +408,16 @@ attribution:
 
 primitiveAttribution:
       TK_IDENTIFICADOR vectorModifier '=' expression {$$ = createNode(AST_PRIMATTR); 
-                                                        createChildren($$, $1); createChildren($$, $2);
-                                                        createChildren($$, $3); createChildren($$, $4);};  
+                                                        createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                        createChildren($$, $3, -1); createChildren($$, $4, -1);};  
  //userVariable
 
 userTypeAttribution:
       TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR '=' expression {$$ = createNode(AST_USERTYPEATTR); 
                     
-                                                                                createChildren($$, $1); createChildren($$, $2);
-                                                                                createChildren($$, $3); createChildren($$, $4);
-                                                                                createChildren($$, $5); createChildren($$, $6);
+                                                                                createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                                createChildren($$, $5, -1); createChildren($$, $6, -1);
                                                                                 
                                                                                 if(!isIdentifierDeclared($1)){
                                                                                     semanticerror(ERR_UNDECLARED, $1, NULL); 
@@ -436,8 +442,8 @@ simpleExpression:
     | pipeCommands                              {$$ = $1; int err = checkFunctionPipe($1); if (err){ semanticerror(err, $1->child, $1->child);exit(err); }}
     | literal                                   {$$ = $1;}
     | TK_IDENTIFICADOR  '$' TK_IDENTIFICADOR    {$$ = createNode(AST_SIMPLEEXP); 
-                                                      createChildren($$, $1); createChildren($$, $2);
-                                                      createChildren($$, $3);
+                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                      createChildren($$, $3, -1);
                                                  if(!isIdentifierDeclared($1)){
                                                     semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                     exit(ERR_UNDECLARED);}
@@ -450,40 +456,40 @@ simpleExpression:
 expression:
     lowPrecedenceTwoFoldRecursiveExpression                                 {$$ = $1;}
     | lowPrecedenceTwoFoldRecursiveExpression '?' expression ':' expression {$$ = createNode(AST_EXPRESSION); 
-                                                                                  createChildren($$, $1); createChildren($$, $2);
-                                                                                  createChildren($$, $3); createChildren($$, $4);
-                                                                                  createChildren($$, $5);};
+                                                                                  createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                  createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                                  createChildren($$, $5, -1);};
 
 lowPrecedenceTwoFoldRecursiveExpression:
     mediumPrecedenceTwoFoldRecursiveExpression                                                    {$$ = $1;}
     | lowPrecedenceTwoFoldRecursiveExpression operator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
-                                                                                                   createChildren($$, $1); createChildren($$, $2);
-                                                                                                   createChildren($$, $3);}; 
+                                                                                                   createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                                   createChildren($$, $3, -1);}; 
 
 mediumPrecedenceTwoFoldRecursiveExpression:
     highPrecedenceTwoFoldRecursiveExpression                                                                          {$$ = $1;}
     | mediumPrecedenceTwoFoldRecursiveExpression precedentArithmeticOperator highPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_MEDPTFREXP); 
-                                                                                                                       createChildren($$, $1); createChildren($$, $2);
-                                                                                                                       createChildren($$, $3);}; 
+                                                                                                                       createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                                                       createChildren($$, $3, -1);}; 
 
 highPrecedenceTwoFoldRecursiveExpression:
     oneFoldRecursiveExpression                                                {$$ = $1;}
     | highPrecedenceTwoFoldRecursiveExpression '^' oneFoldRecursiveExpression {$$ = createNode(AST_HIGHPTFREXP); 
-                                                                               createChildren($$, $1); createChildren($$, $2);
-                                                                               createChildren($$, $3);}; 
+                                                                               createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                               createChildren($$, $3, -1);}; 
 
 oneFoldRecursiveExpression:
      simpleExpression                                                {$$ = $1;}
-    | unaryOperator simpleExpression                                 {$$ = createNode(AST_ONEFREXP); createChildren($$, $1); createChildren($$, $2);}
+    | unaryOperator simpleExpression                                 {$$ = createNode(AST_ONEFREXP); createChildren($$, $1, -1); createChildren($$, $2, -1);}
 
     | '(' expression ')'                                             {$$ = createNode(AST_ONEFREXP); 
-                                                                      createChildren($$, $1); createChildren($$, $2);
-                                                                      createChildren($$, $3);}
+                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                      createChildren($$, $3, -1);}
     | unaryOperator '(' expression ')'                               {$$ = createNode(AST_ONEFREXP); 
-                                                                      createChildren($$, $1); createChildren($$, $2);
-                                                                      createChildren($$, $3); createChildren($$, $4);}
+                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                      createChildren($$, $3, -1); createChildren($$, $4, -1);}
 
-    | TK_IDENTIFICADOR vectorList                                    {$$ = createNode(AST_ONEFREXP); createChildren($$, $1); createChildren($$, $2);
+    | TK_IDENTIFICADOR vectorList                                    {$$ = createNode(AST_ONEFREXP); createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                       if(!isIdentifierDeclared($1)){
                                                                         semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                                         exit(ERR_UNDECLARED);}
@@ -493,8 +499,8 @@ oneFoldRecursiveExpression:
                                                                         exit(ERR_VECTOR);}
                                                                      }
     | unaryOperator TK_IDENTIFICADOR vectorList                      {$$ = createNode(AST_ONEFREXP); 
-                                                                      createChildren($$, $1); createChildren($$, $2);
-                                                                      createChildren($$, $3);
+                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                      createChildren($$, $3, -1);
                                                                       if(!isIdentifierDeclared($2)){
                                                                         semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                                         exit(ERR_UNDECLARED);}
@@ -505,8 +511,8 @@ oneFoldRecursiveExpression:
                                                                      }
 
     | TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR               {$$ = createNode(AST_ONEFREXP); 
-                                                                      createChildren($$, $1); createChildren($$, $2);
-                                                                      createChildren($$, $3); createChildren($$, $4);
+                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                      createChildren($$, $3, -1); createChildren($$, $4, -1);
                                                                       if(!isIdentifierDeclared($1)){
                                                                         semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                                         exit(ERR_UNDECLARED);}
@@ -520,9 +526,9 @@ oneFoldRecursiveExpression:
                                                                         exit(ERR_VECTOR);}
                                                                     }
     | unaryOperator TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR {$$ = createNode(AST_ONEFREXP); 
-                                                                      createChildren($$, $1); createChildren($$, $2);
-                                                                      createChildren($$, $3); createChildren($$, $4);
-                                                                      createChildren($$, $5);
+                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                      createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                      createChildren($$, $5, -1);
                                                                       if(!isIdentifierDeclared($1)){
                                                                         semanticerror(ERR_UNDECLARED, $2, NULL); 
                                                                         exit(ERR_UNDECLARED);}
@@ -542,7 +548,7 @@ operator:
 
 unaryOperator:
        unarySimbol                  {$$ = $1;}
-    |  unaryOperator unarySimbol    {$$ = createNode(AST_UNARYOPERATOR); createChildren($$, $1); createChildren($$, $2);};
+    |  unaryOperator unarySimbol    {$$ = createNode(AST_UNARYOPERATOR); createChildren($$, $1, -1); createChildren($$, $2, -1);};
 
 unarySimbol:
       '+'   {$$ = $1;}
@@ -577,52 +583,57 @@ comparisonOperator:
 
 expressionList:
       expression                     {$$ = $1;
-                                      int err = calculateTypeInfer($1, NULL); if (err > 6){yyerror("Semantic error"); exit(err);}}
+                                    //expression
+                                    int typeInfer = calculateTypeInfer($1, NULL);
+                                    createChildren($$, $1, typeInfer);
+                                    if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} }
 
     | expression ',' expressionList  {$$ = createNode(AST_EXPLIST); 
-                                      createChildren($$, $1); createChildren($$, $2);
-                                      createChildren($$, $3);
-                                      int err = calculateTypeInfer($1, NULL); if (err > 6){yyerror("Semantic error"); exit(err);}
-                                      }; 
+                                      int typeInfer = calculateTypeInfer($1, NULL);
+                                      createChildren($$, $1, typeInfer);
+                                      createChildren($$, $2, -1);
+                                      createChildren($$, $3, -1);
+                                      //expression
+                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} }
 
 //Function call has a very straight forward approach
 functionCall:
     TK_IDENTIFICADOR '(' functionCallArguments ')' {$$ = createNode(AST_FUNCTIONCALL); 
-                                                    createChildren($$, $1); createChildren($$, $2);
-                                                    createChildren($$, $3); createChildren($$, $4);
+                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                    createChildren($$, $3, -1); createChildren($$, $4, -1);
                                                     
                                                     };
 
 //Arguments can be empty or can be a list of expressions/dots
 functionCallArguments:
-      functionCallArgumentsList {$$ = createNode(AST_FUNCCALLARGS); createChildren($$, $1);}
+      functionCallArgumentsList {$$ = createNode(AST_FUNCCALLARGS); createChildren($$, $1, -1);}
     | %empty                    {$$ = createNode(AST_FUNCCALLARGS);}; 
 
 //List of Expression/Dots
 functionCallArgumentsList:
-    functionCallArgument        {$$ = createNode(AST_FUNCARGLIST); createChildren($$, $1);}
+    functionCallArgument        {$$ = createNode(AST_FUNCARGLIST); createChildren($$, $1, -1);}
     | functionCallArgument ',' functionCallArgumentsList {$$ = createNode(AST_FUNCARGLIST); 
-                                                          createChildren($$, $1); createChildren($$, $2);
-                                                          createChildren($$, $3);}; 
+                                                          createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                          createChildren($$, $3, -1);}; 
     
 //Argument can be expression or dot
 functionCallArgument:
       '.'           {$$ = $1;}
     | expression    {$$ = createNode(AST_FUNCARGLIST); 
-                          createChildren($$, $1);};
+                          createChildren($$, $1, -1);};
 
 //Shift command is straightforward too
 shiftCommand:
       TK_IDENTIFICADOR vectorModifier shift expression                      {$$ = createNode(AST_SHIFT); 
-                                                                             createChildren($$, $1); createChildren($$, $2);
-                                                                             createChildren($$, $3); createChildren($$, $4);
+                                                                             createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                             createChildren($$, $3, -1); createChildren($$, $4, -1);
                                                                              int err = checkPrimitiveAttribution($$);
                                                                              if(err){ semanticerror(err, $1, NULL); exit(err);}
                                                                             }
     | TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR shift expression {$$ = createNode(AST_SHIFT); 
-                                                                             createChildren($$, $1); createChildren($$, $2);
-                                                                             createChildren($$, $3); createChildren($$, $4);
-                                                                             createChildren($$, $5); createChildren($$, $6);
+                                                                             createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                             createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                             createChildren($$, $5, -1); createChildren($$, $6, -1);
                                                                              int err = checkUserTypeAttribution($$);
                                                                              if(err){ semanticerror(ERR_UNKNOWN, $1, $4); exit(err);}
                                                                             };
@@ -636,79 +647,89 @@ fluxControlCommand:
 //Conditional flux is if (exp) then {...} else {...}, with the else being optional
 conditionalFluxControl:
       TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock                          {$$ = createNode(AST_CONDFLUXCONT); 
-                                                                                     createChildren($$, $1); createChildren($$, $2);
-                                                                                     createChildren($$, $3); createChildren($$, $4);
-                                                                                     createChildren($$, $5); createChildren($$, $6);
-                                                                                     int err = calculateTypeInfer($3, NULL); 
-                                                                                     if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
+                                                                                     int typeInfer = calculateTypeInfer($1, NULL);
+                                                                                     createChildren($$, $1, typeInfer);
+                                                                                     createChildren($$, $2, -1);
+                                                                                     createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                                     createChildren($$, $5, -1); createChildren($$, $6, -1);
+                                                                                     //expression
+                                                                                     if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} }
     | TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock TK_PR_ELSE commandsBlock {$$ = createNode(AST_CONDFLUXCONT); 
-                                                                                     createChildren($$, $1); createChildren($$, $2);
-                                                                                     createChildren($$, $3); createChildren($$, $4);
-                                                                                     createChildren($$, $5); createChildren($$, $6);
-                                                                                     createChildren($$, $7); createChildren($$, $8);
-                                                                                     int err = calculateTypeInfer($3,NULL); 
-                                                                                     if(err > 6){ semanticerror(err, $1,$1); exit(err);}};
+                                                                                     int typeInfer = calculateTypeInfer($1, NULL);
+                                                                                     createChildren($$, $1, typeInfer);
+                                                                                     createChildren($$, $2, -1);
+                                                                                     createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                                     createChildren($$, $5, -1); createChildren($$, $6, -1);
+                                                                                     createChildren($$, $7, -1); createChildren($$, $8, -1);
+                                                                                     //expression
+                                                                                     if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} }
 
 //There are 4 variations of iterative flux control
 iterativeFluxControl:
       TK_PR_FOREACH '(' {createContext();}  TK_IDENTIFICADOR ':' commandSimpleList ')' commandsBlock {$$ = createNode(AST_CONDFLUXCONT); 
-                                                                                                    createChildren($$, $1); createChildren($$, $2);
-                                                                                                    createChildren($$, $4); createChildren($$, $5);
-                                                                                                    createChildren($$, $6); createChildren($$, $7);
-                                                                                                    createChildren($$, $8); deleteContext();}
+                                                                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                                    createChildren($$, $4, -1); createChildren($$, $5, -1);
+                                                                                                    createChildren($$, $6, -1); createChildren($$, $7, -1);
+                                                                                                    createChildren($$, $8, -1); deleteContext();}
     | TK_PR_FOR '(' {createContext();} commandSimpleList ':' expression ':' commandSimpleList ')' functionCommandsBlock  //The command list is of simple commands
                                                                                             {$$ = createNode(AST_CONDFLUXCONT); 
-                                                                                             createChildren($$, $1); createChildren($$, $2);
-                                                                                             createChildren($$, $4); createChildren($$, $5);
-                                                                                             createChildren($$, $6); createChildren($$, $7);
-                                                                                             createChildren($$, $8); createChildren($$, $9);
-                                                                                             createChildren($$, $10);
-                                                                                             int err = calculateTypeInfer($4, NULL); 
-                                                                                             if(err < 6){ err = calculateTypeInfer($7, NULL); }
-                                                                                             else if(err > 6){ semanticerror(err, $1,$1); exit(err);}
-                                                                                             deleteContext();}
-    | TK_PR_WHILE '(' expression ')' TK_PR_DO commandsBlock                                 {$$ = createNode(AST_CONDFLUXCONT); 
-                                                                                             createChildren($$, $1); createChildren($$, $2);
-                                                                                             createChildren($$, $3); createChildren($$, $4);
-                                                                                             createChildren($$, $5); createChildren($$, $6);
-                                                                                             int err = calculateTypeInfer($3, NULL); 
-                                                                                             if(err > 6){ semanticerror(err, $1,$1); exit(err);}}
+                                                                                             createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                             int typeInfer = calculateTypeInfer($4, NULL);
+                                                                                             createChildren($$, $4, typeInfer);
+                                                                                             createChildren($$, $5, -1); //$4 is typeinfered
+                                                                                             createChildren($$, $6, -1); createChildren($$, $7, -1);
+                                                                                             createChildren($$, $8, -1); createChildren($$, $9, -1);
+                                                                                             createChildren($$, $10, -1);
+                                                                                             //expression
+                                                                                             if(typeInfer > 6){deleteContext(); semanticerror(typeInfer, $1,$1); exit(typeInfer); }}
+    | TK_PR_WHILE '(' expression ')' TK_PR_DO commandsBlock                                  {$$ = createNode(AST_CONDFLUXCONT); 
+                                                                                             createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                             int typeInfer = calculateTypeInfer($4, NULL);
+                                                                                             createChildren($$, $3, typeInfer);
+                                                                                             createChildren($$, $4, -1); //$3 is typeinfered
+                                                                                             createChildren($$, $5, -1); createChildren($$, $6, -1);
+                                                                                             //expression
+                                                                                             if(typeInfer > 6){semanticerror(typeInfer, $1,$1); exit(typeInfer); }}
     | TK_PR_DO commandsBlock TK_PR_WHILE '(' expression ')'                                 {$$ = createNode(AST_CONDFLUXCONT); 
-                                                                                             createChildren($$, $1); createChildren($$, $2);
-                                                                                             createChildren($$, $3); createChildren($$, $4);
-                                                                                             createChildren($$, $5); createChildren($$, $6);
-                                                                                             int err = calculateTypeInfer($5, NULL); 
-                                                                                             if(err > 6){ semanticerror(err, $4,$4); exit(err);}};      
+                                                                                             createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                             createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                                             int typeInfer = calculateTypeInfer($5, NULL);
+                                                                                             createChildren($$, $5, typeInfer);
+                                                                                             createChildren($$, $6, -1); //$5 is typeinfered
+                                                                                             //expression
+                                                                                             if(typeInfer > 6){semanticerror(typeInfer, $1,$1); exit(typeInfer); }};      
 
 //The only selection flux control is switch
 //It is important to note that bison won't check if there are cases on the commandsBlock
 selectionFluxControl:
     TK_PR_SWITCH '(' expression ')' commandsBlock {$$ = createNode(AST_SELECFLUXCONT); 
-                                                   createChildren($$, $1); createChildren($$, $2);
-                                                   createChildren($$, $3); createChildren($$, $4);
-                                                   createChildren($$, $5);
-                                                   int err = calculateTypeInfer($3, NULL); 
-                                                   if(err > 6){ semanticerror(err, $1,$1); exit(err);}}; 
+                                                   createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                   int typeInfer = calculateTypeInfer($4, NULL);
+                                                   createChildren($$, $3, typeInfer);
+                                                   createChildren($$, $4, -1);
+                                                   createChildren($$, $5, -1);
+                                                   //expression
+                                                   if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer); }};
 
 //List of commands without commas in them, used in for
 commandSimpleList:
       commandSimple                       {$$ = $1;}
     | commandSimpleList ',' commandSimple {$$ = createNode(AST_COMMANDSIMPLELIST); 
-                                           createChildren($$, $1); createChildren($$, $2);
-                                           createChildren($$, $3);};
+                                           createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                           createChildren($$, $3, -1);};
 
 //Pipe Commands can be in the format of "f() %>% f()" or "f() %>% f() %>% ... f()"
 pipeCommands:
       functionCall pipe functionCall {$$ = createNode(AST_PIPECOMMANDS); 
-                                      createChildren($$, $1); createChildren($$, $2);
-                                      createChildren($$, $3);
+                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                      createChildren($$, $3, -1);
                                       int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, NULL); exit(err);}
                                       else {
                                           err = checkFunction($3, -1, NULL); if (err){ semanticerror(err, $3->child, NULL); exit(err);}}
                                       }
     | pipeCommands pipe functionCall {$$ = createNode(AST_PIPECOMMANDS); 
-                                      createChildren($$, $1); createChildren($$, $2);
-                                      createChildren($$, $3);
+                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                      createChildren($$, $3, -1);
                                       };
 
 %%
