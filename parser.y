@@ -368,7 +368,7 @@ command:
 
 //Commands without commas or case. Used in the "for" command
 commandSimple:
-      localVarCompleteDeclaration   {$$ = $1; printf("oi\n");int err = addSymbolFromLocalVarDeclaration($1);
+      localVarCompleteDeclaration   {$$ = $1; int err = addSymbolFromLocalVarDeclaration($1);
                                     if (err) { 
                                         int numberOfChildrenInt = numberOfChildren($1);
                                         if (numberOfChildrenInt == 3 ) { 
@@ -684,7 +684,7 @@ functionCallArgumentsList:
 //Argument can be expression or dot
 functionCallArgument:
       '.'           {$$ = $1;}
-    | expression    {$$ = createNode(AST_FUNCARGLIST); 
+    | expression    {$$ = createNode(AST_FUNCCALLARG); 
                           createChildren($$, $1, -1);
                           };
 
