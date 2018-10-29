@@ -130,7 +130,7 @@ struct fieldList* pushField(struct fieldList* fieldList, int type, char* name, c
 void freeFieldList(struct fieldList* fieldList){
     while(fieldList != NULL){
         free(fieldList->name);
-        if(fieldList != NULL){
+        if(fieldList->userType != NULL){
             free(fieldList->userType);
         }
         struct fieldList* temp = fieldList;
