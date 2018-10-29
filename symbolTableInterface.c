@@ -152,25 +152,28 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
     //Adds symbol and checks if identifier it has been declared before
     if(addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, nature, NULL, 1, stringSize, userType) != 0)
         return ERR_DECLARED; 
-    if(numberOfChildren(localVarDeclaration->child->brother->brother) != 0){
-        //Attribution
-        struct node* type = localVarDeclaration->child->brother->brother->child->brother; //Goes into userVariableOrLiteral Node
-        int attrType = type->token_type;
-        if(attrType == NATUREZA_IDENTIFICADOR){
-            struct symbolInfo* typeInfo = findSymbolInContexts(type->token_value);
-            if(typeInfo == NULL)
-                return ERR_UNDECLARED;          
-            attrType = typeInfo->type;
-            if(typeInfo->nature == NATUREZA_CLASSE || typeInfo->nature == NATUREZA_VETOR_CLASSE) //TODO review
-                return ERR_USER;
-            if(typeInfo->nature == NATUREZA_FUNC){
-                return ERR_FUNCTION;
+    
+    if(numberOfChildren(localVarDeclaration) == 3){
+        if(numberOfChildren(localVarDeclaration->child->brother->brother) != 0){
+            //Attribution
+            struct node* type = localVarDeclaration->child->brother->brother->child->brother; //Goes into userVariableOrLiteral Node
+            int attrType = type->token_type;
+            if(attrType == NATUREZA_IDENTIFICADOR){
+                struct symbolInfo* typeInfo = findSymbolInContexts(type->token_value);
+                if(typeInfo == NULL)
+                    return ERR_UNDECLARED;          
+                attrType = typeInfo->type;
+                if(typeInfo->nature == NATUREZA_CLASSE || typeInfo->nature == NATUREZA_VETOR_CLASSE) //TODO review
+                    return ERR_USER;
+                if(typeInfo->nature == NATUREZA_FUNC){
+                    return ERR_FUNCTION;
+                }
             }
-        }
 
-        int resultado = calculateImplicitConvert(attrType, typeOfTypeNode);
-        if(resultado == -1)
-            return ERR_WRONG_TYPE;
+            int resultado = calculateImplicitConvert(attrType, typeOfTypeNode);
+            if(resultado == -1)
+                return ERR_WRONG_TYPE;
+        }
     }
 
 
@@ -705,3 +708,30 @@ void insertSymbolsFunction(struct node *function){
 
 }
 
+int addFunctionFields(struct node* functionHead){
+    struct node* functionArgumentsList;
+    if(numberOfChildren(functionHead) == 5){
+        functionArgumentsList = functionHead->child->brother->brother->brother;
+    } else if(numberOfChildren(functionHead) == 6)
+        functionArgumentsList = functionHead->child->brother->brother->brother->brother;
+    
+    
+    if(!strcmp(functionArgumentsList->token_value, AST_FUNCARGLIST))
+        return 0;
+    else if(!strcmp(functionArgumentsList->token_value, AST_FUNCARGELEM)){
+        struct node* functionArgumentElements = functionArgumentsList;
+
+    
+        while(numberOfChildren(functionArgumentElements) == 5){
+            int err = addSymbolFromNode(functionArgumentElements->child->brother->brother, functionArgumentElements->child->brother);
+            if(err)
+                return err;
+            functionArgumentElements = functionArgumentElements->child->brother->brother->brother->brother;
+        }
+        int err = addSymbolFromNode(functionArgumentElements->child->brother->brother, functionArgumentElements->child->brother);
+        if(err)
+            return err;
+    }
+
+    return 0;
+}

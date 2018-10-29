@@ -24,8 +24,8 @@ void createContext(){
 //returns 0 if the symbol exists
 //returns 1 if it is inserted correctly
 int addSymbol(char* name, int line, int type, int nature, struct fieldList* fields, int vectorSize, int sizeOfString, char* userType){
-    if(findSymbolInContexts(name) != NULL)
-        return 1;
+    if(findSymbolInCurrentContext(name) != NULL)
+        return ERR_DECLARED;
 
     struct context* new = malloc(sizeof(struct context));
     new->info.line = line;
@@ -159,6 +159,24 @@ struct symbolInfo* findSymbolInContexts(char* name){
     }
     return returnInfo;
 }
+
+//Find symbol in current contexts
+//returnInfo - symbolInfo of the symbolFound or NULL
+struct symbolInfo* findSymbolInCurrentContext(char* name){
+    struct context* tempContext = NULL;
+    struct symbolInfo* returnInfo = NULL;
+
+    
+    HASH_FIND_STR(contextStack->currentContext, name, tempContext);
+
+    if (tempContext){
+      returnInfo = &tempContext->info;
+      
+    }
+
+    return returnInfo;
+}
+
 
 int updateStringSizeOnNode(char* name, int stringSize){
     struct contextStack* tempStack;

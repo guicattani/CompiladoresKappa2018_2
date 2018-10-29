@@ -269,7 +269,6 @@ globalVarDeclaration:
 functionDeclaration:
     functionHead {
                     int err = addSymbolFromNodeFunction($1);
-                    createContext(); 
                     if (err && numberOfChildren($1) == 5 ) { 
                        semanticerror(err, $1->child->brother, $1->child); 
                        exit(err);
@@ -277,7 +276,31 @@ functionDeclaration:
                     else if (err && numberOfChildren($1) == 6){
                        semanticerror(err, $1->child->brother->brother, $1->child->brother);
                        exit(err);
-                    };                    
+                    };     
+
+
+                    createContext(); 
+
+                    err = addSymbolFromNodeFunction($1);
+                    if (err && numberOfChildren($1) == 5 ) { 
+                       semanticerror(err, $1->child->brother, $1->child); 
+                       exit(err);
+                    }
+                    else if (err && numberOfChildren($1) == 6){
+                       semanticerror(err, $1->child->brother->brother, $1->child->brother);
+                       exit(err);
+                    };     
+
+                    err = addFunctionFields($1);
+                    if (err && numberOfChildren($1) == 5 ) { 
+                       semanticerror(err, $1->child->brother, $1->child); 
+                       exit(err);
+                    }
+                    else if (err && numberOfChildren($1) == 6){
+                       semanticerror(err, $1->child->brother->brother, $1->child->brother);
+                       exit(err);
+                    };     
+                     
                 } 
     functionCommandsBlock                           { 
                                                     $$ = createNode(AST_FUNCDEC);
@@ -345,7 +368,7 @@ command:
 
 //Commands without commas or case. Used in the "for" command
 commandSimple:
-      localVarCompleteDeclaration   {$$ = $1; int err = addSymbolFromLocalVarDeclaration($1);
+      localVarCompleteDeclaration   {$$ = $1; printf("oi\n");int err = addSymbolFromLocalVarDeclaration($1);
                                     if (err) { 
                                         int numberOfChildrenInt = numberOfChildren($1);
                                         if (numberOfChildrenInt == 3 ) { 
@@ -387,7 +410,9 @@ commandSimple:
 //A variable declaration can be initialized ONLY if it has a primitive type
 localVarDeclaration:
       primitiveType TK_IDENTIFICADOR localVarInit //If it starts with ID and is initialized 
-                                                    {$$ = createNode(AST_LOCALVARDEC); 
+                                                    {
+                                                    
+                                                    $$ = createNode(AST_LOCALVARDEC); 
                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                      createChildren($$, $3, -1);
                                                      } 

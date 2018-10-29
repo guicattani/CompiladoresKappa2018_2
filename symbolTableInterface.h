@@ -16,6 +16,8 @@ int addSymbolFromNodeWithAttribution(struct node* idNode, struct node* typeNode,
 int  addSymbolFromNodeFunction(struct node* functionhead);
 int  addSymbolFromNodeClass(struct node* idNode, struct node* fieldListNode);
 int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration);
+int addFunctionFields(struct node* functionHead);
+
 
 int checkAttribution(struct node* id, struct node* vector, struct node* expression, struct node* classid);
 int checkPrimitiveAttribution(struct node* attrNode);
