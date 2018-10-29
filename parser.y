@@ -571,7 +571,7 @@ conditionalFluxControl:
 
 //There are 4 variations of iterative flux control
 iterativeFluxControl:
-      TK_PR_FOREACH '(' {createContext();}  TK_IDENTIFICADOR ':' commandSimpleList ')' commandsBlock {$$ = createNode(AST_CONDFLUXCONT); 
+      TK_PR_FOREACH '(' {createContext();}  TK_IDENTIFICADOR ':' expressionList ')' commandsBlock {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                                     createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                                                     createChildren($$, $4, -1); createChildren($$, $5, -1);
                                                                                                     createChildren($$, $6, -1); createChildren($$, $7, -1);

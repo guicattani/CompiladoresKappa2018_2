@@ -654,19 +654,21 @@ int checkFunction(struct node *functionNode, int type, char *userType){
                 if(userType != NULL)
                     expressionName = userType;
             }
+            else if(!strcmp(argument->token_value, ".") && type == -1)
+                return ERR_WRONG_TYPE_ARGS;
             else{
                 if(numberOfChildren(argument)){
                     char* userType = malloc(sizeof(char)*20);
                     expressionType = calculateTypeInfer(argument, userType, -1);
                     //Cattani use o print pra ajudar a testar melhor
-                    //printf("%d %d %s %s\n", expressionType, fieldType, userType, field->userType);
+                    printf("%d %d %s %s\n", expressionType, fieldType, userType, field->userType);
                     if(expressionType == NATUREZA_IDENTIFICADOR && fieldType == NATUREZA_IDENTIFICADOR){
                         expressionName = field->userType;
                     }
                     free(userType);
                 }
             }
-                
+                printf("%d\n", expressionType);
             if(expressionType > 6)
                 return expressionType;
             if(expressionType != fieldType){
@@ -681,7 +683,7 @@ int checkFunction(struct node *functionNode, int type, char *userType){
                 if(strcmp(field->userType, expressionName))
                     return ERR_WRONG_TYPE_ARGS;
             }
-
+            
             field = field->next;
         }
 
