@@ -647,7 +647,6 @@ int checkFunction(struct node *functionNode, int type, char *userType){
                 if(numberOfChildren(argument)){
                     char* userType = malloc(sizeof(char)*20);
                     expressionType = calculateTypeInfer(argument, userType, -1);
-                    printf("ExpressionType de %s: %d\n", argument->token_value, expressionType);
                     if(expressionType == NATUREZA_IDENTIFICADOR && fieldType == NATUREZA_IDENTIFICADOR){
                         if(strcmp(field->userType, userType) == 0){
                             free(userType);
@@ -663,7 +662,6 @@ int checkFunction(struct node *functionNode, int type, char *userType){
                 
             if(expressionType > 6)
                 return expressionType;
-            printf ("%d %d\n", expressionType, fieldType);
             if(expressionType != fieldType){
                 return ERR_WRONG_TYPE_ARGS;
             }

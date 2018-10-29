@@ -306,6 +306,7 @@ functionDeclaration:
                                                     $$ = createNode(AST_FUNCDEC);
                                                     createChildren($$, $1, -1);
                                                     createChildren($$, $3, -1);
+                                                    printf("Um bloco de comandos terminou\n");
                                                     deleteContext();
                                                     
                                                    };
@@ -313,7 +314,8 @@ functionDeclaration:
 functionCommandsBlock:
     '{' commandsList '}'    {$$ = createNode(AST_FUNCCOMMANDSBLOCK); 
                              createChildren($$, $1, -1); createChildren($$, $2, -1);
-                             createChildren($$, $3, -1);}; 
+                             createChildren($$, $3, -1);
+                             printf("Bloco de comandos\n");}; 
 
 functionHead:
       primitiveType TK_IDENTIFICADOR '(' functionArgumentsList ')'               {$$ = createNode(AST_FUNCHEAD); 

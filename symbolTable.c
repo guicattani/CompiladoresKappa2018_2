@@ -36,6 +36,7 @@ int addSymbol(char* name, int line, int type, int nature, struct fieldList* fiel
     new->info.name = strdup(name);
     new->info.value.string_value = strdup(name);
     new->info.userType = NULL;
+    new->info.fields = NULL;
 
     if(userType != NULL)
         new->info.userType = strdup(userType);
@@ -87,6 +88,7 @@ void deleteAllContext(){
 
 //Frees a symbol
 void freeSymbolInfo(struct symbolInfo* info){
+    printf("dando free em: %s\n", info->name);
     free(info->name);
     if (info->value.string_value != NULL)
         free(info->value.string_value);
@@ -94,8 +96,9 @@ void freeSymbolInfo(struct symbolInfo* info){
     if (info->userType != NULL)
         free(info->userType);
     
+    if(info->fields != NULL)
+    printf(" thau\n");
     freeFieldList(info->fields);
-
 }
 
 
