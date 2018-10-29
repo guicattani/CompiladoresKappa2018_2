@@ -89,10 +89,15 @@ int  addSymbolFromNodeFunction(struct node* functionhead){
     struct fieldList* fieldList = createFieldList(fieldListNode);
     int typeOfTypeNode = parseType(typeNode->token_value);
 
+    char* userType = NULL;
+    if (typeOfTypeNode == NATUREZA_IDENTIFICADOR){
+        userType = typeNode->token_value; 
+    }
+
     if(findSymbolInContexts(typeNode->token_value) == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
         return ERR_TYPE_UNDECLARED;
 
-    if (addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, NATUREZA_FUNC, fieldList, 1, 1, NULL) == 0)
+    if (addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, NATUREZA_FUNC, fieldList, 1, 1, userType) == 0)
         return 0;
     else
         return ERR_DECLARED; 
@@ -542,6 +547,7 @@ int getTypeFromUserClassField(struct node* variableNode,struct node* fieldClassN
 }
 
 int checkFunctionPipe(struct node *functionPipeNode){
+
     if(!strcmp(functionPipeNode->child->token_value, AST_PIPECOMMANDS)){
         int err = checkFunctionPipe(functionPipeNode->child);
         if (err) return err;
@@ -570,7 +576,6 @@ int checkFunctionPipe(struct node *functionPipeNode){
 
         int funcType = funcInfo->type;
         char* funcUserType = funcInfo->userType;
-        
         err = checkFunction(functionPipeNode->child->brother->brother, funcType, funcUserType);
         if (err) return err;
 
@@ -621,7 +626,6 @@ int checkFunction(struct node *functionNode, int type, char *userType){
             return 0; 
         //both are not NULL
         struct node* functionCallArgumentList = functionCallArguments->child;
-        
         while(field != NULL && functionCallArgumentList != NULL){
             int fieldType = field->type;
             //Gets the expression Type
@@ -663,9 +667,8 @@ int checkFunction(struct node *functionNode, int type, char *userType){
             if(numberOfChildren(functionCallArgumentList) == 1)
                 functionCallArgumentList = NULL;
             else functionCallArgumentList = functionCallArgumentList->child->brother->brother;
-
             if (field->type == NATUREZA_IDENTIFICADOR && expressionType == NATUREZA_IDENTIFICADOR){
-                if(strcmp(field->name, expressionName))
+                if(strcmp(field->userType, expressionName))
                     return ERR_WRONG_TYPE_ARGS;
             }
 

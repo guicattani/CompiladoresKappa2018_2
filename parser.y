@@ -794,9 +794,6 @@ pipeCommands:
       functionCall pipe functionCall {$$ = createNode(AST_PIPECOMMANDS); 
                                       createChildren($$, $1, -1); createChildren($$, $2, -1);
                                       createChildren($$, $3, -1);
-                                      int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, NULL); exit(err);}
-                                      else {
-                                          err = checkFunction($3, -1, NULL); if (err){ semanticerror(err, $3->child, NULL); exit(err);}}
                                       }
     | pipeCommands pipe functionCall {$$ = createNode(AST_PIPECOMMANDS); 
                                       createChildren($$, $1, -1); createChildren($$, $2, -1);
