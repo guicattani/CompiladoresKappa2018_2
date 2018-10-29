@@ -18,6 +18,7 @@
     extern struct nodeList* nodeList;
 
     void semanticerror(int err, struct node* id, struct node* type);
+    void libera (void *arvore);
 }
 
 %union{
@@ -133,8 +134,8 @@
 %%
 
 programa:
-    {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2, -1); deleteContext();};
-                      | %empty {arvore = createNode(AST_PROGRAMA);};
+    {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2, -1); deleteContext(); libera(arvore);free(previous_text);};
+                      | %empty {arvore = createNode(AST_PROGRAMA); free(previous_text); libera(arvore);};
 
 
 literal:
@@ -832,6 +833,7 @@ void yyerror (char const *s){
     free(previous_text);
     printf ("Line %d, Column %d: %s near \"%s\"\n",yylineno, yycolno, s, yylval.nodo->token_value);  
     deleteAllContext();
+    libera(arvore);
 
 }
 
@@ -917,7 +919,9 @@ void semanticerror(int err, struct node* id, struct node* type){
             printf ("Line %d, Column %d: Unknown error.\n", yylineno, yycolno);
             break;
     }
+    free(previous_text);
     deleteAllContext();
+    libera(arvore);
 }
 void descompila (void *arvore){
     showTreeRecursion(arvore, 0);

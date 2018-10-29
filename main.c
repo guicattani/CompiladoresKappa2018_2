@@ -13,7 +13,5 @@ void libera (void *arvore);
 int main (int argc, char **argv)
 {
   int ret = yyparse(); 
-  libera(arvore);
-  arvore = NULL;
   return ret;
 }
