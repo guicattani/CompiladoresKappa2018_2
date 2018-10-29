@@ -12,9 +12,11 @@ int addSymbolFromNode(struct node* idNode, struct node* typeNode){
     int nature = typeOfTypeNode;
     char* userType = NULL;
     if (typeOfTypeNode == NATUREZA_IDENTIFICADOR){
+        
 
         userType = strdup(typeNode->token_value); 
         nature = NATUREZA_CLASSE;
+        
     }
 
     if(findSymbolInContexts(typeNode->token_value) == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
@@ -130,9 +132,18 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
         nature = NATUREZA_CLASSE;
     }
 
+    struct symbolInfo* typeInfo = findSymbolInContexts(typeNode->token_value);
     //Checks if type has been declared
-    if(findSymbolInContexts(typeNode->token_value) == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
+    if(typeInfo == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
         return ERR_TYPE_UNDECLARED;
+
+    if(typeInfo != NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR){
+        if(typeInfo->nature == NATUREZA_FUNC)
+            return ERR_FUNCTION;
+        if(typeInfo->nature != NATUREZA_CLASSE && typeInfo->nature != NATUREZA_VETOR_CLASSE)
+            return ERR_CLASS;
+
+    }
 
     int stringSize = -1; //TODO calculate true stringsize based on expression
     
@@ -612,7 +623,7 @@ int checkFunction(struct node *functionNode, int type, char *userType){
         return ERR_VECTOR;
 
     if(idInfo->nature != NATUREZA_FUNC)
-        return ERR_UNKNOWN;
+        return ERR_VARIABLE;
     
     if(idInfo->nature == NATUREZA_FUNC){ 
         struct fieldList* field = idInfo->fields;
@@ -637,7 +648,7 @@ int checkFunction(struct node *functionNode, int type, char *userType){
 
             struct node* argument = functionCallArgumentList->child;
             int expressionType = ERR_UNKNOWN;
-            char* expressionName;
+            char* expressionName = NULL;
             if(!strcmp(argument->token_value, ".") && type != -1){
                 expressionType = type;
                 if(userType != NULL)
@@ -647,14 +658,10 @@ int checkFunction(struct node *functionNode, int type, char *userType){
                 if(numberOfChildren(argument)){
                     char* userType = malloc(sizeof(char)*20);
                     expressionType = calculateTypeInfer(argument, userType, -1);
+                    //Cattani use o print pra ajudar a testar melhor
+                    //printf("%d %d %s %s\n", expressionType, fieldType, userType, field->userType);
                     if(expressionType == NATUREZA_IDENTIFICADOR && fieldType == NATUREZA_IDENTIFICADOR){
-                        if(strcmp(field->userType, userType) == 0){
-                            free(userType);
-                            return 0;
-                        }
-                        else{
-                            return ERR_WRONG_TYPE_ARGS; //RIGHT ERROR?
-                        }
+                        expressionName = field->userType;
                     }
                     free(userType);
                 }
@@ -669,6 +676,7 @@ int checkFunction(struct node *functionNode, int type, char *userType){
             if(numberOfChildren(functionCallArgumentList) == 1)
                 functionCallArgumentList = NULL;
             else functionCallArgumentList = functionCallArgumentList->child->brother->brother;
+
             if (field->type == NATUREZA_IDENTIFICADOR && expressionType == NATUREZA_IDENTIFICADOR){
                 if(strcmp(field->userType, expressionName))
                     return ERR_WRONG_TYPE_ARGS;

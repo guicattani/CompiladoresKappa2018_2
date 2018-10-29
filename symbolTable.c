@@ -88,7 +88,6 @@ void deleteAllContext(){
 
 //Frees a symbol
 void freeSymbolInfo(struct symbolInfo* info){
-    printf("dando free em: %s\n", info->name);
     free(info->name);
     if (info->value.string_value != NULL)
         free(info->value.string_value);
@@ -97,7 +96,6 @@ void freeSymbolInfo(struct symbolInfo* info){
         free(info->userType);
     
     if(info->fields != NULL)
-    printf(" thau\n");
     freeFieldList(info->fields);
 }
 
@@ -120,6 +118,10 @@ struct fieldList* pushField(struct fieldList* fieldList, int type, char* name, c
         struct fieldList* new = malloc(sizeof(struct fieldList));
         new->name = strdup(name);
         new->type = type;
+        new->userType = NULL;
+        if(type == NATUREZA_IDENTIFICADOR){
+            new->userType = strdup(userType);
+        }
         new->next = NULL;
 
         struct fieldList* temp = fieldList;

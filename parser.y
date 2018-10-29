@@ -306,7 +306,6 @@ functionDeclaration:
                                                     $$ = createNode(AST_FUNCDEC);
                                                     createChildren($$, $1, -1);
                                                     createChildren($$, $3, -1);
-                                                    printf("Um bloco de comandos terminou\n");
                                                     deleteContext();
                                                     
                                                    };
@@ -314,8 +313,7 @@ functionDeclaration:
 functionCommandsBlock:
     '{' commandsList '}'    {$$ = createNode(AST_FUNCCOMMANDSBLOCK); 
                              createChildren($$, $1, -1); createChildren($$, $2, -1);
-                             createChildren($$, $3, -1);
-                             printf("Bloco de comandos\n");}; 
+                             createChildren($$, $3, -1);}; 
 
 functionHead:
       primitiveType TK_IDENTIFICADOR '(' functionArgumentsList ')'               {$$ = createNode(AST_FUNCHEAD); 
@@ -465,181 +463,6 @@ userTypeAttribution:
                                                                                     exit(ERR_VECTOR);}
                                                                                 };
 
-simpleExpression:
-      TK_IDENTIFICADOR                          {$$ = $1;
-                                                 if(!isIdentifierDeclared($1)){
-                                                    semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                    exit(ERR_UNDECLARED);}
-                                                }
-    | functionCall                              {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, $1->child);exit(err); }}
-    | pipeCommands                              {$$ = $1; int err = checkFunctionPipe($1); if (err){ semanticerror(err, $1->child, $1->child);exit(err); }}
-    | literal                                   {$$ = $1;}
-    | TK_IDENTIFICADOR  '$' TK_IDENTIFICADOR    {$$ = createNode(AST_SIMPLEEXP); 
-                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                      createChildren($$, $3, -1);
-                                                 if(!isIdentifierDeclared($1)){
-                                                    semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                    exit(ERR_UNDECLARED);}
-
-                                                 if(getTypeFromUserClassField($1, $3) > NATUREZA_IDENTIFICADOR){
-                                                    semanticerror(ERR_CLASS_ID_NOT_FOUND, $1, NULL); 
-                                                    exit(ERR_CLASS_ID_NOT_FOUND);}
-                                                };
-
-expression:
-    lowPrecedenceTwoFoldRecursiveExpression                                 {$$ = $1;}
-    | lowPrecedenceTwoFoldRecursiveExpression '?' expression ':' expression {$$ = createNode(AST_EXPRESSION);
-                                                                                  createChildren($$, $1, -1); createChildren($$, $2, -1);
-
-                                                                                  //expression
-                                                                                  int typeInfer = calculateTypeInfer($1, NULL, -1);
-                                                                                  createChildren($$, $3, typeInfer);
-                                                                                  if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);}
-                                                                                  //expression end
-
-                                                                                  createChildren($$, $4, -1);
-
-                                                                                  //expression
-                                                                                  typeInfer = calculateTypeInfer($1, NULL, -1);
-                                                                                  createChildren($$, $5, typeInfer);
-                                                                                  if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
-                                                                                  //expression end
-                                                                                  };
-
-lowPrecedenceTwoFoldRecursiveExpression:
-    mediumPrecedenceTwoFoldRecursiveExpression                                                    {$$ = $1;}
-    | lowPrecedenceTwoFoldRecursiveExpression operator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
-                                                                                                   createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                                                   createChildren($$, $3, -1);}; 
-
-mediumPrecedenceTwoFoldRecursiveExpression:
-    highPrecedenceTwoFoldRecursiveExpression                                                                          {$$ = $1;}
-    | mediumPrecedenceTwoFoldRecursiveExpression precedentArithmeticOperator highPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_MEDPTFREXP); 
-                                                                                                                       createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                                                                       createChildren($$, $3, -1);}; 
-
-highPrecedenceTwoFoldRecursiveExpression:
-    oneFoldRecursiveExpression                                                {$$ = $1;}
-    | highPrecedenceTwoFoldRecursiveExpression '^' oneFoldRecursiveExpression {$$ = createNode(AST_HIGHPTFREXP); 
-                                                                               createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                               createChildren($$, $3, -1);}; 
-
-oneFoldRecursiveExpression:
-     simpleExpression                                                {$$ = $1;}
-    | unaryOperator simpleExpression                                 {$$ = createNode(AST_ONEFREXP); createChildren($$, $1, -1); createChildren($$, $2, -1);}
-
-    | '(' expression ')'                                             {$$ = createNode(AST_ONEFREXP); 
-                                                                      createChildren($$, $1, -1); 
-
-                                                                      //expression
-                                                                      int typeInfer = calculateTypeInfer($1, NULL, -1);
-                                                                      createChildren($$, $2, typeInfer);
-                                                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
-                                                                      //expression end
-
-                                                                      createChildren($$, $3, -1);
-                                                                     }
-    | unaryOperator '(' expression ')'                               {$$ = createNode(AST_ONEFREXP); 
-                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
-
-                                                                      //expression
-                                                                      int typeInfer = calculateTypeInfer($1, NULL, -1);
-                                                                      createChildren($$, $3, typeInfer);
-                                                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
-                                                                      //expression end
-
-                                                                      createChildren($$, $4, -1);}
-
-    | TK_IDENTIFICADOR vectorList                                    {$$ = createNode(AST_ONEFREXP); createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                      if(!isIdentifierDeclared($1)){
-                                                                        semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                                        exit(ERR_UNDECLARED);}
-
-                                                                      if(!isVectorEmpty($2) && !isIdentifierOfNatureVector($1) ){
-                                                                        semanticerror(ERR_VECTOR, $1, NULL); 
-                                                                        exit(ERR_VECTOR);}
-                                                                     }
-    | unaryOperator TK_IDENTIFICADOR vectorList                      {$$ = createNode(AST_ONEFREXP); 
-                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                      createChildren($$, $3, -1);
-                                                                      if(!isIdentifierDeclared($2)){
-                                                                        semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                                        exit(ERR_UNDECLARED);}
-
-                                                                      if(!isVectorEmpty($3) && !isIdentifierOfNatureVector($2) ){
-                                                                        semanticerror(ERR_VECTOR, $2, NULL); 
-                                                                        exit(ERR_VECTOR);}
-                                                                     }
-
-    | TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR               {$$ = createNode(AST_ONEFREXP); 
-                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                      createChildren($$, $3, -1); createChildren($$, $4, -1);
-                                                                      if(!isIdentifierDeclared($1)){
-                                                                        semanticerror(ERR_UNDECLARED, $1, NULL); 
-                                                                        exit(ERR_UNDECLARED);}
-                                                                    
-                                                                      if(getTypeFromUserClassField($1, $4) > NATUREZA_IDENTIFICADOR){
-                                                                        semanticerror(ERR_CLASS_ID_NOT_FOUND, $1, NULL); 
-                                                                        exit(ERR_CLASS_ID_NOT_FOUND);}
-
-                                                                      if(!isVectorEmpty($2) && !isIdentifierOfNatureClassVector($1) ){
-                                                                        semanticerror(ERR_VECTOR, $1, NULL); 
-                                                                        exit(ERR_VECTOR);}
-                                                                    }
-    | unaryOperator TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR {$$ = createNode(AST_ONEFREXP); 
-                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                      createChildren($$, $3, -1); createChildren($$, $4, -1);
-                                                                      createChildren($$, $5, -1);
-                                                                      if(!isIdentifierDeclared($1)){
-                                                                        semanticerror(ERR_UNDECLARED, $2, NULL); 
-                                                                        exit(ERR_UNDECLARED);}
-
-                                                                      if(getTypeFromUserClassField($2, $5) > NATUREZA_IDENTIFICADOR){
-                                                                        semanticerror(ERR_CLASS_ID_NOT_FOUND, $2, NULL); 
-                                                                        exit(ERR_CLASS_ID_NOT_FOUND);}
-
-                                                                      if(!isVectorEmpty($3) && !isIdentifierOfNatureClassVector($2) ){
-                                                                        semanticerror(ERR_VECTOR, $2, NULL); 
-                                                                        exit(ERR_VECTOR);}
-                                                                     };
-
-operator:
-      arithmeticOperator            {$$ = $1;}
-    | comparisonOperator            {$$ = $1;};
-
-unaryOperator:
-       unarySimbol                  {$$ = $1;}
-    |  unaryOperator unarySimbol    {$$ = createNode(AST_UNARYOPERATOR); createChildren($$, $1, -1); createChildren($$, $2, -1);};
-
-unarySimbol:
-      '+'   {$$ = $1;}
-    | '-'   {$$ = $1;}
-    | '!'   {$$ = $1;}   
-    | '&'   {$$ = $1;}
-    | '*'   {$$ = $1;}
-    | '?'   {$$ = $1;}
-    | '#'   {$$ = $1;};
-
-arithmeticOperator:
-      '+'{$$ = $1;} 
-    | '-'{$$ = $1;}
-    | '|'{$$ = $1;}
-    | '&'{$$ = $1;};
-
-precedentArithmeticOperator:
-      '*'{$$ = $1;}
-    | '/'{$$ = $1;}
-    | '%'{$$ = $1;};
-
-comparisonOperator:
-      TK_OC_LE  {$$ = $1;}
-    | TK_OC_GE  {$$ = $1;}
-    | TK_OC_EQ  {$$ = $1;}
-    | TK_OC_NE  {$$ = $1;}
-    | TK_OC_AND {$$ = $1;}
-    | TK_OC_OR  {$$ = $1;}
-    | '<'       {$$ = $1;}
-    | '>'       {$$ = $1;};
 
 
 expressionList:
@@ -826,6 +649,181 @@ pipeCommands:
                                       createChildren($$, $1, -1); createChildren($$, $2, -1);
                                       createChildren($$, $3, -1);
                                       };
+simpleExpression:
+      TK_IDENTIFICADOR                          {$$ = $1;
+                                                 if(!isIdentifierDeclared($1)){
+                                                    semanticerror(ERR_UNDECLARED, $1, NULL); 
+                                                    exit(ERR_UNDECLARED);}
+                                                }
+    | functionCall                              {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, $1->child);exit(err); }}
+    | pipeCommands                              {$$ = $1; int err = checkFunctionPipe($1); if (err){ semanticerror(err, $1->child, $1->child);exit(err); }}
+    | literal                                   {$$ = $1;}
+    | TK_IDENTIFICADOR  '$' TK_IDENTIFICADOR    {$$ = createNode(AST_SIMPLEEXP); 
+                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                      createChildren($$, $3, -1);
+                                                 if(!isIdentifierDeclared($1)){
+                                                    semanticerror(ERR_UNDECLARED, $1, NULL); 
+                                                    exit(ERR_UNDECLARED);}
+
+                                                 if(getTypeFromUserClassField($1, $3) > NATUREZA_IDENTIFICADOR){
+                                                    semanticerror(ERR_CLASS_ID_NOT_FOUND, $1, NULL); 
+                                                    exit(ERR_CLASS_ID_NOT_FOUND);}
+                                                };
+
+expression:
+    lowPrecedenceTwoFoldRecursiveExpression                                 {$$ = $1;}
+    | lowPrecedenceTwoFoldRecursiveExpression '?' expression ':' expression {$$ = createNode(AST_EXPRESSION);
+                                                                                  createChildren($$, $1, -1); createChildren($$, $2, -1);
+
+                                                                                  //expression
+                                                                                  int typeInfer = calculateTypeInfer($1, NULL, -1);
+                                                                                  createChildren($$, $3, typeInfer);
+                                                                                  if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);}
+                                                                                  //expression end
+
+                                                                                  createChildren($$, $4, -1);
+
+                                                                                  //expression
+                                                                                  typeInfer = calculateTypeInfer($1, NULL, -1);
+                                                                                  createChildren($$, $5, typeInfer);
+                                                                                  if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
+                                                                                  //expression end
+                                                                                  };
+
+lowPrecedenceTwoFoldRecursiveExpression:
+    mediumPrecedenceTwoFoldRecursiveExpression                                                    {$$ = $1;}
+    | lowPrecedenceTwoFoldRecursiveExpression operator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
+                                                                                                   createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                                   createChildren($$, $3, -1);}; 
+
+mediumPrecedenceTwoFoldRecursiveExpression:
+    highPrecedenceTwoFoldRecursiveExpression                                                                          {$$ = $1;}
+    | mediumPrecedenceTwoFoldRecursiveExpression precedentArithmeticOperator highPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_MEDPTFREXP); 
+                                                                                                                       createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                                                       createChildren($$, $3, -1);}; 
+
+highPrecedenceTwoFoldRecursiveExpression:
+    oneFoldRecursiveExpression                                                {$$ = $1;}
+    | highPrecedenceTwoFoldRecursiveExpression '^' oneFoldRecursiveExpression {$$ = createNode(AST_HIGHPTFREXP); 
+                                                                               createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                               createChildren($$, $3, -1);}; 
+
+oneFoldRecursiveExpression:
+     simpleExpression                                                {$$ = $1;}
+    | unaryOperator simpleExpression                                 {$$ = createNode(AST_ONEFREXP); createChildren($$, $1, -1); createChildren($$, $2, -1);}
+
+    | '(' expression ')'                                             {$$ = createNode(AST_ONEFREXP); 
+                                                                      createChildren($$, $1, -1); 
+
+                                                                      //expression
+                                                                      int typeInfer = calculateTypeInfer($1, NULL, -1);
+                                                                      createChildren($$, $2, typeInfer);
+                                                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
+                                                                      //expression end
+
+                                                                      createChildren($$, $3, -1);
+                                                                     }
+    | unaryOperator '(' expression ')'                               {$$ = createNode(AST_ONEFREXP); 
+                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
+
+                                                                      //expression
+                                                                      int typeInfer = calculateTypeInfer($1, NULL, -1);
+                                                                      createChildren($$, $3, typeInfer);
+                                                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
+                                                                      //expression end
+
+                                                                      createChildren($$, $4, -1);}
+
+    | TK_IDENTIFICADOR vectorList                                    {$$ = createNode(AST_ONEFREXP); createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                      if(!isIdentifierDeclared($1)){
+                                                                        semanticerror(ERR_UNDECLARED, $1, NULL); 
+                                                                        exit(ERR_UNDECLARED);}
+
+                                                                      if(!isVectorEmpty($2) && !isIdentifierOfNatureVector($1) ){
+                                                                        semanticerror(ERR_VECTOR, $1, NULL); 
+                                                                        exit(ERR_VECTOR);}
+                                                                     }
+    | unaryOperator TK_IDENTIFICADOR vectorList                      {$$ = createNode(AST_ONEFREXP); 
+                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                      createChildren($$, $3, -1);
+                                                                      if(!isIdentifierDeclared($2)){
+                                                                        semanticerror(ERR_UNDECLARED, $1, NULL); 
+                                                                        exit(ERR_UNDECLARED);}
+
+                                                                      if(!isVectorEmpty($3) && !isIdentifierOfNatureVector($2) ){
+                                                                        semanticerror(ERR_VECTOR, $2, NULL); 
+                                                                        exit(ERR_VECTOR);}
+                                                                     }
+
+    | TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR               {$$ = createNode(AST_ONEFREXP); 
+                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                      createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                      if(!isIdentifierDeclared($1)){
+                                                                        semanticerror(ERR_UNDECLARED, $1, NULL); 
+                                                                        exit(ERR_UNDECLARED);}
+                                                                    
+                                                                      if(getTypeFromUserClassField($1, $4) > NATUREZA_IDENTIFICADOR){
+                                                                        semanticerror(ERR_CLASS_ID_NOT_FOUND, $1, NULL); 
+                                                                        exit(ERR_CLASS_ID_NOT_FOUND);}
+
+                                                                      if(!isVectorEmpty($2) && !isIdentifierOfNatureClassVector($1) ){
+                                                                        semanticerror(ERR_VECTOR, $1, NULL); 
+                                                                        exit(ERR_VECTOR);}
+                                                                    }
+    | unaryOperator TK_IDENTIFICADOR vectorList '$' TK_IDENTIFICADOR {$$ = createNode(AST_ONEFREXP); 
+                                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                      createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                                      createChildren($$, $5, -1);
+                                                                      if(!isIdentifierDeclared($1)){
+                                                                        semanticerror(ERR_UNDECLARED, $2, NULL); 
+                                                                        exit(ERR_UNDECLARED);}
+
+                                                                      if(getTypeFromUserClassField($2, $5) > NATUREZA_IDENTIFICADOR){
+                                                                        semanticerror(ERR_CLASS_ID_NOT_FOUND, $2, NULL); 
+                                                                        exit(ERR_CLASS_ID_NOT_FOUND);}
+
+                                                                      if(!isVectorEmpty($3) && !isIdentifierOfNatureClassVector($2) ){
+                                                                        semanticerror(ERR_VECTOR, $2, NULL); 
+                                                                        exit(ERR_VECTOR);}
+                                                                     };
+
+operator:
+      arithmeticOperator            {$$ = $1;}
+    | comparisonOperator            {$$ = $1;};
+
+unaryOperator:
+       unarySimbol                  {$$ = $1;}
+    |  unaryOperator unarySimbol    {$$ = createNode(AST_UNARYOPERATOR); createChildren($$, $1, -1); createChildren($$, $2, -1);};
+
+unarySimbol:
+      '+'   {$$ = $1;}
+    | '-'   {$$ = $1;}
+    | '!'   {$$ = $1;}   
+    | '&'   {$$ = $1;}
+    | '*'   {$$ = $1;}
+    | '?'   {$$ = $1;}
+    | '#'   {$$ = $1;};
+
+arithmeticOperator:
+      '+'{$$ = $1;} 
+    | '-'{$$ = $1;}
+    | '|'{$$ = $1;}
+    | '&'{$$ = $1;};
+
+precedentArithmeticOperator:
+      '*'{$$ = $1;}
+    | '/'{$$ = $1;}
+    | '%'{$$ = $1;};
+
+comparisonOperator:
+      TK_OC_LE  {$$ = $1;}
+    | TK_OC_GE  {$$ = $1;}
+    | TK_OC_EQ  {$$ = $1;}
+    | TK_OC_NE  {$$ = $1;}
+    | TK_OC_AND {$$ = $1;}
+    | TK_OC_OR  {$$ = $1;}
+    | '<'       {$$ = $1;}
+    | '>'       {$$ = $1;};
 
 %%
 
