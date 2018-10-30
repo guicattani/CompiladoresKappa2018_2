@@ -331,11 +331,12 @@ int checkUserTypeAttribution(struct node* attrNode){
 }
 
 int calculateTypeInfer(struct node* node, char** userType, int typeOfAttribution){
+    
     if(node->typeInfered > 0){
         return node->typeInfered;
     }
-
-    if(node != NULL && node->child != NULL && node->child->brother != NULL && node->child->brother->brother->brother != NULL){
+    
+    if(node != NULL && node->child != NULL && node->child->brother != NULL && node->child->brother->brother != NULL && node->child->brother->brother->brother != NULL){
         int referenceType = node->child->token_type;
         if(referenceType == NATUREZA_IDENTIFICADOR){
             struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
@@ -355,7 +356,7 @@ int calculateTypeInfer(struct node* node, char** userType, int typeOfAttribution
   
     
 
-    if(node != NULL && node->brother == NULL && node->child != NULL &&node->child->brother == NULL){
+    if(node != NULL && node->brother == NULL && node->child != NULL && node->child->brother == NULL){
         int referenceType = node->child->token_type;
         if(referenceType == NATUREZA_IDENTIFICADOR){
             struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
@@ -378,10 +379,8 @@ int calculateTypeInfer(struct node* node, char** userType, int typeOfAttribution
 int calculateTypeInferRecursion(struct node* node, int typeOfAttribution){
     if(node == NULL)
         return 0;
-
     if(strcmp(node->token_value , ",") == 0){
-        int brotherInfer = calculateTypeInfer(node->brother, NULL,typeOfAttribution);
-        return brotherInfer;
+        return 0;
     }
 
     if(strcmp(node->token_value , "$") == 0){
@@ -800,8 +799,7 @@ int checkOutputExpressionList(struct node* expressionList){
 }
 
 int checkOutputExpression(struct node* expression){
-    printf("testando expressão %s %d\n ", expression->token_value, expression->token_type);
-    if(expression->child->token_type == NATUREZA_LITERAL_STRING){
+    if(expression->token_type == NATUREZA_LITERAL_STRING){
         return 0;
     }
     int type = calculateTypeInfer(expression, NULL, NATUREZA_LITERAL_INT);
