@@ -403,12 +403,15 @@ commandSimple:
     | functionCall                                  {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, NULL); exit(err);}}
     | shiftCommand                                  {$$ = $1;}
     | TK_PR_RETURN expression                       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1, -1); 
-
+                                                     char* userType = NULL;
+                                                     int funcType = findSymbolFunctionInCurrentContext(&userType);
                                                      //expression
-                                                     int typeInfer = calculateTypeInfer($2, NULL, -1);
+                                                     int typeInfer = calculateTypeInfer($2, userType, funcType);
                                                      createChildren($$, $2, typeInfer);
                                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
                                                      //expression end
+
+
                                                     }
     | TK_PR_CONTINUE                                {$$ = $1;}
     | TK_PR_BREAK                                   {$$ = $1;}
@@ -475,7 +478,7 @@ userTypeAttribution:
 
 
 expressionList:
-      expression                     {$$ = $1;
+      expression                     {$$ = createNode(AST_EXPLIST);
 
                                       //expression
                                       int typeInfer = calculateTypeInfer($1, NULL, -1);

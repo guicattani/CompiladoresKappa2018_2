@@ -332,6 +332,7 @@ int checkUserTypeAttribution(struct node* attrNode){
 
 int calculateTypeInfer(struct node* node, char* userType, int typeOfAttribution){
     if(node->typeInfered > 0){
+        printf("oi3\n");
         return node->typeInfered;
     }
     if(node != NULL && node->brother == NULL && node->child != NULL &&node->child->brother == NULL){
@@ -344,9 +345,12 @@ int calculateTypeInfer(struct node* node, char* userType, int typeOfAttribution)
                 return NATUREZA_IDENTIFICADOR;
             }
         }
+ 
+        printf("oi\n");
         return referenceType;
     }
     else {
+        printf("oi2\n");
         return calculateTypeInferRecursion(node, typeOfAttribution);
     }
 }
@@ -400,6 +404,14 @@ int calculateTypeInferRecursion(struct node* node, int typeOfAttribution){
         return brotherInfer;
 
     int nodeType = node->token_type;
+
+    if(nodeType == NATUREZA_LITERAL_CHAR && typeOfAttribution != -1 && typeOfAttribution != NATUREZA_LITERAL_CHAR){
+        return ERR_CHAR_TO_X;
+    }        
+        
+    if(nodeType == NATUREZA_LITERAL_STRING && typeOfAttribution != -1 && typeOfAttribution != NATUREZA_LITERAL_STRING){
+        return ERR_STRING_TO_X;
+    }
 
     //dereference variable
     struct symbolInfo* referenceInfo;
@@ -772,8 +784,8 @@ int checkOutputExpressionList(struct node* expressionList){
 }
 
 int checkOutputExpression(struct node* expression){
-    printf("testando expressão %s\n ", expression->token_value);
-    if(expression->token_type == NATUREZA_LITERAL_STRING){
+    printf("testando expressão %s %d\n ", expression->token_value, expression->token_type);
+    if(expression->child->token_type == NATUREZA_LITERAL_STRING){
         return 0;
     }
     char* userType = malloc(sizeof(char)*40);

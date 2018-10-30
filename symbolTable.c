@@ -229,3 +229,22 @@ int searchFieldList(struct fieldList* fieldList, char* name, char* userType){
     return -1;
 }
 
+
+
+
+int findSymbolFunctionInCurrentContext(char ** userType){
+    struct context* currentSymbol, *tmp;
+
+    //Frees the hash of current context
+    HASH_ITER(hh, contextStack->currentContext, currentSymbol, tmp) {
+        if(currentSymbol->info.nature == NATUREZA_FUNC){
+            if(currentSymbol->info.type == NATUREZA_IDENTIFICADOR){
+                *userType = currentSymbol->info.userType;
+            }
+            return currentSymbol->info.type;
+        }
+
+    }
+    return ERR_UNDECLARED;
+
+}

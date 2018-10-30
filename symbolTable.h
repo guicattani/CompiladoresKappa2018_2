@@ -52,6 +52,7 @@ void deleteAllContext();
 struct symbolInfo* findSymbolInContexts(char* name);
 int updateStringSizeOnNode(char* name, int stringSize);
 struct symbolInfo* findSymbolInCurrentContext(char* name);
+int findSymbolFunctionInCurrentContext(char ** userType);
 struct fieldList* pushField(struct fieldList* fieldList, int type, char* name, char* userType);
 void freeFieldList(struct fieldList* fieldList);
 int searchFieldList(struct fieldList* fieldList, char* name, char* userType);
