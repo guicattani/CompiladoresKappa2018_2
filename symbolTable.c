@@ -214,14 +214,15 @@ int updateStringSizeOnNode(char* name, int stringSize){
 int searchFieldList(struct fieldList* fieldList, char* name, char* userType){
     struct fieldList* tmp = fieldList;
     while (tmp != NULL){
-        if(!strcmp(tmp->name, name))
+        if(!strcmp(tmp->name, name)){
             if(tmp->type == NATUREZA_IDENTIFICADOR){
                 if(tmp->userType != NULL){
                     userType = tmp->userType;
                 }
             }
-            return tmp->type;
 
+            return tmp->type;
+        }
         
         tmp = tmp->next;
     }
