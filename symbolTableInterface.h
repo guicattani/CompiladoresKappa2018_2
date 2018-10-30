@@ -26,7 +26,7 @@ int checkFunction(struct node *functionNode, int type, char *userType);
 int checkFunctionPipe(struct node *functionPipeNode);
 
 struct fieldList* createFieldList(struct node* fields);
-int calculateTypeInfer(struct node* node, char* userType, int typeOfAttribution);
+int calculateTypeInfer(struct node* node, char** userType, int typeOfAttribution);
 int calculateTypeInferRecursion(struct node* node, int typeOfAttribution);
 
 int returnImplicitConversionCode(int attributionType, int literalType);

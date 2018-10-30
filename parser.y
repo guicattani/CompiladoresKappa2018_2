@@ -402,13 +402,24 @@ commandSimple:
                                                     }
     | functionCall                                  {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, NULL); exit(err);}}
     | shiftCommand                                  {$$ = $1;}
-    | TK_PR_RETURN expression                       {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1, -1); 
+    | TK_PR_RETURN expression                       {
+                                                     struct node* exp = createNode(AST_EXPRESSION);
+                                                     createChildren(exp, $2, -1);
+                                                     $2 = exp;
+                                                     $$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1, -1); 
                                                      char* userType = NULL;
+                                                     char *userTypeExp = malloc(sizeof(char) * 20);
                                                      int funcType = findSymbolFunctionInCurrentContext(&userType);
                                                      //expression
-                                                     int typeInfer = calculateTypeInfer($2, userType, funcType);
+                                                     int typeInfer = calculateTypeInfer($2, &userTypeExp, funcType);
+                                                     if(typeInfer == NATUREZA_IDENTIFICADOR){
+                                                         if(strcmp(userTypeExp, userType)){
+                                                             semanticerror(ERR_WRONG_PAR_OUTPUT, $1,$1); exit(ERR_WRONG_PAR_OUTPUT);
+                                                         }
+                                                     }
+                                                     printf("%s zz %s %d\n", userType, userTypeExp, typeInfer);
                                                      createChildren($$, $2, typeInfer);
-                                                     if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
+                                                     if(typeInfer > 6){ semanticerror(ERR_WRONG_PAR_OUTPUT, $1,$1); exit(ERR_WRONG_PAR_OUTPUT);} 
                                                      //expression end
 
 

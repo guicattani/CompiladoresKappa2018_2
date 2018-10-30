@@ -256,7 +256,7 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
     int typeInferenceOfExpression; 
     char* userTypeTypeInfer = NULL;
     if(expression->child != NULL || expression->brother != NULL){//not a literal
-        typeInferenceOfExpression = calculateTypeInfer(expression, userTypeTypeInfer, -1);
+        typeInferenceOfExpression = calculateTypeInfer(expression, &userTypeTypeInfer, -1);
 
         if(typeInferenceOfExpression > NATUREZA_IDENTIFICADOR){
             return typeInferenceOfExpression;
@@ -268,7 +268,7 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
             typeInferenceOfExpression = referenceInfo->type;
         }
         else{
-            typeInferenceOfExpression = calculateTypeInfer(expression, userTypeTypeInfer, -1);
+            typeInferenceOfExpression = calculateTypeInfer(expression, &userTypeTypeInfer, -1);
         }
 
         if(typeInferenceOfExpression > NATUREZA_IDENTIFICADOR){
@@ -330,27 +330,45 @@ int checkUserTypeAttribution(struct node* attrNode){
     return checkAttribution(id, vector, expression, typeid);
 }
 
-int calculateTypeInfer(struct node* node, char* userType, int typeOfAttribution){
+int calculateTypeInfer(struct node* node, char** userType, int typeOfAttribution){
     if(node->typeInfered > 0){
-        printf("oi3\n");
         return node->typeInfered;
     }
+
+    if(node != NULL && node->child != NULL && node->child->brother != NULL && node->child->brother->brother->brother != NULL){
+        int referenceType = node->child->token_type;
+        if(referenceType == NATUREZA_IDENTIFICADOR){
+            struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
+            referenceType = referenceInfo->type;
+
+            if(referenceInfo->nature == NATUREZA_FUNC) {
+                referenceInfo = findSymbolInContexts(referenceInfo->name);
+                if(strcmp(node->child->brother->token_value , "(") == 0){
+                    if(strcmp(node->child->brother->brother->brother->token_value , ")") == 0){
+                        return referenceInfo->type;
+                    }
+                }
+            }
+        }
+    }
+
+  
+    
+
     if(node != NULL && node->brother == NULL && node->child != NULL &&node->child->brother == NULL){
         int referenceType = node->child->token_type;
         if(referenceType == NATUREZA_IDENTIFICADOR){
             struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
             referenceType = referenceInfo->type;
             if(referenceInfo->nature == NATUREZA_CLASSE || referenceInfo->nature == NATUREZA_VETOR_CLASSE){
-                *userType = *referenceInfo->userType;
+                *userType = referenceInfo->userType;
                 return NATUREZA_IDENTIFICADOR;
             }
         }
  
-        printf("oi\n");
         return referenceType;
     }
     else {
-        printf("oi2\n");
         return calculateTypeInferRecursion(node, typeOfAttribution);
     }
 }
@@ -682,17 +700,15 @@ int checkFunction(struct node *functionNode, int type, char *userType){
                 return ERR_WRONG_TYPE_ARGS;
             else{
                 if(numberOfChildren(argument)){
-                    char* userType = malloc(sizeof(char)*20);
-                    expressionType = calculateTypeInfer(argument, userType, -1);
-                    //Cattani use o print pra ajudar a testar melhor
-                    printf("%d %d %s %s\n", expressionType, fieldType, userType, field->userType);
+                    char* userType = NULL;
+                    expressionType = calculateTypeInfer(argument, &userType, -1);
                     if(expressionType == NATUREZA_IDENTIFICADOR && fieldType == NATUREZA_IDENTIFICADOR){
                         expressionName = field->userType;
                     }
-                    free(userType);
+                    if(userType != NULL)
+                        free(userType);
                 }
             }
-                printf("%d\n", expressionType);
             if(expressionType > 6)
                 return expressionType;
             if(expressionType != fieldType){
@@ -788,8 +804,7 @@ int checkOutputExpression(struct node* expression){
     if(expression->child->token_type == NATUREZA_LITERAL_STRING){
         return 0;
     }
-    char* userType = malloc(sizeof(char)*40);
-    int type = calculateTypeInfer(expression, userType, NATUREZA_LITERAL_INT);
+    int type = calculateTypeInfer(expression, NULL, NATUREZA_LITERAL_INT);
     if(type > 6)
         return type;
 
