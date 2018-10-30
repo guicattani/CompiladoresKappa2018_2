@@ -112,8 +112,11 @@ int  addSymbolFromNodeClass(struct node* idNode, struct node* fieldListNode){
     struct fieldList* fieldList = createFieldList(fieldListNode);
     if (addSymbol(idNode->token_value, idNode->line_number, NATUREZA_IDENTIFICADOR, NATUREZA_CLASSE, fieldList, 1, 1, NULL) == 0)
         return 0;
-    else
-        return ERR_DECLARED; 
+    else{
+        freeFieldList(fieldList);
+        return ERR_DECLARED;
+    }
+
 }
 
 int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
