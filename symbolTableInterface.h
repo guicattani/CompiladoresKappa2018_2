@@ -37,6 +37,7 @@ int isIdentifierDeclared(struct node* node);
 
 int getTypeFromUserClassField(struct node* variableNode,struct node* fieldClassNode);
 void insertSymbolsFunction(struct node *function);
-
+int checkOutputExpressionList(struct node* expressionList);
+int checkOutputExpression(struct node* expression);
 
 #endif

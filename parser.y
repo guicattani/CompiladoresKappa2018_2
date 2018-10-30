@@ -360,7 +360,10 @@ command:
     | TK_PR_OUTPUT expressionList ';'//Output has parenthesis and thus is not a simple command
                                      {$$ = createNode(AST_COMMAND); 
                                            createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                           createChildren($$, $3, -1);}
+                                           createChildren($$, $3, -1);
+                                           int err = checkOutputExpressionList($2);
+                                           if (err){ semanticerror(err, $1, $1); exit(err);}
+                                           }
     | TK_PR_CASE TK_LIT_INT ':'      //case from switch cannot end in ';'
                                      {$$ = createNode(AST_COMMAND); 
                                            createChildren($$, $1, -1); createChildren($$, $2, -1);
@@ -389,6 +392,11 @@ commandSimple:
                                                      //expression
                                                      int typeInfer = calculateTypeInfer($2, NULL, -1);
                                                      createChildren($$, $2, typeInfer);
+                                                     
+                                                     if($2->token_type != NATUREZA_IDENTIFICADOR){
+                                                        semanticerror(ERR_WRONG_PAR_INPUT, $1,$1); exit(ERR_WRONG_PAR_INPUT);
+                                                     }
+
                                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);}
                                                      //expression end
                                                     }
@@ -897,10 +905,10 @@ void semanticerror(int err, struct node* id, struct node* type){
             printf ("Line %d, Column %d: Identifier \"%s\" types are incompatible.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_WRONG_PAR_INPUT:
-            printf ("Line %d, Column %d: Parameter \"%s\" is not identifier.\n", id->line_number, id->col_number, id->token_value);
+            printf ("Line %d, Column %d: Parameter in \"%s\" is not identifier.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_WRONG_PAR_OUTPUT:
-            printf ("Line %d, Column %d: Parameter \"%s\" is not literal string or expression.\n", id->line_number, id->col_number, id->token_value);
+            printf ("Line %d, Column %d: Parameter in \"%s\" is not literal string or expression.\n", id->line_number, id->col_number, id->token_value);
             break;
         case ERR_WRONG_PAR_RETURN:
             printf ("Line %d, Column %d: Parameter \"%s\" is not compatible with the type of return.\n", id->line_number, id->col_number, id->token_value);

@@ -744,3 +744,33 @@ int addFunctionFields(struct node* functionHead){
 
     return 0;
 }
+
+int checkOutputExpressionList(struct node* expressionList){
+    while(expressionList != NULL){
+        int err = checkOutputExpression(expressionList->child);
+        if(err)
+            return err;
+
+        if(numberOfChildren(expressionList) == 3)
+            expressionList = expressionList->child->brother->brother;
+        else expressionList = NULL;
+    }
+    return 0;
+
+}
+
+int checkOutputExpression(struct node* expression){
+    printf("testando expressão %s\n ", expression->token_value);
+    if(expression->token_type == NATUREZA_LITERAL_STRING){
+        return 0;
+    }
+    char* userType = malloc(sizeof(char)*40);
+    int type = calculateTypeInfer(expression, userType, NATUREZA_LITERAL_INT);
+    if(type > 6)
+        return type;
+
+    if(type == NATUREZA_LITERAL_INT || type == NATUREZA_LITERAL_FLOAT)
+        return 0;
+    else return ERR_WRONG_PAR_OUTPUT;
+     
+}
