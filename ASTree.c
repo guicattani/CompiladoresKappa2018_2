@@ -45,7 +45,7 @@ struct node* createLeaf(int line_number, int type, char* text, int col_number){
     newNode->token_value = strdup(text);
     newNode->brother = NULL;
     newNode->child = NULL;
-
+    newNode->typeInfered = -1;
     switch (type){
         case 1: //Reserved word
         case 2: //Special Char 

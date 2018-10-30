@@ -408,7 +408,7 @@ commandSimple:
                                                      $2 = exp;
                                                      $$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1, -1); 
                                                      char* userType = NULL;
-                                                     char *userTypeExp = malloc(sizeof(char) * 20);
+                                                     char *userTypeExp = NULL;
                                                      int funcType = findSymbolFunctionInCurrentContext(&userType);
                                                      //expression
                                                      int typeInfer = calculateTypeInfer($2, &userTypeExp, funcType);
@@ -417,7 +417,6 @@ commandSimple:
                                                              semanticerror(ERR_WRONG_PAR_OUTPUT, $1,$1); exit(ERR_WRONG_PAR_OUTPUT);
                                                          }
                                                      }
-                                                     printf("%s zz %s %d\n", userType, userTypeExp, typeInfer);
                                                      createChildren($$, $2, typeInfer);
                                                      if(typeInfer > 6){ semanticerror(ERR_WRONG_PAR_OUTPUT, $1,$1); exit(ERR_WRONG_PAR_OUTPUT);} 
                                                      //expression end

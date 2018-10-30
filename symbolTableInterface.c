@@ -20,7 +20,10 @@ int addSymbolFromNode(struct node* idNode, struct node* typeNode){
     }
 
     if(findSymbolInContexts(typeNode->token_value) == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
-        return ERR_TYPE_UNDECLARED;
+        {
+            if(userType != NULL)
+                free(userType);
+            return ERR_TYPE_UNDECLARED; }
 
     int err = addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, nature, NULL, 1, 1, userType);
     
@@ -128,7 +131,7 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
     char* userType = NULL;
     if (typeOfTypeNode == NATUREZA_IDENTIFICADOR){
 
-        userType = strdup(typeNode->token_value); 
+        userType = typeNode->token_value; 
         nature = NATUREZA_CLASSE;
     }
 
@@ -331,12 +334,11 @@ int checkUserTypeAttribution(struct node* attrNode){
 }
 
 int calculateTypeInfer(struct node* node, char** userType, int typeOfAttribution){
-    
     if(node->typeInfered > 0){
         return node->typeInfered;
     }
     
-    if(node != NULL && node->child != NULL && node->child->brother != NULL && node->child->brother->brother != NULL && node->child->brother->brother->brother != NULL){
+    if(node != NULL && node->child != NULL && node->child->brother != NULL && node->child->brother->brother->brother != NULL){
         int referenceType = node->child->token_type;
         if(referenceType == NATUREZA_IDENTIFICADOR){
             struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
@@ -356,7 +358,7 @@ int calculateTypeInfer(struct node* node, char** userType, int typeOfAttribution
   
     
 
-    if(node != NULL && node->brother == NULL && node->child != NULL && node->child->brother == NULL){
+    if(node != NULL && node->brother == NULL && node->child != NULL &&node->child->brother == NULL){
         int referenceType = node->child->token_type;
         if(referenceType == NATUREZA_IDENTIFICADOR){
             struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
@@ -799,7 +801,7 @@ int checkOutputExpressionList(struct node* expressionList){
 }
 
 int checkOutputExpression(struct node* expression){
-    if(expression->token_type == NATUREZA_LITERAL_STRING){
+    if(expression->child->token_type == NATUREZA_LITERAL_STRING){
         return 0;
     }
     int type = calculateTypeInfer(expression, NULL, NATUREZA_LITERAL_INT);
