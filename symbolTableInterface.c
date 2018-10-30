@@ -356,7 +356,12 @@ int calculateTypeInfer(struct node* node, char* userType, int typeOfAttribution)
 int calculateTypeInferRecursion(struct node* node, int typeOfAttribution){
     if(node == NULL)
         return 0;
-        
+
+    if(strcmp(node->token_value , ",") == 0){
+        int brotherInfer = calculateTypeInfer(node->brother, NULL,typeOfAttribution);
+        return brotherInfer;
+    }
+
     if(strcmp(node->token_value , "$") == 0){
         int brotherInfer = calculateTypeInferRecursion(node->brother->brother, typeOfAttribution);
         
@@ -414,6 +419,13 @@ int calculateTypeInferRecursion(struct node* node, int typeOfAttribution){
             if(node->brother == NULL || node->brother->brother == NULL ){
                 return referenceType;
             }
+
+            struct symbolInfo *classInfo = findSymbolInContexts(referenceInfo->userType);
+
+            int isClassFieldDeclared = searchFieldList(classInfo->fields, node->brother->brother->token_value, referenceInfo->userType);
+            if (isClassFieldDeclared == -1)
+                return ERR_CLASS_ID_NOT_FOUND;
+
             int typeClassField = getTypeFromUserClassField(node, node->brother->brother);
             if(typeClassField > NATUREZA_IDENTIFICADOR)
                 return ERR_CLASS_ID_NOT_FOUND;
