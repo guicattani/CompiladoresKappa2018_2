@@ -108,7 +108,6 @@
 %type<nodo> mediumPrecedenceTwoFoldRecursiveExpression
 %type<nodo> highPrecedenceTwoFoldRecursiveExpression
 %type<nodo> oneFoldRecursiveExpression
-%type<nodo> operator
 %type<nodo> unaryOperator
 %type<nodo> unarySimbol
 %type<nodo> arithmeticOperator
@@ -714,7 +713,10 @@ expression:
 
 lowPrecedenceTwoFoldRecursiveExpression:
     mediumPrecedenceTwoFoldRecursiveExpression                                                    {$$ = $1;}
-    | lowPrecedenceTwoFoldRecursiveExpression operator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
+    | lowPrecedenceTwoFoldRecursiveExpression arithmeticOperator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
+                                                                                                   createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                                                                   createChildren($$, $3, -1);}
+    | lowPrecedenceTwoFoldRecursiveExpression comparisonOperator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
                                                                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                                                    createChildren($$, $3, -1);}; 
 
@@ -808,10 +810,6 @@ oneFoldRecursiveExpression:
                                                                         semanticerror(ERR_VECTOR, $2, NULL); 
                                                                         exit(ERR_VECTOR);}
                                                                      };
-
-operator:
-      arithmeticOperator            {$$ = $1;}
-    | comparisonOperator            {$$ = $1;};
 
 unaryOperator:
        unarySimbol                  {$$ = $1;}
