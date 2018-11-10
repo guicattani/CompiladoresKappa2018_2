@@ -4,6 +4,8 @@
 #include "hashtable/uthash.h"
 #include "auxiliar.h"
 
+int rfpOffset;
+
 //FieldList - List of fields/Arguments and its respective types.
 typedef struct fieldList{
     char* name;

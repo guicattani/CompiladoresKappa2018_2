@@ -9,8 +9,8 @@ void createContext(){
     struct contextStack* top = malloc(sizeof(struct contextStack));
     top->currentContext = NULL;
     top->previousContext = contextStack;
+    rfpOffset = 0;
     contextStack = top;
-
 }
 
 //Adds a symbol to the table at the top of the stack
@@ -69,6 +69,7 @@ void deleteContext(){
     //Frees the top of the stack and moves the stack
     struct contextStack* top = contextStack;
     contextStack = contextStack->previousContext;
+    rfpOffset = 0;
     free(top);
 
 }

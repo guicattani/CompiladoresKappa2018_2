@@ -135,6 +135,7 @@
 
 programa:
     {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2, -1); deleteContext(); libera(arvore);free(previous_text);
+                                printf("\n\n ##PRINTING CODES##\n");
                                 printCode($2);
                                 };
                       | %empty {arvore = createNode(AST_PROGRAMA); free(previous_text); libera(arvore);};
@@ -205,7 +206,7 @@ code:
       declaration       {$$ = $1;
                          $$->code = $1->code;
                          }
-    | declaration code  {$$ = createNode(AST_CODE); createChildren($$, $1, -1); createChildren($$, $2, -1);
+    | code declaration {$$ = createNode(AST_CODE); createChildren($$, $1, -1); createChildren($$, $2, -1);
                          $$->code = concatTwoCodes($1, $2);
                         };
 
@@ -214,7 +215,9 @@ declaration:
     | globalVarDeclaration  {$$ = $1;
                              $$->code = $1->code;
                              }
-    | functionDeclaration   {$$ = $1;}; 
+    | functionDeclaration   {$$ = $1;
+                             $$->code = $1->code;
+                             }; 
 
 
 
@@ -289,7 +292,6 @@ functionDeclaration:
                        exit(err);
                     };     
 
-
                     createContext(); 
 
                     err = addSymbolFromNodeFunction($1);
@@ -318,13 +320,15 @@ functionDeclaration:
                                                     createChildren($$, $1, -1);
                                                     createChildren($$, $3, -1);
                                                     deleteContext();
-                                                    
+                                                    $$->code = $3->code;
                                                    };
 
 functionCommandsBlock:
     '{' commandsList '}'    {$$ = createNode(AST_FUNCCOMMANDSBLOCK); 
                              createChildren($$, $1, -1); createChildren($$, $2, -1);
-                             createChildren($$, $3, -1);}; 
+                             createChildren($$, $3, -1);
+                             $$->code = $2->code;
+                             }; 
 
 functionHead:
       primitiveType TK_IDENTIFICADOR '(' functionArgumentsList ')'               {$$ = createNode(AST_FUNCHEAD); 
@@ -344,10 +348,13 @@ commandsBlock:
     { createContext(); }'{' commandsList '}'    {$$ = createNode(AST_COMMANDSBLOCK); 
                                                 createChildren($$, $2, -1); createChildren($$, $3, -1);
                                                 createChildren($$, $4, -1);
-                                                deleteContext();}; 
+                                                deleteContext();
+                                                $$->code = $3->code;
+                                                }; 
 
 commandsList:
-      command commandsList  {$$ = createNode(AST_COMMANDSLIST); createChildren($$, $1, -1); createChildren($$, $2, -1);}
+      commandsList command   {$$ = createNode(AST_COMMANDSLIST); createChildren($$, $1, -1); createChildren($$, $2, -1);
+                            $$->code = concatTwoCodes($1,$2);}
     | %empty                {$$ = createNode(AST_COMMANDSLIST);};
 
 functionArgumentsList:
@@ -395,7 +402,18 @@ commandSimple:
                                         else if(numberOfChildrenInt == 1){ 
                                             semanticerror(err, $1->child->child->brother, $1->child->child); 
                                         }
-                                        exit(err);} 
+                                        exit(err);
+                                        } 
+
+                                    if(numberOfChildren($1) == 1) {
+                                        updateNodeCodeLOCALDECLARATION($1->child, $1->child->child->brother, $1->child->child);
+                                        if(numberOfChildren($1->child->child->brother->brother) == 2){
+                                            updateNodeCodeATTRIBUTION($1->child->child->child->brother->brother, $1->child->child->brother, $1->child->child->brother->brother->child->brother);
+                                            $$->code = concatTwoCodes($1->child, $1->child->child->brother->brother);
+                                        }else{
+                                            $$->code = $1->child->code;
+                                        }
+                                    }
                                     } 
     | attribution                                   {$$ = $1; 
                                                      $$->code = $1->code;}
@@ -423,6 +441,7 @@ commandSimple:
                                                      char* userType = NULL;
                                                      char *userTypeExp = NULL;
                                                      int funcType = findSymbolFunctionInCurrentContext(&userType);
+
                                                      //expression
                                                      int typeInfer = calculateTypeInfer($2, &userTypeExp, funcType);
                                                      if(typeInfer == NATUREZA_IDENTIFICADOR){
@@ -440,7 +459,9 @@ commandSimple:
     | TK_PR_BREAK                                   {$$ = $1;}
     | fluxControlCommand                            {$$ = $1;}
     | pipeCommands                                  {$$ = $1; int err = checkFunctionPipe($1); if (err){ semanticerror(err, $1->child, NULL); exit(err);}}
-    | commandsBlock                                 {$$ = $1;};       
+    | commandsBlock                                 {$$ = $1;
+                                                    $$->code = $1->code;
+                                                    };       
 
 //A variable declaration can be initialized ONLY if it has a primitive type
 localVarDeclaration:
@@ -477,7 +498,8 @@ primitiveAttribution:
       TK_IDENTIFICADOR vectorModifier '=' expression {$$ = createNode(AST_PRIMATTR); 
                                                         createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                         createChildren($$, $3, -1); createChildren($$, $4, -1);
-                                                     updateNodeCodeATTRIBUTION($$, $1, $4);};  
+                                                     updateNodeCodeATTRIBUTION($$, $1, $4);
+                                                     };  
 
 userTypeAttribution:
       TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR '=' expression {$$ = createNode(AST_USERTYPEATTR); 

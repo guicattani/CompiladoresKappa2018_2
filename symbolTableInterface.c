@@ -151,8 +151,8 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
 
     }
 
-    int stringSize = -1; //TODO calculate true stringsize based on expression
-    
+    int stringSize = -1; 
+
     if(typeNode->token_type == NATUREZA_LITERAL_STRING){
         struct node* declarationNode = localVarDeclaration->child->brother->brother->child->brother->child;
         if(declarationNode->token_type == NATUREZA_IDENTIFICADOR){
@@ -180,7 +180,7 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
                 if(typeInfo == NULL)
                     return ERR_UNDECLARED;          
                 attrType = typeInfo->type;
-                if(typeInfo->nature == NATUREZA_CLASSE || typeInfo->nature == NATUREZA_VETOR_CLASSE) //TODO review
+                if(typeInfo->nature == NATUREZA_CLASSE || typeInfo->nature == NATUREZA_VETOR_CLASSE)
                     return ERR_USER;
                 if(typeInfo->nature == NATUREZA_FUNC){
                     return ERR_FUNCTION;
