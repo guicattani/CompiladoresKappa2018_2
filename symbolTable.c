@@ -28,6 +28,8 @@ int addSymbol(char* name, int line, int type, int nature, struct fieldList* fiel
         return ERR_DECLARED;
 
     struct context* new = malloc(sizeof(struct context));
+
+    //symbolInfo initialization
     new->info.line = line;
     new->info.nature = nature;
     new->info.type = type;
@@ -43,6 +45,10 @@ int addSymbol(char* name, int line, int type, int nature, struct fieldList* fiel
 
     if (fields != NULL)
         new->info.fields = fields;
+
+    new->info.registerTemp = NULL;
+    new->info.rfpOffset = -1;
+    new->info.rbssOffset = -1;
 
     HASH_ADD_STR(contextStack->currentContext, info.name, new);
 

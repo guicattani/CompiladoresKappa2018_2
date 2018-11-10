@@ -4,7 +4,6 @@
 #include "hashtable/uthash.h"
 #include "auxiliar.h"
 
-
 //FieldList - List of fields/Arguments and its respective types.
 typedef struct fieldList{
     char* name;
@@ -25,16 +24,17 @@ typedef struct symbolInfo{
     char* name;
     union value value;
 
+    char* registerTemp;
+    int rfpOffset;
+    int rbssOffset;
+
     struct fieldList* fields; //If this node is a function/Class
 } SYMBOLINFO;
 
 //currentContext - HashTable of a stack of names associated with their meaning and respective nodes on the ASTree
 typedef struct context{
-
     struct symbolInfo info;    
     UT_hash_handle hh;
-
-
 } CONTEXT;
 
 typedef struct contextStack{

@@ -147,8 +147,7 @@ typedef struct boolList{
 
 typedef struct code{
     struct code* previous;
-    char list[10][10];
-    int sizeOfString;
+    char* line;
     struct code* next;
 } CODE;
 

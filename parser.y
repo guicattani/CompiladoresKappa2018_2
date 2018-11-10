@@ -6,6 +6,7 @@
     #include <string.h>
     #include "ASTree.h"
     #include "symbolTableInterface.h"
+    #include "codeGen.h"
 
     int yylex(void);
     void yyerror (char const *s);
@@ -133,7 +134,9 @@
 %%
 
 programa:
-    {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2, -1); deleteContext(); libera(arvore);free(previous_text);};
+    {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2, -1); deleteContext(); libera(arvore);free(previous_text);
+                                printCode($2);
+                                };
                       | %empty {arvore = createNode(AST_PROGRAMA); free(previous_text); libera(arvore);};
 
 
@@ -199,12 +202,18 @@ vectorList:
 /*obvious stuff end */
 
 code:
-      declaration       {$$ = $1;}
-    | declaration code  {$$ = createNode(AST_CODE); createChildren($$, $1, -1); createChildren($$, $2, -1);};
+      declaration       {$$ = $1;
+                         $$->code = $1->code;
+                         }
+    | declaration code  {$$ = createNode(AST_CODE); createChildren($$, $1, -1); createChildren($$, $2, -1);
+                         $$->code = concatTwoCodes($1, $2);
+                        };
 
 declaration:
       classDeclaration      {$$ = $1;}
-    | globalVarDeclaration  {$$ = $1;}
+    | globalVarDeclaration  {$$ = $1;
+                             $$->code = $1->code;
+                             }
     | functionDeclaration   {$$ = $1;}; 
 
 
@@ -241,7 +250,9 @@ globalVarDeclaration:
                                                                 createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                 createChildren($$, $3, -1);
                                                                 int err = addSymbolFromNode($1,$2);
-                                                                if (err) { semanticerror(err, $1, $2); exit(err); } 
+                                                                if (err) {semanticerror(err, $1, $2); exit(err);}; 
+
+                                                                updateNodeCodeGLOBALDECLARATION($$, $1, $2);
                                                                }
     | TK_IDENTIFICADOR TK_PR_STATIC type  ';'                  {$$ = createNode(AST_GLOBALVARDEC); 
                                                                 createChildren($$, $1, -1); createChildren($$, $2, -1);
@@ -355,7 +366,8 @@ functionArgumentElements:
 //All Commands, it can be anypart of a simple command or it can be a case/output
 command:
       commandSimple ';'              //All simple commands finish with a ';' 
-                                     {$$ = createNode(AST_COMMAND); createChildren($$, $1, -1); createChildren($$, $2, -1);}
+                                     {$$ = createNode(AST_COMMAND); createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                     $$->code = $1->code;}
     | TK_PR_OUTPUT expressionList ';'//Output has parenthesis and thus is not a simple command
                                      {$$ = createNode(AST_COMMAND); 
                                            createChildren($$, $1, -1); createChildren($$, $2, -1);
@@ -385,7 +397,9 @@ commandSimple:
                                         }
                                         exit(err);} 
                                     } 
-    | attribution                                   {$$ = $1;}
+    | attribution                                   {$$ = $1; 
+                                                     $$->code = $1->code;}
+
     | TK_PR_INPUT expression                        {$$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1, -1); 
 
                                                      //expression
@@ -432,7 +446,6 @@ commandSimple:
 localVarDeclaration:
       primitiveType TK_IDENTIFICADOR localVarInit //If it starts with ID and is initialized 
                                                     {
-                                                    
                                                     $$ = createNode(AST_LOCALVARDEC); 
                                                      createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                      createChildren($$, $3, -1);
@@ -454,15 +467,17 @@ localVarInit:
 
 attribution:
       primitiveAttribution  {$$ = $1; int err = checkPrimitiveAttribution($1);
-                            if(err){ semanticerror(err, $1->child, NULL); exit(err);}}
+                            if(err){ semanticerror(err, $1->child, NULL); exit(err);}
+                            $$->code = $1->code;
+                            }
     | userTypeAttribution   {$$ = $1; int err = checkUserTypeAttribution($1);
                             if(err){ semanticerror(err, $1->child, $1->child->brother->brother->brother); exit(err);}};
 
 primitiveAttribution:
       TK_IDENTIFICADOR vectorModifier '=' expression {$$ = createNode(AST_PRIMATTR); 
                                                         createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                        createChildren($$, $3, -1); createChildren($$, $4, -1);};  
- //userVariable
+                                                        createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                     updateNodeCodeATTRIBUTION($$, $1, $4);};  
 
 userTypeAttribution:
       TK_IDENTIFICADOR vectorModifier '$' TK_IDENTIFICADOR '=' expression {$$ = createNode(AST_USERTYPEATTR); 
@@ -655,10 +670,13 @@ selectionFluxControl:
 
 //List of commands without commas in them, used in for
 commandSimpleList:
-      commandSimple                       {$$ = $1;}
+      commandSimple                       {$$ = $1;
+                                           $$->code = $1->code;}
     | commandSimpleList ',' commandSimple {$$ = createNode(AST_COMMANDSIMPLELIST); 
                                            createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                           createChildren($$, $3, -1);};
+                                           createChildren($$, $3, -1);
+                                           $$->code = concatTwoCodes($1, $3);
+                                           };
 
 //Pipe Commands can be in the format of "f() %>% f()" or "f() %>% f() %>% ... f()"
 pipeCommands:
@@ -717,8 +735,6 @@ lowPrecedenceTwoFoldRecursiveExpression:
     | lowPrecedenceTwoFoldRecursiveExpression arithmeticOperator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
                                                                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                                                    createChildren($$, $3, -1);
-                                                                                                   $$->registerTemp = newRegister();
-                                                                                                   $$->code = newCode();
                                                                                                    updateNodeCodeOPERATION($$, $1, $3, $2);}
     | lowPrecedenceTwoFoldRecursiveExpression comparisonOperator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
                                                                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);

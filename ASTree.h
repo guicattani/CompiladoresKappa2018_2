@@ -2,8 +2,6 @@
 #define ASTREEH
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <sys/queue.h>
 #include "auxiliar.h"
 
 typedef struct node{
@@ -50,10 +48,6 @@ int getAttributedStringSize(struct node* node);
 int numberOfChildren(struct node* node);
 int numberOfSiblings(struct node* node);
 int isVectorEmpty(struct node* vectorNode);
-
-void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, struct node* rightOperand, struct node* operatorNode);
-
-void printCode(struct node* topNode);
 
 
 #endif
