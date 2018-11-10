@@ -207,8 +207,34 @@ void updateNodeCodeLOCALDECLARATION(struct node* topNode, struct node* identifie
         topNode->registerTemp = newRegister();
         topNode->code = newCode();
 
-        int localRfpOffset = 0;
+        //Load registers
+        char* initializationRegisterLoad = newRegister(); //esse fica dangling, tem que dar free TODO
+        struct code* previousCodeLoad = newCode();
 
+        //Store registers
+        struct code* previousCodeStore = newCode();
+
+        previousCodeStore->previous = previousCodeLoad;
+        previousCodeLoad->next = previousCodeStore;
+            
+        strcat(previousCodeLoad->line,"loadI ");
+        strcat(previousCodeLoad->line,"0");
+        strcat(previousCodeLoad->line," => ");
+        strcat(previousCodeLoad->line,initializationRegisterLoad);
+
+        topNode->code->previous = previousCodeStore;
+        previousCodeStore->next = topNode->code;
+            
+        strcat(previousCodeStore->line,"storeAI ");
+        strcat(previousCodeStore->line,initializationRegisterLoad);
+        strcat(previousCodeStore->line," => ");
+        strcat(previousCodeStore->line,"rfp");
+        strcat(previousCodeStore->line,", ");
+        char rfpOffsetTemp[10];
+        sprintf(rfpOffsetTemp,"%d", rfpOffset);
+        strcat(previousCodeStore->line,rfpOffsetTemp);
+
+        int localRfpOffset = 0;
         //increment global rfp index 
         if(strcmp(typeNode->token_value, "bool") == 0){ //TODO tem algum jeito de fazer isso com type ou nature do nodo?
             rfpOffset += 1;
@@ -241,6 +267,31 @@ void updateNodeCodeLOCALDECLARATION(struct node* topNode, struct node* identifie
 void updateNodeCodeGLOBALDECLARATION(struct node* topNode, struct node* identifierNode, struct node* typeNode){
     topNode->registerTemp = newRegister();
     topNode->code = newCode();
+
+    //Load registers
+    char* initializationRegisterLoad = newRegister(); //esse fica dangling, tem que dar free TODO
+    struct code* previousCodeLoad = newCode();
+    //Store registers
+    struct code* previousCodeStore = newCode();
+    previousCodeStore->previous = previousCodeLoad;
+    previousCodeLoad->next = previousCodeStore;
+        
+    strcat(previousCodeLoad->line,"loadI ");
+    strcat(previousCodeLoad->line,"0");
+    strcat(previousCodeLoad->line," => ");
+    strcat(previousCodeLoad->line,initializationRegisterLoad);
+    topNode->code->previous = previousCodeStore;
+    previousCodeStore->next = topNode->code;
+        
+    strcat(previousCodeStore->line,"storeAI ");
+    strcat(previousCodeStore->line,initializationRegisterLoad);
+    strcat(previousCodeStore->line," => ");
+    strcat(previousCodeStore->line,"rbss");
+    strcat(previousCodeStore->line,", ");
+    char rfpOffsetTemp[10];
+    sprintf(rfpOffsetTemp,"%d", rfpOffset);
+    strcat(previousCodeStore->line,rfpOffsetTemp);
+
     int localRbssOffset = 0;
 
     //increment global rfp index 
@@ -298,12 +349,26 @@ void updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOperand, s
         rightOperand->code->next = topNode->code;
 
     }
-    strcat(topNode->code->line,"store ");
-    strcat(topNode->code->line,registerName);
-    strcat(topNode->code->line," => ");
-    strcat(topNode->code->line,attributionRegister);
 
-    topNode->registerTemp = leftOperand->registerTemp;
+    strcat(topNode->code->line,"storeAI ");
+    strcat(topNode->code->line,rightOperand->registerTemp);
+    strcat(topNode->code->line," => ");
+    if(info->rfpOffset >= 0){
+        strcat(topNode->code->line,"rfp");
+        strcat(topNode->code->line,", ");
+        char rfpOffsetTemp[10];
+        sprintf(rfpOffsetTemp,"%d", info->rfpOffset);
+        strcat(topNode->code->line,rfpOffsetTemp);
+    }
+    else{
+        strcat(topNode->code->line,"rbss");
+        strcat(topNode->code->line,", ");
+        char rbssOffsetTemp[10];
+        sprintf(rbssOffsetTemp,"%d", info->rbssOffset);
+        strcat(topNode->code->line,rbssOffsetTemp);
+    }
+    topNode->registerTemp = "test";
+
 }
 
 char* calculateCodeGenValue(struct node* node){
