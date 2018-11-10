@@ -9,6 +9,9 @@ int rbssOffset = 0;
 
 void printCode(struct node* topNode){
     struct code* code = topNode->code;
+    while(code->previous){
+        code = code->previous;
+    }
     while(code){
         printf("%s\n",code->line);
         code = code->next; 
@@ -47,7 +50,6 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
             strcat(previousCode->line,calculateCodeGenValue(leftOperand->child));
             strcat(previousCode->line," => ");
             strcat(previousCode->line,leftOperand->registerTemp);
-            
 
             //add imediate   
             if(strcmp(operatorNode->token_value, "+") == 0) {
@@ -349,16 +351,27 @@ struct code* newCode(){
 
 struct code* concatTwoCodes(struct node* executedFirst, struct node* executedSecond){
     struct code* code = NULL;
+    struct code* codeIterator = NULL;
 
     if(executedFirst->code) {
         code = executedFirst->code;
+        while(code->next){
+            code = code->next;
+        }
         if(executedSecond->code){
-            code->next = executedSecond->code;
-            executedSecond->code->previous = code;
+            codeIterator = executedSecond->code;
+            while(codeIterator->previous){
+                codeIterator = codeIterator->previous;
+            }
+            code->next = codeIterator;
+            codeIterator->previous = code;
+
         }
     }
-    else if(executedSecond->code)
+    else if(executedSecond->code){
         code = executedSecond->code;
+    }
 
+           
     return code;
 }

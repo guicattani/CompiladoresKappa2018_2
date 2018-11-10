@@ -207,7 +207,7 @@ code:
                          $$->code = $1->code;
                          }
     | code declaration {$$ = createNode(AST_CODE); createChildren($$, $1, -1); createChildren($$, $2, -1);
-                         $$->code = concatTwoCodes($1, $2);
+                        $$->code = concatTwoCodes($1, $2);
                         };
 
 declaration:
@@ -354,7 +354,8 @@ commandsBlock:
 
 commandsList:
       commandsList command   {$$ = createNode(AST_COMMANDSLIST); createChildren($$, $1, -1); createChildren($$, $2, -1);
-                            $$->code = concatTwoCodes($1,$2);}
+                            $$->code = concatTwoCodes($1,$2);
+                            }
     | %empty                {$$ = createNode(AST_COMMANDSLIST);};
 
 functionArgumentsList:
@@ -404,7 +405,6 @@ commandSimple:
                                         }
                                         exit(err);
                                         } 
-
                                     if(numberOfChildren($1) == 1) {
                                         updateNodeCodeLOCALDECLARATION($1->child, $1->child->child->brother, $1->child->child);
                                         if(numberOfChildren($1->child->child->brother->brother) == 2){
