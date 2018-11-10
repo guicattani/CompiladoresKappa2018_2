@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/queue.h>
 #include "auxiliar.h"
 
 typedef struct node{
@@ -14,6 +15,12 @@ typedef struct node{
     int typeInfered;        //this type will have precedence over "type" as it is the typeinfered of the expression below it
     int implicitConversion; //marks the node for implicit conversion, useful for code generation
     
+    struct code* code;
+    char* registerTemp;
+
+    struct boolList* trueList;
+    struct boolList* falseList;
+
     union value value;
     struct node* brother;
     struct node* child;
@@ -43,4 +50,10 @@ int getAttributedStringSize(struct node* node);
 int numberOfChildren(struct node* node);
 int numberOfSiblings(struct node* node);
 int isVectorEmpty(struct node* vectorNode);
+
+void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, struct node* rightOperand, struct node* operatorNode);
+
+void printCode(struct node* topNode);
+
+
 #endif

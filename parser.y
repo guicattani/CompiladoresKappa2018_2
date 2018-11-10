@@ -678,7 +678,8 @@ simpleExpression:
                                                 }
     | functionCall                              {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, $1->child);exit(err); }}
     | pipeCommands                              {$$ = $1; int err = checkFunctionPipe($1); if (err){ semanticerror(err, $1->child, $1->child);exit(err); }}
-    | literal                                   {$$ = $1;}
+    | literal                                   {$$ = createNode(AST_LITERAL); 
+                                                      createChildren($$, $1, -1);}
     | TK_IDENTIFICADOR  '$' TK_IDENTIFICADOR    {$$ = createNode(AST_SIMPLEEXP); 
                                                       createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                       createChildren($$, $3, -1);
@@ -715,7 +716,10 @@ lowPrecedenceTwoFoldRecursiveExpression:
     mediumPrecedenceTwoFoldRecursiveExpression                                                    {$$ = $1;}
     | lowPrecedenceTwoFoldRecursiveExpression arithmeticOperator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
                                                                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                                                   createChildren($$, $3, -1);}
+                                                                                                   createChildren($$, $3, -1);
+                                                                                                   $$->registerTemp = newRegister();
+                                                                                                   $$->code = newCode();
+                                                                                                   updateNodeCodeOPERATION($$, $1, $3, $2);}
     | lowPrecedenceTwoFoldRecursiveExpression comparisonOperator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
                                                                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                                                    createChildren($$, $3, -1);}; 
@@ -724,7 +728,7 @@ mediumPrecedenceTwoFoldRecursiveExpression:
     highPrecedenceTwoFoldRecursiveExpression                                                                          {$$ = $1;}
     | mediumPrecedenceTwoFoldRecursiveExpression precedentArithmeticOperator highPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_MEDPTFREXP); 
                                                                                                                        createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                                                                       createChildren($$, $3, -1);}; 
+                                                                                                                       createChildren($$, $3, -1);};
 
 highPrecedenceTwoFoldRecursiveExpression:
     oneFoldRecursiveExpression                                                {$$ = $1;}
@@ -826,8 +830,8 @@ unarySimbol:
 
 arithmeticOperator:
       '+'{$$ = $1;} 
-    | '-'{$$ = $1;}
-    | '|'{$$ = $1;}
+    | '-'{$$ = $1;};
+    |  '|'{$$ = $1;}
     | '&'{$$ = $1;};
 
 precedentArithmeticOperator:

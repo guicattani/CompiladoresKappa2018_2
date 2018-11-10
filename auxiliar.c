@@ -1,5 +1,8 @@
 #include "auxiliar.h"
 
+int registerIndex = 0;
+int labelIndex = 0;
+
 union value createValue(int type, char* text){
     union value value;
     switch (type){
@@ -104,3 +107,30 @@ int parseType(char* typeString){
         return NATUREZA_IDENTIFICADOR;
 }
 
+char* newRegister(){
+    char registerNumber[10];
+    sprintf(registerNumber,"%d", registerIndex++);
+    char* registerName = malloc(sizeof(char)*10);
+    strcat(registerName, "r");
+    strcat(registerName, registerNumber);
+    strcat(registerName, "\0");
+
+    return registerName;
+}
+char* newLabel(){
+    char labelNumber[10];
+    sprintf(labelNumber,"%d", labelIndex++);
+    char* labelName = malloc(sizeof(char)*10);
+    strcat(labelName, "r");
+    strcat(labelName, labelNumber);
+
+    return labelName;
+}
+
+struct code* newCode(){
+    struct code* newCode = malloc(sizeof(struct code*));
+    newCode->previous = NULL;
+    newCode->next = NULL;
+    newCode->sizeOfString = -1;
+    return newCode;
+}

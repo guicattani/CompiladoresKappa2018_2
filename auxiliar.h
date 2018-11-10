@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define FALSE                       0
 #define TRUE                        1
@@ -64,6 +65,7 @@
 #define AST_USERTYPEATTR        "Estado userTypeAttribution"
 #define AST_EXPRESSION          "Estado expression"
 #define AST_SIMPLEEXP           "Estado simpleExpression"
+#define AST_LITERAL             "Estado literal"
 #define AST_LOWPTFREXP          "Estado lowPrecedenceTwoFoldRecursiveExpression"
 #define AST_MEDPTFREXP          "Estado mediumPrecedenceTwoFoldRecursiveExpression"
 #define AST_HIGHPTFREXP         "Estado highPrecedenceTwoFoldRecursiveExpression"
@@ -137,5 +139,21 @@ int getSizeFromType(int type, int vectorSize, int sizeOfString);
 int calculateImplicitConvert(int variableType, int expressionType);
 int parseType(char* typeString);
 
+
+typedef struct boolList{
+    char* pointerOfSpace;
+    struct boolList* next;
+} BOOLLIST;
+
+typedef struct code{
+    struct code* previous;
+    char list[10][10];
+    int sizeOfString;
+    struct code* next;
+} CODE;
+
+char* newRegister();
+char* newLabel();
+struct code* newCode();
 
 #endif

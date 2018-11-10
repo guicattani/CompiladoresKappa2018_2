@@ -37,6 +37,118 @@ struct node* createNode(char* state){
     return newNode;
 }
 
+void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, struct node* rightOperand, struct node* operatorNode){
+    if(strcmp(leftOperand->token_value, AST_LITERAL) == 0) {
+        if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) {
+            //both literals
+            leftOperand->registerTemp = newRegister(); //TODO LIBERAR ESSE REG
+            //load to register
+            topNode->code->previous = newCode();
+            
+            strcpy(topNode->code->previous->list[0],"loadI");
+            strcpy(topNode->code->previous->list[1],"a1");
+            strcpy(topNode->code->previous->list[2],"A2");
+            printf("%s", topNode->code->previous->list[2]);
+            strcpy(topNode->code->previous->list[3],"BBBB");
+            printf("%s", topNode->code->previous->list[3]);
+            topNode->code->previous->sizeOfString = 4;
+
+                //add imediate   
+            if(strcmp(operatorNode->token_value, "+") == 0) {
+                strcpy(topNode->code->list[0],"addI");
+            }
+            else { //minus
+                strcpy(topNode->code->list[0],"subI");
+            }
+
+            strcpy(topNode->code->list[1],leftOperand->registerTemp);
+            strcpy(topNode->code->list[2],",");
+            strcpy(topNode->code->list[3],rightOperand->child->token_value);
+            strcpy(topNode->code->list[4],"=>");
+            strcpy(topNode->code->list[5],topNode->registerTemp);
+            topNode->code->sizeOfString = 6;
+
+        }
+        else { //left literal right register
+
+            //concat code
+            topNode->code->previous = rightOperand->code;
+
+            if(strcmp(operatorNode->token_value, "+") == 0) {
+                strcpy(topNode->code->list[0],"addI");
+            }
+            else { //minus
+                strcpy(topNode->code->list[0],"subI");
+            }
+            strcpy(topNode->code->list[1],rightOperand->registerTemp);
+            strcpy(topNode->code->list[2],",");
+            strcpy(topNode->code->list[3],leftOperand->child->token_value);
+            strcpy(topNode->code->list[4],"=>");
+            strcpy(topNode->code->list[5],topNode->registerTemp);
+            topNode->code->sizeOfString = 6;
+
+        }
+    }
+
+    else { //left is register
+        if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) { //right is literal
+            //concat code
+            topNode->code->previous = leftOperand->code;
+
+            if(strcmp(operatorNode->token_value, "+") == 0) {
+                strcpy(topNode->code->list[0],"addI");
+            }
+            else { //minus
+                strcpy(topNode->code->list[0],"subI");
+            }
+            strcpy(topNode->code->list[1],leftOperand->registerTemp);
+            strcpy(topNode->code->list[2],",");
+            strcpy(topNode->code->list[3],rightOperand->child->token_value);
+            strcpy(topNode->code->list[4],"=>");
+            strcpy(topNode->code->list[5],topNode->registerTemp);
+            topNode->code->sizeOfString = 6;
+
+        } 
+        else { //both are registers
+            //concat code
+            rightOperand->code->previous = leftOperand->code;
+            topNode->code->previous = rightOperand->code;
+            if(strcmp(operatorNode->token_value, "+") == 0) {
+                strcpy(topNode->code->list[0],"add");
+            }
+            else { //minus
+                strcpy(topNode->code->list[0],"sub");
+            }
+            strcpy(topNode->code->list[1],leftOperand->registerTemp);
+            strcpy(topNode->code->list[2],",");
+            strcpy(topNode->code->list[3],rightOperand->registerTemp);
+            strcpy(topNode->code->list[4],"=>");
+            strcpy(topNode->code->list[5],topNode->registerTemp);
+            topNode->code->sizeOfString = 6;
+
+        }
+    }
+
+    //print code
+    printCode(topNode);
+}
+
+void printCode(struct node* topNode){
+    struct node* nodeIterator = topNode;
+    while(nodeIterator->code){
+        int index;
+        int topIndex = nodeIterator->code->sizeOfString;
+        char string[100] = "";
+        for (index = 0; index < topIndex; index++){
+            strcat(string, nodeIterator->code->list[index]);
+            strcat(string, " ");
+        }
+        printf("%s\n",string);
+        nodeIterator->code = nodeIterator->code->previous; 
+    }
+}
+
+
 struct node* createLeaf(int line_number, int type, char* text, int col_number){
     struct node *newNode = malloc(sizeof(struct node));
     newNode->line_number = line_number;
@@ -57,9 +169,9 @@ struct node* createLeaf(int line_number, int type, char* text, int col_number){
             newNode->value.int_value = atoi(text);
             break;
         case 6: //Literal Bool
-            if (text == "true")
+            if (strcmp(text,"true") == 0)
                 newNode->value.bool_value = 1;
-            else if (text == "false")
+            else if (strcmp(text,"false") == 0)
                 newNode->value.bool_value = 0;
             break;
         case 7: //Literal Float
@@ -71,6 +183,14 @@ struct node* createLeaf(int line_number, int type, char* text, int col_number){
             break;
 
     }
+
+    //code parts, all will be created dinamically
+    newNode->code = NULL;
+    newNode->registerTemp = NULL;
+
+    newNode->trueList = NULL;
+    newNode->falseList = NULL;
+
     nodeList = insertList(nodeList, newNode);
     return newNode;
 }
