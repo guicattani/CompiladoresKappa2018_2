@@ -327,10 +327,13 @@ void updateNodeCodeGLOBALDECLARATION(struct node* topNode, struct node* identifi
 void updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOperand, struct node* rightOperand){
     struct symbolInfo* info = findSymbolInContexts(leftOperand->token_value);
 
+    printf("sec1\n");
+
     char* attributionRegister = info->registerTemp;
     topNode->code = newCode();
     char* registerName = "";
     if(strcmp(rightOperand->token_value, AST_LITERAL) == 0){
+    printf("sec2\n");
         rightOperand->registerTemp = newRegister(); //TODO LIBERAR ESSE REG
         struct code* previousCode = newCode();
         topNode->code->previous = previousCode;
@@ -344,6 +347,7 @@ void updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOperand, s
         registerName = rightOperand->registerTemp;
     }
     else{
+    printf("sec3\n");
         registerName = rightOperand->registerTemp;
         topNode->code->previous = rightOperand->code;
         rightOperand->code->next = topNode->code;

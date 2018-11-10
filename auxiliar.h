@@ -34,6 +34,7 @@
 
 #define AST_PROGRAMA            "Estado Programa"
 #define AST_LITERAL             "Estado literal"
+#define AST_IDNOTLIT            "Estado identificador nao literal"
 #define AST_PIPE                "Estado pipe"
 #define AST_USERVARORLIT        "Estado userVariableOrLiteral"
 #define AST_TYPE                "Estado type"

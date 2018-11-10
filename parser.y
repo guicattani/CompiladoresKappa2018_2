@@ -154,8 +154,10 @@ pipe:
     | TK_OC_FORWARD_PIPE {$$ = $1;};
 
 userVariableOrLiteral:
-      TK_IDENTIFICADOR  {$$ = $1;} 
-    | literal           {$$ = $1;};
+      TK_IDENTIFICADOR  {$$ = createNode(AST_IDNOTLIT);
+                         createChildren($$, $1, -1);} 
+    | literal           {$$ = createNode(AST_LITERAL); 
+                         createChildren($$, $1, -1);};
 
 type:
       TK_PR_INT         {$$ = $1;}
@@ -404,12 +406,16 @@ commandSimple:
                                             semanticerror(err, $1->child->child->brother, $1->child->child); 
                                         }
                                         exit(err);
-                                        } 
+                                    } 
+
                                     if(numberOfChildren($1) == 1) {
                                         updateNodeCodeLOCALDECLARATION($1->child, $1->child->child->brother, $1->child->child);
                                         if(numberOfChildren($1->child->child->brother->brother) == 2){
-                                            updateNodeCodeATTRIBUTION($1->child->child->child->brother->brother, $1->child->child->brother, $1->child->child->brother->brother->child->brother);
-                                            $$->code = concatTwoCodes($1->child, $1->child->child->brother->brother);
+                                            printf("here1\n");
+                                            updateNodeCodeATTRIBUTION($$, $1->child->child->brother, $1->child->child->brother->brother->child->brother);
+                                            printf("here2\n");
+                                            $$->code = concatTwoCodes($1->child, $$);
+                                            printf("here3\n");
                                         }else{
                                             $$->code = $1->child->code;
                                         }
