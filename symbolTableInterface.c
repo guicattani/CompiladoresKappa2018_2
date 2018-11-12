@@ -173,7 +173,8 @@ int addSymbolFromLocalVarDeclaration(struct node *localVarCompleteDeclaration){
     if(numberOfChildren(localVarDeclaration) == 3){
         if(numberOfChildren(localVarDeclaration->child->brother->brother) != 0){
             //Attribution
-            struct node* type = localVarDeclaration->child->brother->brother->child->brother; //Goes into userVariableOrLiteral Node
+            
+            struct node* type = localVarDeclaration->child->brother->brother->child->brother->child; //Goes into userVariableOrLiteral Node
             int attrType = type->token_type;
             if(attrType == NATUREZA_IDENTIFICADOR){
                 struct symbolInfo* typeInfo = findSymbolInContexts(type->token_value);

@@ -18,6 +18,9 @@ void printCode(struct node* topNode){
     }
 }
 
+void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperand, struct node* rightOperand, struct node* operatorNode){
+}
+
 void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, struct node* rightOperand, struct node* operatorNode){
     topNode->registerTemp = newRegister();
     topNode->code = newCode();
@@ -212,37 +215,32 @@ void updateNodeCodeLOCALDECLARATION(struct node* topNode, struct node* identifie
         struct code* previousCodeLoad = newCode();
 
         //Store registers
-        struct code* previousCodeStore = newCode();
-
-        previousCodeStore->previous = previousCodeLoad;
-        previousCodeLoad->next = previousCodeStore;
+        topNode->code->previous = previousCodeLoad;
+        previousCodeLoad->next = topNode->code;
             
         strcat(previousCodeLoad->line,"loadI ");
         strcat(previousCodeLoad->line,"0");
         strcat(previousCodeLoad->line," => ");
         strcat(previousCodeLoad->line,initializationRegisterLoad);
-
-        topNode->code->previous = previousCodeStore;
-        previousCodeStore->next = topNode->code;
             
-        strcat(previousCodeStore->line,"storeAI ");
-        strcat(previousCodeStore->line,initializationRegisterLoad);
-        strcat(previousCodeStore->line," => ");
-        strcat(previousCodeStore->line,"rfp");
-        strcat(previousCodeStore->line,", ");
+        strcat(topNode->code->line,"storeAI ");
+        strcat(topNode->code->line,initializationRegisterLoad);
+        strcat(topNode->code->line," => ");
+        strcat(topNode->code->line,"rfp");
+        strcat(topNode->code->line,", ");
         char rfpOffsetTemp[10];
         sprintf(rfpOffsetTemp,"%d", rfpOffset);
-        strcat(previousCodeStore->line,rfpOffsetTemp);
+        strcat(topNode->code->line,rfpOffsetTemp);
 
-        int localRfpOffset = 0;
+        //put in symbol table: regtemp, rfp
+        info->rfpOffset = rfpOffset;
+
         //increment global rfp index 
         if(strcmp(typeNode->token_value, "bool") == 0){ //TODO tem algum jeito de fazer isso com type ou nature do nodo?
             rfpOffset += 1;
-            localRfpOffset = 1;
         }
         else if(strcmp(typeNode->token_value, "int") == 0){
             rfpOffset += 4;
-            localRfpOffset = 4;
 
         }
         else{
@@ -251,16 +249,6 @@ void updateNodeCodeLOCALDECLARATION(struct node* topNode, struct node* identifie
     
         //put in symbol table: regtemp, rfp
         info->registerTemp = topNode->registerTemp;
-        info->rfpOffset = localRfpOffset;
-        //increment rfp in the code 
-        strcat(topNode->code->line,"addI ");
-        strcat(topNode->code->line,"rfp, ");
-
-        char offSetValue[2];
-        sprintf(offSetValue,"%d", localRfpOffset);
-        strcat(topNode->code->line, offSetValue);
-        strcat(topNode->code->line," => ");
-        strcat(topNode->code->line,"rfp");
     }
 }
 
@@ -271,69 +259,49 @@ void updateNodeCodeGLOBALDECLARATION(struct node* topNode, struct node* identifi
     //Load registers
     char* initializationRegisterLoad = newRegister(); //esse fica dangling, tem que dar free TODO
     struct code* previousCodeLoad = newCode();
-    //Store registers
-    struct code* previousCodeStore = newCode();
-    previousCodeStore->previous = previousCodeLoad;
-    previousCodeLoad->next = previousCodeStore;
+    topNode->code->previous = previousCodeLoad;
+    previousCodeLoad->next = topNode->code;
         
     strcat(previousCodeLoad->line,"loadI ");
     strcat(previousCodeLoad->line,"0");
     strcat(previousCodeLoad->line," => ");
     strcat(previousCodeLoad->line,initializationRegisterLoad);
-    topNode->code->previous = previousCodeStore;
-    previousCodeStore->next = topNode->code;
         
-    strcat(previousCodeStore->line,"storeAI ");
-    strcat(previousCodeStore->line,initializationRegisterLoad);
-    strcat(previousCodeStore->line," => ");
-    strcat(previousCodeStore->line,"rbss");
-    strcat(previousCodeStore->line,", ");
-    char rfpOffsetTemp[10];
-    sprintf(rfpOffsetTemp,"%d", rfpOffset);
-    strcat(previousCodeStore->line,rfpOffsetTemp);
+    strcat(topNode->code->line,"storeAI ");
+    strcat(topNode->code->line,initializationRegisterLoad);
+    strcat(topNode->code->line," => ");
+    strcat(topNode->code->line,"rbss");
+    strcat(topNode->code->line,", ");
+    char rbssOffsetTemp[10];
+    sprintf(rbssOffsetTemp,"%d", rbssOffset);
+    strcat(topNode->code->line,rbssOffsetTemp);
 
-    int localRbssOffset = 0;
+    struct symbolInfo* info = findSymbolInContexts(identifierNode->token_value);
+    info->rbssOffset = rbssOffset;
 
     //increment global rfp index 
     if(strcmp(typeNode->token_value, "bool") == 0){ //TODO tem algum jeito de fazer isso com type ou nature do nodo?
         rbssOffset += 1;
-        localRbssOffset = 1;
     }
     else if(strcmp(typeNode->token_value, "int") == 0){
         rbssOffset += 4;
-        localRbssOffset = 4;
     }
     else{
         printf("wrong type!\n");
     }
 
-
-    struct symbolInfo* info = findSymbolInContexts(identifierNode->token_value);
-    
     //put in symbol table: regtemp, rfp
     info->registerTemp = topNode->registerTemp;
-    info->rbssOffset = localRbssOffset;
-
-    //increment rfp in the code 
-    strcat(topNode->code->line,"addI ");
-    strcat(topNode->code->line,"rbss, ");
-    char offSetValue[2];
-    sprintf(offSetValue,"%d", localRbssOffset);
-    strcat(topNode->code->line, offSetValue);
-    strcat(topNode->code->line," => ");
-    strcat(topNode->code->line,"rbss");
 }
 
 void updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOperand, struct node* rightOperand){
     struct symbolInfo* info = findSymbolInContexts(leftOperand->token_value);
 
-    printf("sec1\n");
 
     char* attributionRegister = info->registerTemp;
     topNode->code = newCode();
     char* registerName = "";
     if(strcmp(rightOperand->token_value, AST_LITERAL) == 0){
-    printf("sec2\n");
         rightOperand->registerTemp = newRegister(); //TODO LIBERAR ESSE REG
         struct code* previousCode = newCode();
         topNode->code->previous = previousCode;
@@ -347,7 +315,6 @@ void updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOperand, s
         registerName = rightOperand->registerTemp;
     }
     else{
-    printf("sec3\n");
         registerName = rightOperand->registerTemp;
         topNode->code->previous = rightOperand->code;
         rightOperand->code->next = topNode->code;

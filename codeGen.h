@@ -10,6 +10,8 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
 void updateNodeCodeDECLARATION(struct node* topNode, struct node* leftOperand, struct node* rightOperand);
 void updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOperand, struct node* rightOperand);
 
+void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperand, struct node* rightOperand, struct node* operatorNode);
+
 void updateNodeCodeLOCALDECLARATION(struct node* topNode, struct node* identifierNode, struct node* typeNode);
 void updateNodeCodeGLOBALDECLARATION(struct node* topNode, struct node* identifierNode, struct node* typeNode);
 

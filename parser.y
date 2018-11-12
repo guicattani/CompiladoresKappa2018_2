@@ -411,11 +411,8 @@ commandSimple:
                                     if(numberOfChildren($1) == 1) {
                                         updateNodeCodeLOCALDECLARATION($1->child, $1->child->child->brother, $1->child->child);
                                         if(numberOfChildren($1->child->child->brother->brother) == 2){
-                                            printf("here1\n");
                                             updateNodeCodeATTRIBUTION($$, $1->child->child->brother, $1->child->child->brother->brother->child->brother);
-                                            printf("here2\n");
                                             $$->code = concatTwoCodes($1->child, $$);
-                                            printf("here3\n");
                                         }else{
                                             $$->code = $1->child->code;
                                         }
@@ -768,16 +765,20 @@ lowPrecedenceTwoFoldRecursiveExpression:
     | lowPrecedenceTwoFoldRecursiveExpression arithmeticOperator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
                                                                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                                                    createChildren($$, $3, -1);
-                                                                                                   updateNodeCodeOPERATION($$, $1, $3, $2);}
+                                                                                                   updateNodeCodeOPERATION($$, $1, $3, $2);
+                                                                                                   $$->code = concatTwoCodes($3, $1);
+                                                                                                   }
     | lowPrecedenceTwoFoldRecursiveExpression comparisonOperator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
                                                                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                                                   createChildren($$, $3, -1);}; 
+                                                                                                   createChildren($$, $3, -1);
+                                                                                                   updateNodeCodeARITHCOMPARISON($$, $1, $3, $2);}; 
 
 mediumPrecedenceTwoFoldRecursiveExpression:
     highPrecedenceTwoFoldRecursiveExpression                                                                          {$$ = $1;}
     | mediumPrecedenceTwoFoldRecursiveExpression precedentArithmeticOperator highPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_MEDPTFREXP); 
                                                                                                                        createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                                                                       createChildren($$, $3, -1);};
+                                                                                                                       createChildren($$, $3, -1);
+                                                                                                                       updateNodeCodeOPERATION($$, $1, $3, $2);};
 
 highPrecedenceTwoFoldRecursiveExpression:
     oneFoldRecursiveExpression                                                {$$ = $1;}
