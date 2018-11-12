@@ -18,7 +18,6 @@ struct node* createChildren(struct node* parent, struct node* child, int typeInf
     }
 
     parent->typeInfered = typeInfered;
-    
     return parent;
 }
 

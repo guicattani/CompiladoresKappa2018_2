@@ -270,12 +270,11 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
             //concat code
             if(strcmp(operatorNode->token_value, "&&") == 0){
 
-
             
                 char* temp = newLabel();
 
                 patching(leftOperand->code, temp, 1);
-
+                printf("To na exp\n");
                 concatTwoCodes(topNode, leftOperand);
 
                 struct code* nextLine = getNextLine(topNode->code);
@@ -302,21 +301,18 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
                 char* rightAttributionRegister;
                 if(leftOperand->token_type != NATUREZA_IDENTIFICADOR){
                     leftAttributionRegister = leftOperand->registerTemp;
-                    printf("ESTOU AQUI %s\n", leftOperand->token_value);
                 }
                 else
                     leftAttributionRegister = leftRegisterFromIdentifier;
 
                 if(rightOperand->token_type != NATUREZA_IDENTIFICADOR){
                     rightAttributionRegister = rightOperand->registerTemp;
-                    printf("AQUI TAMBÉM\n");
+
                 }
                 else
                     rightAttributionRegister = rightRegisterFromIdentifier;
 
-               printf("OI %s\n %s \n ", compareCode->line, leftAttributionRegister);
                 strcat(compareCode->line,leftAttributionRegister);
-               printf("OI\n");
                 strcat(compareCode->line,", ");
                 strcat(compareCode->line,rightAttributionRegister);
                 strcat(compareCode->line," -> ");
@@ -406,7 +402,6 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
 
         }
     }
-    printf ("%s\n", topNode->token_value);
 }
 
 void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, struct node* rightOperand, struct node* operatorNode){
@@ -734,6 +729,7 @@ struct code* newCode(){
     struct code* newCode = malloc(sizeof(struct code*));
     newCode->previous = NULL;
     newCode->line = malloc(sizeof(char)*100);//size of string is 100
+    newCode->line[0] = '\0';
     newCode->next = NULL;
     return newCode;
 }
@@ -778,6 +774,7 @@ void updateNodeCodeIF(struct node* ifNode, struct node* condition, struct node* 
     patching(condition->code, rot, 1);
     patching(condition->code, rot2, 0);
 
+    printf("oi\n");
 
     ifNode->code = concatTwoCodes(ifNode, condition);
 
@@ -934,9 +931,12 @@ struct code* getNextLine(struct code* code){
 //Patches the code with the string given
 //par: Parameter - 1 replaces #1 with the replacement, 0 replaces #2
 void patching(struct code* code, char* replacement, int par){
+
     while(code != NULL){
+        printf("%s \n", code->line);
         fixLine(code->line, par, replacement);
         code = code->next;
+        printf("%s \n", code->line);
     }
 }
 
@@ -976,15 +976,18 @@ void fixLine(char* line, int par, char* replacement){
     char* token, *dup;
     //Token will be a pointer to the place where we will need to start replacing
     token = strstr(line, str);
-    //Dup is a temporary copy of the rest of the string so we can replace safely
-    dup = strdup(token + 2);
+    if(token){
+        printf("Token\n");
+        //Dup is a temporary copy of the rest of the string so we can replace safely
+        dup = strdup(token + 2);
 
-    //Now we need to replace, then put the dup back on the string
-    strcpy(token, replacement);
-    //Thank god for \0 marking the end of strings
-    strcat(token, dup);
-    free(dup);
+        //Now we need to replace, then put the dup back on the string
+        strcpy(token, replacement);
+        //Thank god for \0 marking the end of strings
+        strcat(token, dup);
     
+        free(dup);
+    }
 
 
 

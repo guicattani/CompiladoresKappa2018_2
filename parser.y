@@ -798,7 +798,8 @@ oneFoldRecursiveExpression:
 
     | '(' expression ')'                                             {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1, -1); 
-
+                                                                      $$->code = $2->code;
+                                                                      $$->registerTemp = $2->registerTemp;
                                                                       //expression
                                                                       int typeInfer = calculateTypeInfer($1, NULL, -1);
                                                                       createChildren($$, $2, typeInfer);
@@ -809,7 +810,7 @@ oneFoldRecursiveExpression:
                                                                      }
     | unaryOperator '(' expression ')'                               {$$ = createNode(AST_ONEFREXP); 
                                                                       createChildren($$, $1, -1); createChildren($$, $2, -1);
-
+                                                                      
                                                                       //expression
                                                                       int typeInfer = calculateTypeInfer($1, NULL, -1);
                                                                       createChildren($$, $3, typeInfer);
