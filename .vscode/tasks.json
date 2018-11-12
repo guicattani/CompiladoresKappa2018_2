@@ -38,14 +38,15 @@
                 "command": "gcc",
                 "args": [
                     "-o",
-                    "etapa4",
+                    "etapa5",
                     "main.c",
                     "parser.tab.c",
                     "lex.yy.c",
                     "ASTree.c",
                     "symbolTable.c",
                     "auxiliar.c",
-                    "symbolTableInterface.c"
+                    "symbolTableInterface.c",
+                    "codeGen.c"
                 ],
                 "dependsOn": [
                     "build parser",

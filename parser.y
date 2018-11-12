@@ -622,7 +622,8 @@ conditionalFluxControl:
                                                                                      createChildren($$, $3, -1); createChildren($$, $4, -1);
                                                                                      createChildren($$, $5, -1); createChildren($$, $6, -1);
                                                                                      //expression
-                                                                                     if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} }
+                                                                                     if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);}
+                                                                                     updateNodeCodeIF($$, $3, $6); }
     | TK_PR_IF '(' expression ')' TK_PR_THEN commandsBlock TK_PR_ELSE commandsBlock {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                      int typeInfer = calculateTypeInfer($1, NULL, -1);
                                                                                      createChildren($$, $1, typeInfer);
@@ -631,7 +632,8 @@ conditionalFluxControl:
                                                                                      createChildren($$, $5, -1); createChildren($$, $6, -1);
                                                                                      createChildren($$, $7, -1); createChildren($$, $8, -1);
                                                                                      //expression
-                                                                                     if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} }
+                                                                                     if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);}
+                                                                                     updateNodeCodeIFELSE($$, $3, $6, $8); }
 
 //There are 4 variations of iterative flux control
 iterativeFluxControl:
@@ -666,6 +668,8 @@ iterativeFluxControl:
 
                                                                                              createChildren($$, $4, -1); 
                                                                                              createChildren($$, $5, -1); createChildren($$, $6, -1);
+
+                                                                                             updateCodeWHILE($$, $3, $5);
                                                                                              }
     | TK_PR_DO commandsBlock TK_PR_WHILE '(' expression ')'                                 {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1, -1); createChildren($$, $2, -1);
@@ -678,6 +682,7 @@ iterativeFluxControl:
                                                                                              //expression end
 
                                                                                              createChildren($$, $6, -1); 
+                                                                                             updateCodeDOWHILE($$, $5, $2);
                                                                                              };      
 
 //The only selection flux control is switch

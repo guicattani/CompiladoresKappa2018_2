@@ -444,3 +444,198 @@ struct code* concatTwoCodes(struct node* executedFirst, struct node* executedSec
            
     return code;
 }
+
+void updateNodeCodeIF(struct node* ifNode, struct node* condition, struct node* ifTrue){
+    ifNode->code = newCode();
+    char * rot = newRegister();
+    char * rot2 = newRegister();
+    patching(condition->code, rot, 1);
+    patching(condition->code, rot2, 0);
+
+
+    ifNode->code = concatTwoCodes(ifNode, condition);
+
+
+    //nextline should have the last line of code
+    struct code* nextLine = getNextLine(ifNode->code);
+    
+    strcat(nextLine->line, rot);
+    strcat(nextLine->line, ":");
+    
+    ifNode->code = concatTwoCodes(ifNode, ifTrue);
+
+
+    //nextline should have the last line of code
+    nextLine = getNextLine(ifNode->code);
+    
+
+    strcat(nextLine->line, rot2);
+    strcat(nextLine->line, ":");
+
+    
+    free(rot);
+    free(rot2);
+
+}
+
+void updateNodeCodeIFELSE(struct node* ifNode, struct node* condition, struct node* ifTrue, struct node* ifFalse){
+    ifNode->code = newCode();
+    char * rot = newLabel();
+    char * rot2 = newLabel();
+    char * end = newLabel();
+    patching(condition->code, rot, 1);
+    patching(condition->code, rot2, 0);
+
+    ifNode->code = concatTwoCodes(ifNode, condition);
+    
+    //nextline should have the last line of code
+    struct code* nextLine = getNextLine(ifNode->code);
+
+
+    strcat(nextLine->line, rot);
+    strcat(nextLine->line, ":");
+    
+    ifNode->code = concatTwoCodes(ifNode, ifTrue);
+
+
+    //nextline should have the last line of code
+    nextLine = getNextLine(ifNode->code);
+
+    
+    strcat(nextLine->line, "jumpI => ");
+    strcat(nextLine->line, end);
+
+
+    nextLine->next = newCode();
+    nextLine->next->previous = nextLine;
+    nextLine = nextLine->next;  
+
+
+    strcat(nextLine->line, rot2);
+    strcat(nextLine->line, ":");
+
+    ifNode->code = concatTwoCodes(ifNode, ifFalse);
+
+    nextLine = getNextLine(ifNode->code);
+
+    strcat(nextLine->line, end);
+    strcat(nextLine->line, ":");
+
+
+    free(end);
+    free(rot);
+    free(rot2);
+
+
+
+
+}
+
+
+void updateCodeWHILE(struct node* whileNode, struct node* condition, struct node* commandsBlock){
+    char* begin = newLabel();
+    char* Btrue = newLabel();
+    char* Bfalse = newLabel();
+
+    patching(condition->code, Btrue, 1);
+    patching(condition->code, Bfalse, 0);
+
+    whileNode->code = newCode();
+    strcat(whileNode->code->line, begin);
+    strcat(whileNode->code->line, ":");
+
+    whileNode->code = concatTwoCodes(whileNode, condition);
+
+    struct code* NextLine = getNextLine(whileNode->code);
+    strcat(NextLine->line, Btrue);
+    strcat(NextLine->line, ":");
+
+    whileNode->code = concatTwoCodes(whileNode, commandsBlock);
+    
+    NextLine = getNextLine(whileNode->code);
+    strcat(NextLine->line, "jumpI =>");
+    strcat(NextLine->line, begin);
+
+    NextLine = getNextLine(whileNode->code);
+    strcat(NextLine->line, Bfalse);
+    strcat(NextLine->line, ":");   
+
+
+
+}
+
+void updateCodeDOWHILE(struct node* whileNode, struct node* condition, struct node* commandsBlock){
+
+    char* Btrue = newLabel();
+    char* Bfalse = newLabel();
+    patching(condition->code, Btrue, 1);
+    patching(condition->code, Bfalse, 0);
+
+
+    whileNode->code = newCode();
+    strcat(whileNode->code->line, Btrue);
+    strcat(whileNode->code->line, ":");
+
+    whileNode->code = concatTwoCodes(whileNode, commandsBlock);
+
+    whileNode->code = concatTwoCodes(whileNode, condition);
+    
+
+    struct code* NextLine = getNextLine(whileNode->code);
+    strcat(NextLine->line, Bfalse);
+    strcat(NextLine->line, ":");   
+
+
+
+}
+
+//Creates an empty code line at the end of code and returns it
+struct code* getNextLine(struct code* code){
+
+    if(code != NULL)
+        while(code->next != NULL){
+            code = code->next;
+        }
+
+    code->next = newCode();
+    code->next->previous = code;
+    code = code->next;
+
+    return code;
+
+}
+
+//Patches the code with the string given
+//par: Parameter - 1 replaces #1 with the replacement, 0 replaces #2
+void patching(struct code* code, char* replacement, int par){
+    while(code != NULL){
+        fixLine(code->line, par, replacement);
+        code = code->next;
+    }
+}
+
+//Given a string to replace, searches for #1 or #2, and replaces it with the string given as argument
+//Line: Line to be changed
+//par: Parameter - 1 replaces #1 with the replacement, 0 replaces #2
+void fixLine(char* line, int par, char* replacement){
+    //Str should hold the string to be replaced
+    char str[3] = "#1";
+    if(!par)
+        str[1] = '2';
+
+    char* token, *dup;
+    //Token will be a pointer to the place where we will need to start replacing
+    token = strstr(line, str);
+    //Dup is a temporary copy of the rest of the string so we can replace safely
+    dup = strdup(token + 2);
+
+    //Now we need to replace, then put the dup back on the string
+    strcpy(token, replacement);
+    //Thank god for \0 marking the end of strings
+    strcat(token, dup);
+    free(dup);
+    
+
+
+
+}
