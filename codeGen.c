@@ -19,6 +19,263 @@ void printCode(struct node* topNode){
 }
 
 void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperand, struct node* rightOperand, struct node* operatorNode){
+     topNode->registerTemp = newRegister();
+    topNode->code = newCode();
+
+    char* leftRegisterFromIdentifier = "";
+    char* rightRegisterFromIdentifier = "";
+    if(leftOperand->token_type == NATUREZA_IDENTIFICADOR){
+        struct symbolInfo* info = findSymbolInContexts(leftOperand->token_value);
+        if(info != NULL){
+            leftRegisterFromIdentifier = info->registerTemp;
+        }
+    }
+    if(rightOperand->token_type == NATUREZA_IDENTIFICADOR){
+        struct symbolInfo* info = findSymbolInContexts(rightOperand->token_value);
+        if(info != NULL){
+            rightRegisterFromIdentifier = info->registerTemp;
+        }
+    }
+
+    if(strcmp(leftOperand->token_value, AST_LITERAL) == 0) {
+        if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) {
+            //both literals
+            leftOperand->registerTemp = newRegister(); //TODO LIBERAR ESSE REG
+            //load to register
+            struct code* previousCode = newCode();
+            //load to register
+            struct code* compareCode = newCode();
+
+            compareCode->previous = previousCode;
+            previousCode->next = compareCode;
+
+            topNode->code->previous = compareCode;
+            compareCode->next = topNode->code;
+            
+            strcat(previousCode->line,"loadI ");
+            strcat(previousCode->line,calculateCodeGenValue(leftOperand->child));
+            strcat(previousCode->line," => ");
+            strcat(previousCode->line,leftOperand->registerTemp);
+
+            if(strcmp(operatorNode->token_value, "<") == 0) {
+                strcat(compareCode->line,"cmp_LT ");
+            }
+            else if(strcmp(operatorNode->token_value, "<=") == 0){ //minus
+                strcat(compareCode->line,"cmp_LE ");
+            }
+            else if(strcmp(operatorNode->token_value, "=") == 0){ //multiplication
+                strcat(compareCode->line,"cmp_EQ ");
+            }
+            else if(strcmp(operatorNode->token_value, ">=") == 0){ //multiplication
+                strcat(compareCode->line,"cmp_GE ");
+            }
+            else if(strcmp(operatorNode->token_value, ">") == 0){ //multiplication
+                strcat(compareCode->line,"cmp_GT ");
+            }
+            else{
+                strcat(compareCode->line,"cmp_NE ");
+            }
+
+            strcat(compareCode->line,leftOperand->registerTemp);
+            strcat(compareCode->line,", ");
+            strcat(compareCode->line,calculateCodeGenValue(rightOperand->child));
+            strcat(compareCode->line," -> ");
+            strcat(compareCode->line,topNode->registerTemp);
+
+            strcat(topNode->code->line,"cbr ");
+            strcat(topNode->code->line,topNode->registerTemp);
+            strcat(topNode->code->line," -> ");
+            strcat(topNode->code->line,"#1,");
+            strcat(topNode->code->line,"#2");
+
+        }
+        else{ //left literal right register
+
+            //concat code
+            struct code* compareCode = newCode();
+            struct code* previousCode = newCode();
+            if(rightOperand->token_type != NATUREZA_IDENTIFICADOR) {
+                previousCode->previous = rightOperand->code;
+                compareCode->next = previousCode;
+            }
+            else{
+                free(previousCode);
+            }
+                topNode->code->previous = compareCode;
+                compareCode->next = topNode->code;
+
+
+            if(strcmp(operatorNode->token_value, "<") == 0) {
+                strcat(compareCode->line,"cmp_LT ");
+            }
+            else if(strcmp(operatorNode->token_value, "<=") == 0){ //minus
+                strcat(compareCode->line,"cmp_LE ");
+            }
+            else if(strcmp(operatorNode->token_value, "=") == 0){ //multiplication
+                strcat(compareCode->line,"cmp_EQ ");
+            }
+            else if(strcmp(operatorNode->token_value, ">=") == 0){ //multiplication
+                strcat(compareCode->line,"cmp_GE ");
+            }
+            else if(strcmp(operatorNode->token_value, ">") == 0){ //multiplication
+                strcat(compareCode->line,"cmp_GT ");
+            }
+            else{
+                strcat(compareCode->line,"cmp_NE ");
+            }
+
+            char* attributionRegister;
+            if(rightOperand->token_type != NATUREZA_IDENTIFICADOR)
+                attributionRegister = rightOperand->registerTemp;
+            else
+                attributionRegister = rightRegisterFromIdentifier;
+
+            strcat(compareCode->line,attributionRegister);
+            strcat(compareCode->line,",");
+            strcat(compareCode->line,calculateCodeGenValue(leftOperand->child));
+            strcat(compareCode->line,"->");
+            strcat(compareCode->line,topNode->registerTemp);
+
+            strcat(topNode->code->line,"cbr ");
+            strcat(topNode->code->line,topNode->registerTemp);
+            strcat(topNode->code->line," -> ");
+            strcat(topNode->code->line,"#1,");
+            strcat(topNode->code->line,"#2");
+        }
+    }
+
+    else { //left is register
+        if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) { //right is literal
+            //concat code
+            struct code* compareCode = newCode();
+            struct code* previousCode = newCode();
+            if(leftOperand->token_type != NATUREZA_IDENTIFICADOR) {
+                previousCode = leftOperand->code;
+                previousCode->next = compareCode;
+                
+                compareCode->previous = previousCode;
+                compareCode->next = topNode->code;
+
+                topNode->code->previous = compareCode;
+            }
+            else{
+                free(previousCode);
+
+                topNode->code->previous = compareCode;
+                compareCode->next = topNode->code;
+            }
+
+            if(strcmp(operatorNode->token_value, "<") == 0) {
+                strcat(compareCode->line,"cmp_LT ");
+            }
+            else if(strcmp(operatorNode->token_value, "<=") == 0){ //minus
+                strcat(compareCode->line,"cmp_LE ");
+            }
+            else if(strcmp(operatorNode->token_value, "=") == 0){ //multiplication
+                strcat(compareCode->line,"cmp_EQ ");
+            }
+            else if(strcmp(operatorNode->token_value, ">=") == 0){ //multiplication
+                strcat(compareCode->line,"cmp_GE ");
+            }
+            else if(strcmp(operatorNode->token_value, ">") == 0){ //multiplication
+                strcat(compareCode->line,"cmp_GT ");
+            }
+            else{
+                strcat(compareCode->line,"cmp_NE ");
+            }
+
+            char* attributionRegister;
+            if(leftOperand->token_type != NATUREZA_IDENTIFICADOR)
+                attributionRegister = leftOperand->registerTemp;
+            else
+                attributionRegister = leftRegisterFromIdentifier;
+
+            strcat(compareCode->line,attributionRegister);
+            strcat(compareCode->line,", ");
+            strcat(compareCode->line,calculateCodeGenValue(rightOperand->child));
+            strcat(compareCode->line," => ");
+            strcat(compareCode->line,topNode->registerTemp);
+
+            strcat(topNode->code->line,"cbr ");
+            strcat(topNode->code->line,topNode->registerTemp);
+            strcat(topNode->code->line," -> ");
+            strcat(topNode->code->line,"#1,");
+            strcat(topNode->code->line,"#2");
+
+        } 
+        else { //both are registers
+            //concat code
+            if(leftOperand->code){
+                topNode->code->previous = leftOperand->code;
+                leftOperand->code->next = topNode->code;
+
+                if(rightOperand->code){
+                    leftOperand->code->previous = rightOperand->code;
+                    rightOperand->code->next = leftOperand->code;
+
+                }
+            }
+            if(rightOperand->code){
+                topNode->code->previous = rightOperand->code;
+                rightOperand->code->next = topNode->code;
+            }
+
+            //concat code
+            struct code* compareCode = newCode();
+            struct code* previousCode = newCode();
+            if(rightOperand->token_type != NATUREZA_IDENTIFICADOR) {
+                previousCode->previous = rightOperand->code;
+                compareCode->next = previousCode;
+            }
+            else{
+                free(previousCode);
+            }
+
+            if(strcmp(operatorNode->token_value, "<") == 0) {
+                strcat(compareCode->line,"cmp_LT ");
+            }
+            else if(strcmp(operatorNode->token_value, "<=") == 0){ //minus
+                strcat(compareCode->line,"cmp_LE ");
+            }
+            else if(strcmp(operatorNode->token_value, "=") == 0){ //multiplication
+                strcat(compareCode->line,"cmp_EQ ");
+            }
+            else if(strcmp(operatorNode->token_value, ">=") == 0){ //multiplication
+                strcat(compareCode->line,"cmp_GE ");
+            }
+            else if(strcmp(operatorNode->token_value, ">") == 0){ //multiplication
+                strcat(compareCode->line,"cmp_GT ");
+            }
+            else{
+                strcat(compareCode->line,"cmp_NE ");
+            }
+
+            char* leftAttributionRegister;
+            char* rightAttributionRegister;
+            if(leftOperand->token_type != NATUREZA_IDENTIFICADOR)
+                leftAttributionRegister = leftOperand->registerTemp;
+            else
+                leftAttributionRegister = leftRegisterFromIdentifier;
+
+            if(rightOperand->token_type != NATUREZA_IDENTIFICADOR)
+                rightAttributionRegister = rightOperand->registerTemp;
+            else
+                rightAttributionRegister = rightRegisterFromIdentifier;
+
+            strcat(compareCode->line,leftAttributionRegister);
+            strcat(compareCode->line,", ");
+            strcat(compareCode->line,rightAttributionRegister);
+            strcat(compareCode->line," -> ");
+            strcat(compareCode->line,topNode->registerTemp);
+
+            strcat(topNode->code->line,"cbr ");
+            strcat(topNode->code->line,topNode->registerTemp);
+            strcat(topNode->code->line," -> ");
+            strcat(topNode->code->line,"#1,");
+            strcat(topNode->code->line,"#2");
+
+        }
+    }
 }
 
 void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, struct node* rightOperand, struct node* operatorNode){
@@ -78,8 +335,10 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
         else{ //left literal right register
 
             //concat code
-            topNode->code->previous = rightOperand->code;
-            rightOperand->code->next = topNode->code;
+            if(rightOperand->token_type != NATUREZA_IDENTIFICADOR) {
+                topNode->code->previous = rightOperand->code;
+                rightOperand->code->next = topNode->code;
+            }
 
             //add imediate   
             if(strcmp(operatorNode->token_value, "+") == 0) {
@@ -100,6 +359,7 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
                 attributionRegister = rightOperand->registerTemp;
             else
                 attributionRegister = rightRegisterFromIdentifier;
+            
 
             strcat(topNode->code->line,attributionRegister);
             strcat(topNode->code->line,",");
@@ -112,8 +372,11 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
     else { //left is register
         if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) { //right is literal
             //concat code
-            topNode->code->previous = leftOperand->code;
-            leftOperand->code->next = topNode->code;
+            if(leftOperand->token_type != NATUREZA_IDENTIFICADOR) {
+                
+                topNode->code->previous = leftOperand->code;
+                leftOperand->code->next = topNode->code;
+            }
 
             if(strcmp(operatorNode->token_value, "+") == 0) {
                 strcat(topNode->code->line,"addI ");
@@ -157,8 +420,7 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
                 topNode->code->previous = rightOperand->code;
                 rightOperand->code->next = topNode->code;
             }
-            // rightOperand->code->previous = leftOperand->code;
-            // topNode->code->previous = rightOperand->code;
+            printf("cu");
 
             //add imediate   
             if(strcmp(operatorNode->token_value, "+") == 0) {
@@ -297,7 +559,6 @@ void updateNodeCodeGLOBALDECLARATION(struct node* topNode, struct node* identifi
 void updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOperand, struct node* rightOperand){
     struct symbolInfo* info = findSymbolInContexts(leftOperand->token_value);
 
-
     char* attributionRegister = info->registerTemp;
     topNode->code = newCode();
     char* registerName = "";
@@ -318,7 +579,6 @@ void updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOperand, s
         registerName = rightOperand->registerTemp;
         topNode->code->previous = rightOperand->code;
         rightOperand->code->next = topNode->code;
-
     }
 
     strcat(topNode->code->line,"storeAI ");
@@ -386,30 +646,36 @@ struct code* newCode(){
 }
 
 struct code* concatTwoCodes(struct node* executedFirst, struct node* executedSecond){
-    struct code* code = NULL;
     struct code* codeIterator = NULL;
+    struct code* returnCode = NULL;
 
     if(executedFirst->code) {
-        code = executedFirst->code;
-        while(code->next){
-            code = code->next;
-        }
+        returnCode = executedFirst->code;
         if(executedSecond->code){
             codeIterator = executedSecond->code;
             while(codeIterator->previous){
                 codeIterator = codeIterator->previous;
             }
-            code->next = codeIterator;
-            codeIterator->previous = code;
+            returnCode->next = codeIterator;
+            codeIterator->previous = returnCode;
 
+            codeIterator = returnCode->next;
+            while(codeIterator->next){
+                codeIterator = codeIterator->next;
+            }
+            returnCode = codeIterator;
         }
     }
     else if(executedSecond->code){
-        code = executedSecond->code;
-    }
 
+        codeIterator = executedSecond->code;
+        while(codeIterator->next){
+            codeIterator = codeIterator->next;
+        }
+        returnCode = codeIterator;
+    }
            
-    return code;
+    return returnCode;
 }
 
 void updateNodeCodeIF(struct node* ifNode, struct node* condition, struct node* ifTrue){
@@ -579,6 +845,30 @@ void patching(struct code* code, char* replacement, int par){
         fixLine(code->line, par, replacement);
         code = code->next;
     }
+}
+
+struct code* removeCBR(struct code* code){
+    struct code* codeIterator = code;
+    struct code* returnCode = code;
+
+    //if first line is cbr
+    char *token = strstr(codeIterator->line, "cbr");
+    if(token){
+        returnCode = code->previous;
+    }
+
+    while(codeIterator != NULL){
+        token = strstr(codeIterator->line, "cbr");
+        struct code* replaceCode = codeIterator->next;
+
+        if(token){
+            codeIterator->previous = codeIterator->next;
+            free(codeIterator);
+        }
+        codeIterator = replaceCode;
+    }
+
+    return returnCode;
 }
 
 //Given a string to replace, searches for #1 or #2, and replaces it with the string given as argument

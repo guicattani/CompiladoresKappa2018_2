@@ -766,12 +766,18 @@ lowPrecedenceTwoFoldRecursiveExpression:
                                                                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                                                    createChildren($$, $3, -1);
                                                                                                    updateNodeCodeOPERATION($$, $1, $3, $2);
-                                                                                                   $$->code = concatTwoCodes($3, $1);
+                                                                                                   if($1->code || $3->code)
+                                                                                                    $$->code = concatTwoCodes($3, $1);
                                                                                                    }
     | lowPrecedenceTwoFoldRecursiveExpression comparisonOperator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
                                                                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                                                    createChildren($$, $3, -1);
-                                                                                                   updateNodeCodeARITHCOMPARISON($$, $1, $3, $2);}; 
+                                                                                                   updateNodeCodeARITHCOMPARISON($$, $1, $3, $2);
+                                                                                                   if($1->code || $3->code)
+                                                                                                    $$->code = concatTwoCodes($3, $1);
+                                                                                                   
+                                                                                                   $$->code = removeCBR($$->code);
+                                                                                                   }; 
 
 mediumPrecedenceTwoFoldRecursiveExpression:
     highPrecedenceTwoFoldRecursiveExpression                                                                          {$$ = $1;}

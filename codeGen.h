@@ -26,6 +26,8 @@ char* calculateCodeGenValue(struct node* node);
 struct code* concatTwoCodes(struct node* executedFirst, struct node* executedSecond);
 struct code* getNextLine(struct code* code);
 void fixLine(char* line, int par, char* replacement);
+
+struct code* removeCBR(struct code* code);
 void patching(struct code* code, char* replacement, int par);
 
 #endif
