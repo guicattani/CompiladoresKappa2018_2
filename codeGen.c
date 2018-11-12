@@ -40,22 +40,33 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
     if(strcmp(leftOperand->token_value, AST_LITERAL) == 0) {
         if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) {
             //both literals
-            leftOperand->registerTemp = newRegister(); //TODO LIBERAR ESSE REG
-            //load to register
+            leftOperand->registerTemp = newRegister();  //liberar esses regs quando for liberar o código! TODO
+            rightOperand->registerTemp = newRegister(); 
+            //load to register left
+            struct code* prePreviousCode = newCode();
+            //load to register right
             struct code* previousCode = newCode();
             //load to register
             struct code* compareCode = newCode();
 
+            previousCode->previous = prePreviousCode;
+            prePreviousCode->next = previousCode;
+            
             compareCode->previous = previousCode;
             previousCode->next = compareCode;
 
             topNode->code->previous = compareCode;
             compareCode->next = topNode->code;
             
+            strcat(prePreviousCode->line,"loadI ");
+            strcat(prePreviousCode->line,calculateCodeGenValue(leftOperand->child));
+            strcat(prePreviousCode->line," => ");
+            strcat(prePreviousCode->line,leftOperand->registerTemp);
+            
             strcat(previousCode->line,"loadI ");
-            strcat(previousCode->line,calculateCodeGenValue(leftOperand->child));
+            strcat(previousCode->line,calculateCodeGenValue(rightOperand->child));
             strcat(previousCode->line," => ");
-            strcat(previousCode->line,leftOperand->registerTemp);
+            strcat(previousCode->line,rightOperand->registerTemp);
 
             if(strcmp(operatorNode->token_value, "<") == 0) {
                 strcat(compareCode->line,"cmp_LT ");
@@ -78,7 +89,7 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
 
             strcat(compareCode->line,leftOperand->registerTemp);
             strcat(compareCode->line,", ");
-            strcat(compareCode->line,calculateCodeGenValue(rightOperand->child));
+            strcat(compareCode->line,rightOperand->registerTemp);
             strcat(compareCode->line," -> ");
             strcat(compareCode->line,topNode->registerTemp);
 
@@ -94,17 +105,37 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
             //concat code
             struct code* compareCode = newCode();
             struct code* previousCode = newCode();
-            if(rightOperand->token_type != NATUREZA_IDENTIFICADOR) {
-                previousCode->previous = rightOperand->code;
-                compareCode->next = previousCode;
+            if(leftOperand->token_type != NATUREZA_IDENTIFICADOR) {
+                previousCode = leftOperand->code;
+                previousCode->next = compareCode;
+                
+                compareCode->previous = previousCode;
+                compareCode->next = topNode->code;
+
+                topNode->code->previous = compareCode;
             }
             else{
                 free(previousCode);
-            }
+
                 topNode->code->previous = compareCode;
                 compareCode->next = topNode->code;
+            }
 
+            leftOperand->registerTemp = newRegister(); 
 
+            struct code* registerLoad = newCode();
+            if(compareCode->previous)
+                registerLoad->previous = compareCode->previous;
+            compareCode->previous = registerLoad;
+            registerLoad->next = compareCode;
+
+            leftOperand->registerTemp = newRegister(); 
+
+            strcat(registerLoad->line,"loadI ");
+            strcat(registerLoad->line,calculateCodeGenValue(leftOperand->child));
+            strcat(registerLoad->line," => ");
+            strcat(registerLoad->line,leftOperand->registerTemp);
+            
             if(strcmp(operatorNode->token_value, "<") == 0) {
                 strcat(compareCode->line,"cmp_LT ");
             }
@@ -132,7 +163,7 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
 
             strcat(compareCode->line,attributionRegister);
             strcat(compareCode->line,",");
-            strcat(compareCode->line,calculateCodeGenValue(leftOperand->child));
+            strcat(compareCode->line,leftOperand->registerTemp);
             strcat(compareCode->line,"->");
             strcat(compareCode->line,topNode->registerTemp);
 
@@ -164,6 +195,18 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
                 topNode->code->previous = compareCode;
                 compareCode->next = topNode->code;
             }
+
+            struct code* registerLoad = newCode();
+            if(compareCode->previous)
+                registerLoad->previous = compareCode->previous;
+            compareCode->previous = registerLoad;
+            registerLoad->next = compareCode;
+            rightOperand->registerTemp = newRegister(); 
+
+            strcat(registerLoad->line,"loadI ");
+            strcat(registerLoad->line,calculateCodeGenValue(rightOperand->child));
+            strcat(registerLoad->line," => ");
+            strcat(registerLoad->line,rightOperand->registerTemp);
 
             if(strcmp(operatorNode->token_value, "<") == 0) {
                 strcat(compareCode->line,"cmp_LT ");
@@ -469,45 +512,14 @@ void updateNodeCodeLOCALDECLARATION(struct node* topNode, struct node* identifie
             updateNodeCodeGLOBALDECLARATION(topNode, identifierNode, typeNode);
     }
     else {
-        topNode->registerTemp = newRegister();
+        topNode->registerTemp = newRegister(); //for the sake of completion
         topNode->code = newCode();
 
-        //Load registers
-        char* initializationRegisterLoad = newRegister(); //esse fica dangling, tem que dar free TODO
-        struct code* previousCodeLoad = newCode();
-
-        //Store registers
-        topNode->code->previous = previousCodeLoad;
-        previousCodeLoad->next = topNode->code;
-            
-        strcat(previousCodeLoad->line,"loadI ");
-        strcat(previousCodeLoad->line,"0");
-        strcat(previousCodeLoad->line," => ");
-        strcat(previousCodeLoad->line,initializationRegisterLoad);
-            
-        strcat(topNode->code->line,"storeAI ");
-        strcat(topNode->code->line,initializationRegisterLoad);
-        strcat(topNode->code->line," => ");
-        strcat(topNode->code->line,"rfp");
-        strcat(topNode->code->line,", ");
-        char rfpOffsetTemp[10];
-        sprintf(rfpOffsetTemp,"%d", rfpOffset);
-        strcat(topNode->code->line,rfpOffsetTemp);
+        //no code necessary, because ins't initialized
 
         //put in symbol table: regtemp, rfp
         info->rfpOffset = rfpOffset;
-
-        //increment global rfp index 
-        if(strcmp(typeNode->token_value, "bool") == 0){ //TODO tem algum jeito de fazer isso com type ou nature do nodo?
-            rfpOffset += 1;
-        }
-        else if(strcmp(typeNode->token_value, "int") == 0){
-            rfpOffset += 4;
-
-        }
-        else{
-            printf("wrong type!\n");
-        }
+        rfpOffset += 4;
     
         //put in symbol table: regtemp, rfp
         info->registerTemp = topNode->registerTemp;
@@ -541,16 +553,8 @@ void updateNodeCodeGLOBALDECLARATION(struct node* topNode, struct node* identifi
     struct symbolInfo* info = findSymbolInContexts(identifierNode->token_value);
     info->rbssOffset = rbssOffset;
 
-    //increment global rfp index 
-    if(strcmp(typeNode->token_value, "bool") == 0){ //TODO tem algum jeito de fazer isso com type ou nature do nodo?
-        rbssOffset += 1;
-    }
-    else if(strcmp(typeNode->token_value, "int") == 0){
-        rbssOffset += 4;
-    }
-    else{
-        printf("wrong type!\n");
-    }
+    //increment global rbss index 
+    rbssOffset += 4;
 
     //put in symbol table: regtemp, rfp
     info->registerTemp = topNode->registerTemp;
