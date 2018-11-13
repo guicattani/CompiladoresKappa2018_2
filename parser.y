@@ -135,7 +135,6 @@
 
 programa:
     {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2, -1); deleteContext(); libera(arvore);free(previous_text);
-                                printf("\n\n ##PRINTING CODES##\n");
                                 printCode($2);
                                 };
                       | %empty {arvore = createNode(AST_PROGRAMA); free(previous_text); libera(arvore);};
@@ -802,7 +801,6 @@ oneFoldRecursiveExpression:
                                                                       createChildren($$, $1, -1); 
                                                                       $$->code = $2->code;
                                                                       $$->registerTemp = $2->registerTemp;
-                                                                      printf("s %s\n", $$->code->line);
                                                                       //expression
                                                                       int typeInfer = calculateTypeInfer($1, NULL, -1);
                                                                       createChildren($$, $2, typeInfer);
@@ -914,7 +912,7 @@ comparisonOperator:
 
 void yyerror (char const *s){
     free(previous_text);
-    printf ("Line %d, Column %d: %s near \"%s\"\n",yylineno, yycolno, s, yylval.nodo->token_value);  
+     ("Line %d, Column %d: %s near \"%s\"\n",yylineno, yycolno, s, yylval.nodo->token_value);  
     deleteAllContext();
     libera(arvore);
 

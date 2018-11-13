@@ -297,6 +297,22 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
 
                 
             }
+            else if(strcmp(operatorNode->token_value, "||") == 0){
+
+            
+                char* temp = newLabel();
+                patching(leftOperand->code, temp, 0);
+                if(leftOperand->code)
+                    topNode->code = concatTwoCodes(topNode->code, leftOperand->code);
+                struct code* nextLine = getNextLine(topNode->code);
+                strcat(nextLine->line, temp);
+                strcat(nextLine->line, ":");        
+                topNode->code = concatTwoCodes(topNode->code, rightOperand->code);
+
+
+
+                
+            }
             else{
 
 
@@ -518,7 +534,6 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
                 topNode->code->previous = rightOperand->code;
                 rightOperand->code->next = topNode->code;
             }
-            printf("cu");
 
             //add imediate   
             if(strcmp(operatorNode->token_value, "+") == 0) {
@@ -741,7 +756,6 @@ void updateNodeCodeIF(struct node* ifNode, struct node* condition, struct node* 
     ifNode->code = newCode();
     char * rot = newRegister();
     char * rot2 = newRegister();
-    printf("asruhasuerh\n");
     patching(condition->code, rot, 1);
     patching(condition->code, rot2, 0);
 
@@ -752,7 +766,7 @@ void updateNodeCodeIF(struct node* ifNode, struct node* condition, struct node* 
     //nextline should have the last line of code
     struct code* nextLine = getNextLine(ifNode->code);
     
-    printf("ESTOU NO IF: %s\n", rot);
+
     strcat(nextLine->line, rot);
     strcat(nextLine->line, ":");
 
