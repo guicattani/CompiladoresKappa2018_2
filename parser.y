@@ -134,8 +134,11 @@
 %%
 
 programa:
-    {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2, -1); deleteContext(); libera(arvore);free(previous_text);
+    {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2, -1); deleteContext(); 
                                 printCode($2);
+                                liberaCode($2->code);
+                                libera(arvore);
+                                free(previous_text);
                                 };
                       | %empty {arvore = createNode(AST_PROGRAMA); free(previous_text); libera(arvore);};
 

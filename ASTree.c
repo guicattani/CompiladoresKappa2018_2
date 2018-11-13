@@ -32,6 +32,9 @@ struct node* createNode(char* state){
     newNode->typeInfered = 0;
     newNode->implicitConversion = 0;
 
+    newNode->code = NULL;
+    newNode->registerTemp = NULL;
+
     nodeList = insertList(nodeList, newNode);
     return newNode;
 }
@@ -74,9 +77,6 @@ struct node* createLeaf(int line_number, int type, char* text, int col_number){
     //code parts, all will be created dinamically
     newNode->code = NULL;
     newNode->registerTemp = NULL;
-
-    newNode->trueList = NULL;
-    newNode->falseList = NULL;
 
     nodeList = insertList(nodeList, newNode);
     return newNode;
@@ -125,9 +125,14 @@ void showTreeRecursion(struct node* currentNode, int treeLevel)
 }
 
 void liberaTree(struct node* node){
-    
     if (node != NULL){
+        printf("%p\n",node->registerTemp);
         liberaTree(node->child);
+        if(node->code)
+            free(node->code);
+        if(node->registerTemp != NULL){
+            free(node->registerTemp);
+        }
         free(node->token_value);
         if(node->token_type != 5 || node->token_type != 6 || node->token_type != 7 )
             //node has a string in it
@@ -167,10 +172,14 @@ void cleanList(struct nodeList* list){
 
       if (list->data != NULL){
         
-        if(list->data->token_type != 5 && list->data->token_type != 6 && list->data->token_type != 7 && list->data->token_type != 0)
+        if(list->data->token_type != 5 && list->data->token_type != 6 && list->data->token_type != 7 && list->data->token_type != 0){
             //node has a string in it
                if (list->data->value.string_value != NULL)
                 free(list->data->value.string_value); 
+        }
+        if(list->data->registerTemp)
+            free(list->data->registerTemp);
+
         free(list->data->token_value);
         free(list->data);
     }

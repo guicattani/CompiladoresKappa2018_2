@@ -16,9 +16,6 @@ typedef struct node{
     struct code* code;
     char* registerTemp;
 
-    struct boolList* trueList;
-    struct boolList* falseList;
-
     union value value;
     struct node* brother;
     struct node* child;

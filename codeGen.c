@@ -43,15 +43,10 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
             
             //both literals
 
-            leftOperand->registerTemp = newRegister();  //liberar esses regs quando for liberar o código! TODO
+            leftOperand->registerTemp = newRegister(); 
             rightOperand->registerTemp = newRegister(); 
             //load to register left
             struct code* next;
-
-
-
-
-            
             
             strcat(topNode->code->line,"loadI ");
             strcat(topNode->code->line,calculateCodeGenValue(leftOperand->child));
@@ -114,10 +109,6 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
             struct code* previousCode = newCode();
             struct code* next;
 
-
-
-
-
             if(rightOperand->token_type != NATUREZA_IDENTIFICADOR) {
                 previousCode = rightOperand->code;
                 previousCode->next = compareCode;
@@ -141,9 +132,6 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
                 registerLoad->previous = compareCode->previous;
             compareCode->previous = registerLoad;
             registerLoad->next = compareCode;
-
-            leftOperand->registerTemp = newRegister(); 
-
 
 
             strcat(topNode->code->line,"loadI ");
@@ -412,11 +400,9 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
     if(strcmp(leftOperand->token_value, AST_LITERAL) == 0) {
         if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) {
             //both literals
-            leftOperand->registerTemp = newRegister(); //TODO LIBERAR ESSE REG
+            leftOperand->registerTemp = newRegister(); 
             //load to register
             struct code* next;
-
-
             
             strcat(topNode->code->line,"loadI ");
             strcat(topNode->code->line,calculateCodeGenValue(leftOperand->child));
@@ -628,6 +614,7 @@ void updateNodeCodeGLOBALDECLARATION(struct node* topNode, struct node* identifi
 
     //put in symbol table: regtemp, rfp
     info->registerTemp = topNode->registerTemp;
+    free(initializationRegisterLoad);
 }
 
 struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOperand, struct node* rightOperand){
@@ -638,7 +625,7 @@ struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOp
     char* registerName = "";
 
     if(strcmp(rightOperand->token_value, AST_LITERAL) == 0){
-        rightOperand->registerTemp = newRegister(); //TODO LIBERAR ESSE REG
+        rightOperand->registerTemp = newRegister();
         struct code* previousCode = newCode();
 
         strcat(previousCode->line,"loadI ");
@@ -702,7 +689,7 @@ char* newRegister(){
     char registerNumber[10];
     sprintf(registerNumber,"%d", registerIndex++);
     char* registerName = malloc(sizeof(char)*10);
-    registerName[0] = '\0';
+    registerName[0] = '\0'; //strcat NEEDS this
     strcat(registerName, "r");
     strcat(registerName, registerNumber);
     strcat(registerName, "\0");
@@ -720,13 +707,14 @@ char* newLabel(){
 }
 
 struct code* newCode(){
-    struct code* newCode = malloc(sizeof(struct code*));
+    struct code* newCode = malloc(sizeof(struct code));
     newCode->previous = NULL;
     newCode->line = malloc(sizeof(char)*100);//size of string is 100
     newCode->line[0] = '\0';
     newCode->next = NULL;
     return newCode;
 }
+
 struct code* concatTwoCodes(struct code* executedFirst, struct code* executedSecond){
     struct code* codeIterator = NULL;
     struct code* returnCode = NULL;
@@ -738,7 +726,7 @@ struct code* concatTwoCodes(struct code* executedFirst, struct code* executedSec
     }
 
     while(codeIterator->next != NULL){
-        codeIterator= codeIterator->next;
+        codeIterator = codeIterator->next;
     }
        
     codeIterator->next = executedSecond;
@@ -948,6 +936,14 @@ struct code* removeCBR(struct code* code){
     return returnCode;
 }
 
+void liberaCode(struct code* code){
+    if(code == NULL){
+        return;
+    }
+    liberaCode(code->previous);
+    free(code);
+}
+
 //Given a string to replace, searches for #1 or #2, and replaces it with the string given as argument
 //Line: Line to be changed
 //par: Parameter - 1 replaces #1 with the replacement, 0 replaces #2
@@ -971,7 +967,6 @@ void fixLine(char* line, int par, char* replacement){
     
         free(dup);
     }
-
 
 
 }
