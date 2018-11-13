@@ -209,7 +209,7 @@ code:
                          $$->code = $1->code;
                          }
     | code declaration {$$ = createNode(AST_CODE); createChildren($$, $1, -1); createChildren($$, $2, -1);
-                        $$->code = concatTwoCodes($1, $2);
+                        $$->code = concatTwoCodes($1->code, $2->code);
                         };
 
 declaration:
@@ -356,7 +356,7 @@ commandsBlock:
 
 commandsList:
       commandsList command   {$$ = createNode(AST_COMMANDSLIST); createChildren($$, $1, -1); createChildren($$, $2, -1);
-                            $$->code = concatTwoCodes($1,$2);
+                            $$->code = concatTwoCodes($1->code,$2->code);
                             }
     | %empty                {$$ = createNode(AST_COMMANDSLIST);};
 
@@ -412,7 +412,7 @@ commandSimple:
                                         updateNodeCodeLOCALDECLARATION($1->child, $1->child->child->brother, $1->child->child);
                                         if(numberOfChildren($1->child->child->brother->brother) == 2){
                                             updateNodeCodeATTRIBUTION($$, $1->child->child->brother, $1->child->child->brother->brother->child->brother);
-                                            $$->code = concatTwoCodes($1->child, $$);
+                                            $$->code = concatTwoCodes($1->child->code, $$->code);
                                         }else{
                                             $$->code = $1->child->code;
                                         }
@@ -493,6 +493,7 @@ attribution:
       primitiveAttribution  {$$ = $1; int err = checkPrimitiveAttribution($1);
                             if(err){ semanticerror(err, $1->child, NULL); exit(err);}
                             $$->code = $1->code;
+                            
                             }
     | userTypeAttribution   {$$ = $1; int err = checkUserTypeAttribution($1);
                             if(err){ semanticerror(err, $1->child, $1->child->brother->brother->brother); exit(err);}};
@@ -501,7 +502,10 @@ primitiveAttribution:
       TK_IDENTIFICADOR vectorModifier '=' expression {$$ = createNode(AST_PRIMATTR); 
                                                         createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                         createChildren($$, $3, -1); createChildren($$, $4, -1);
-                                                     updateNodeCodeATTRIBUTION($$, $1, $4);
+                                                     $$->code = updateNodeCodeATTRIBUTION($$, $1, $4);
+                                                     
+                                                     
+
                                                      };  
 
 userTypeAttribution:
@@ -705,7 +709,7 @@ commandSimpleList:
     | commandSimpleList ',' commandSimple {$$ = createNode(AST_COMMANDSIMPLELIST); 
                                            createChildren($$, $1, -1); createChildren($$, $2, -1);
                                            createChildren($$, $3, -1);
-                                           $$->code = concatTwoCodes($1, $3);
+                                           $$->code = concatTwoCodes($1->code, $3->code);
                                            };
 
 //Pipe Commands can be in the format of "f() %>% f()" or "f() %>% f() %>% ... f()"
@@ -767,17 +771,15 @@ lowPrecedenceTwoFoldRecursiveExpression:
                                                                                                    createChildren($$, $3, -1);
                                                                                                    updateNodeCodeOPERATION($$, $1, $3, $2);
                                                                                                    if($1->code || $3->code)
-                                                                                                    $$->code = concatTwoCodes($3, $1);
+                                                                                                    $$->code = concatTwoCodes($3->code, $1->code);
                                                                                                    }
     | lowPrecedenceTwoFoldRecursiveExpression comparisonOperator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
                                                                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                                                    createChildren($$, $3, -1);
                                                                                                    updateNodeCodeARITHCOMPARISON($$, $1, $3, $2);
-                                                                                                   if($1->code || $3->code)
-                                                                                                    $$->code = concatTwoCodes($3, $1);
                                                                                                    
-                                                                                                   $$->code = removeCBR($$->code);
-                                                                                                   }; 
+                                                                                                   
+                                                                                                  }; 
 
 mediumPrecedenceTwoFoldRecursiveExpression:
     highPrecedenceTwoFoldRecursiveExpression                                                                          {$$ = $1;}
@@ -800,6 +802,7 @@ oneFoldRecursiveExpression:
                                                                       createChildren($$, $1, -1); 
                                                                       $$->code = $2->code;
                                                                       $$->registerTemp = $2->registerTemp;
+                                                                      printf("s %s\n", $$->code->line);
                                                                       //expression
                                                                       int typeInfer = calculateTypeInfer($1, NULL, -1);
                                                                       createChildren($$, $2, typeInfer);
@@ -816,7 +819,7 @@ oneFoldRecursiveExpression:
                                                                       createChildren($$, $3, typeInfer);
                                                                       if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);} 
                                                                       //expression end
-
+                                                                      
                                                                       createChildren($$, $4, -1);}
 
     | TK_IDENTIFICADOR vectorList                                    {$$ = createNode(AST_ONEFREXP); createChildren($$, $1, -1); createChildren($$, $2, -1);

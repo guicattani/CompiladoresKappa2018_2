@@ -8,7 +8,7 @@
 
 void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, struct node* rightOperand, struct node* operatorNode);
 void updateNodeCodeDECLARATION(struct node* topNode, struct node* leftOperand, struct node* rightOperand);
-void updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOperand, struct node* rightOperand);
+struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOperand, struct node* rightOperand);
 
 void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperand, struct node* rightOperand, struct node* operatorNode);
 
@@ -23,7 +23,7 @@ void updateCodeWHILE(struct node* whileNode, struct node* condition, struct node
 void printCode(struct node* topNode);
 char* calculateCodeGenValue(struct node* node);
 
-struct code* concatTwoCodes(struct node* executedFirst, struct node* executedSecond);
+struct code* concatTwoCodes(struct code* executedFirst, struct code* executedSecond);
 struct code* getNextLine(struct code* code);
 void fixLine(char* line, int par, char* replacement);
 
