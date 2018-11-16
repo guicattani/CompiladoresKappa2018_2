@@ -190,7 +190,7 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
         }
     }
 
-    else { //left is register
+    else { //left is not literal
         if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) { //right is literal
             //concat code
             struct code* compareCode = newCode();
@@ -304,49 +304,30 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
             else{
 
 
-                if(leftOperand->code){
-                    topNode->code->previous = leftOperand->code;
-                    leftOperand->code->next = topNode->code;
-
-                    if(rightOperand->code){
-                        leftOperand->code->previous = rightOperand->code;
-                        rightOperand->code->next = leftOperand->code;
-
-                    }
-                }
-                if(rightOperand->code){
-                    topNode->code->previous = rightOperand->code;
-                    rightOperand->code->next = topNode->code;
-                }
-
                 //concat code
-                struct code* compareCode = newCode();
-                struct code* previousCode = newCode();
-                if(rightOperand->token_type != NATUREZA_IDENTIFICADOR) {
-                    previousCode->previous = rightOperand->code;
-                    compareCode->next = previousCode;
-                }
-                else{
-                    free(previousCode);
-                }
-
+ 		concatTwoCodes(topNode->code, leftOperand->code);
+ 		concatTwoCodes(topNode->code, rightOperand->code);		
+                struct code* nextLine;
+                
+                nextLine = getNextLine(topNode->code);
+                
                 if(strcmp(operatorNode->token_value, "<") == 0) {
-                    strcat(compareCode->line,"cmp_LT ");
+                    strcat(nextLine->line,"cmp_LT ");
                 }
                 else if(strcmp(operatorNode->token_value, "<=") == 0){ //minus
-                    strcat(compareCode->line,"cmp_LE ");
+                    strcat(nextLine->line,"cmp_LE ");
                 }
                 else if(strcmp(operatorNode->token_value, "=") == 0){ //multiplication
-                    strcat(compareCode->line,"cmp_EQ ");
+                    strcat(nextLine->line,"cmp_EQ ");
                 }
                 else if(strcmp(operatorNode->token_value, ">=") == 0){ //multiplication
-                    strcat(compareCode->line,"cmp_GE ");
+                    strcat(nextLine->line,"cmp_GE ");
                 }
                 else if(strcmp(operatorNode->token_value, ">") == 0){ //multiplication
-                    strcat(compareCode->line,"cmp_GT ");
+                    strcat(nextLine->line,"cmp_GT ");
                 }
                 else{
-                    strcat(compareCode->line,"cmp_NE ");
+                    strcat(nextLine->line,"cmp_NE ");
                 }
 
                 char* leftAttributionRegister;
@@ -361,17 +342,20 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
                 else
                     rightAttributionRegister = rightRegisterFromIdentifier;
 
-                strcat(compareCode->line,leftAttributionRegister);
-                strcat(compareCode->line,", ");
-                strcat(compareCode->line,rightAttributionRegister);
-                strcat(compareCode->line," -> ");
-                strcat(compareCode->line,topNode->registerTemp);
+                strcat(nextLine->line,leftAttributionRegister);
+                strcat(nextLine->line,", ");
+                strcat(nextLine->line,rightAttributionRegister);
+                strcat(nextLine->line," -> ");
+                strcat(nextLine->line,topNode->registerTemp);
+	
+		nextLine = getNextLine(topNode->code);
 
-                strcat(topNode->code->line,"cbr ");
-                strcat(topNode->code->line,topNode->registerTemp);
-                strcat(topNode->code->line," -> ");
-                strcat(topNode->code->line,"#1,");
-                strcat(topNode->code->line,"#2");
+                strcat(nextLine->line,"cbr ");
+                strcat(nextLine->line,topNode->registerTemp);
+                strcat(nextLine->line," -> ");
+                strcat(nextLine->line,"#1,");
+                strcat(nextLine->line,"#2");
+                
             }
 
         }
@@ -435,23 +419,21 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
         else{ //left literal right register
 
             //concat code
-            if(rightOperand->token_type != NATUREZA_IDENTIFICADOR) {
-                topNode->code->previous = rightOperand->code;
-                rightOperand->code->next = topNode->code;
-            }
+            concatTwoCodes(topNode->code, rightOperand->code);
 
+	    struct code* next = getNextLine(topNode->code);
             //add imediate   
             if(strcmp(operatorNode->token_value, "+") == 0) {
-                strcat(topNode->code->line,"addI ");
+                strcat(next->line,"addI ");
             }
             else if(strcmp(operatorNode->token_value, "-") == 0){ //minus
-                strcat(topNode->code->line,"subI ");
+                strcat(next->line,"subI ");
             }
             else if(strcmp(operatorNode->token_value, "*") == 0){ //multiplication
-                strcat(topNode->code->line,"multI ");
+                strcat(next->line,"multI ");
             }
             else{ //division
-                strcat(topNode->code->line,"divI ");
+                strcat(next->line,"divI ");
             }
 
             char* attributionRegister;
@@ -461,34 +443,32 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
                 attributionRegister = rightRegisterFromIdentifier;
             
 
-            strcat(topNode->code->line,attributionRegister);
-            strcat(topNode->code->line,",");
-            strcat(topNode->code->line,calculateCodeGenValue(leftOperand->child));
-            strcat(topNode->code->line,"=>");
-            strcat(topNode->code->line,topNode->registerTemp);
+            strcat(next->line,attributionRegister);
+            strcat(next->line,",");
+            strcat(next->line,calculateCodeGenValue(leftOperand->child));
+            strcat(next->line,"=>");
+            strcat(next->line,topNode->registerTemp);
         }
     }
 
     else { //left is register
         if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) { //right is literal
             //concat code
-            if(leftOperand->token_type != NATUREZA_IDENTIFICADOR) {
-                
-                topNode->code->previous = leftOperand->code;
-                leftOperand->code->next = topNode->code;
-            }
+            concatTwoCodes(topNode->code, leftOperand->code);
+            
+            struct code* next = getNextLine(topNode->code);
 
             if(strcmp(operatorNode->token_value, "+") == 0) {
-                strcat(topNode->code->line,"addI ");
+                strcat(next->line,"addI ");
             }
             else if(strcmp(operatorNode->token_value, "-") == 0){ //minus
-                strcat(topNode->code->line,"subI ");
+                strcat(next->line,"subI ");
             }
             else if(strcmp(operatorNode->token_value, "*") == 0){ //multiplication
-                strcat(topNode->code->line,"multI ");
+                strcat(next->line,"multI ");
             }
             else{ //division
-                strcat(topNode->code->line,"divI ");
+                strcat(next->line,"divI ");
             }
 
             char* attributionRegister;
@@ -497,42 +477,31 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
             else
                 attributionRegister = leftRegisterFromIdentifier;
 
-            strcat(topNode->code->line,attributionRegister);
-            strcat(topNode->code->line,", ");
-            strcat(topNode->code->line,calculateCodeGenValue(rightOperand->child));
-            strcat(topNode->code->line," => ");
-            strcat(topNode->code->line,topNode->registerTemp);
+            strcat(next->line,attributionRegister);
+            strcat(next->line,", ");
+            strcat(next->line,calculateCodeGenValue(rightOperand->child));
+            strcat(next->line," => ");
+            strcat(next->line,topNode->registerTemp);
 
         } 
         else { //both are registers
             //concat code
-            if(leftOperand->code){
-                topNode->code->previous = leftOperand->code;
-                leftOperand->code->next = topNode->code;
+            concatTwoCodes(topNode->code, leftOperand->code);
+            concatTwoCodes(topNode->code, rightOperand->code);
 
-                if(rightOperand->code){
-                    leftOperand->code->previous = rightOperand->code;
-                    rightOperand->code->next = leftOperand->code;
-
-                }
-            }
-            if(rightOperand->code){
-                topNode->code->previous = rightOperand->code;
-                rightOperand->code->next = topNode->code;
-            }
-
+	    struct code* next = getNextLine(topNode->code);
             //add imediate   
             if(strcmp(operatorNode->token_value, "+") == 0) {
-                strcat(topNode->code->line,"add ");
+                strcat(next->line,"add ");
             }
             else if(strcmp(operatorNode->token_value, "-") == 0){ //minus
-                strcat(topNode->code->line,"sub ");
+                strcat(next->line,"sub ");
             }
             else if(strcmp(operatorNode->token_value, "*") == 0){ //multiplication
-                strcat(topNode->code->line,"mult ");
+                strcat(next->line,"mult ");
             }
             else{ //division
-                strcat(topNode->code->line,"div ");
+                strcat(next->line,"div ");
             }
 
             char* leftAttributionRegister;
@@ -547,11 +516,11 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
             else
                 rightAttributionRegister = rightRegisterFromIdentifier;
 
-            strcat(topNode->code->line,leftAttributionRegister);
-            strcat(topNode->code->line,", ");
-            strcat(topNode->code->line,rightAttributionRegister);
-            strcat(topNode->code->line," => ");
-            strcat(topNode->code->line,topNode->registerTemp);
+            strcat(next->line,leftAttributionRegister);
+            strcat(next->line,", ");
+            strcat(next->line,rightAttributionRegister);
+            strcat(next->line," => ");
+            strcat(next->line,topNode->registerTemp);
 
         }
     }
@@ -580,6 +549,7 @@ void updateNodeCodeLOCALDECLARATION(struct node* topNode, struct node* identifie
         //put in symbol table: regtemp, rfp
         info->registerTemp = topNode->registerTemp;
     }
+    
 }
 
 void updateNodeCodeGLOBALDECLARATION(struct node* topNode, struct node* identifierNode, struct node* typeNode){
@@ -587,24 +557,21 @@ void updateNodeCodeGLOBALDECLARATION(struct node* topNode, struct node* identifi
     topNode->code = newCode();
 
     //Load registers
-    char* initializationRegisterLoad = newRegister(); //esse fica dangling, tem que dar free TODO
-    struct code* previousCodeLoad = newCode();
-    topNode->code->previous = previousCodeLoad;
-    previousCodeLoad->next = topNode->code;
-        
-    strcat(previousCodeLoad->line,"loadI ");
-    strcat(previousCodeLoad->line,"0");
-    strcat(previousCodeLoad->line," => ");
-    strcat(previousCodeLoad->line,initializationRegisterLoad);
-        
-    strcat(topNode->code->line,"storeAI ");
-    strcat(topNode->code->line,initializationRegisterLoad);
+    strcat(topNode->code->line,"loadI ");
+    strcat(topNode->code->line,"0");
     strcat(topNode->code->line," => ");
-    strcat(topNode->code->line,"rbss");
-    strcat(topNode->code->line,", ");
+    strcat(topNode->code->line,topNode->registerTemp);
+        
+    struct code* next = getNextLine(topNode->code);
+    
+    strcat(next->line,"storeAI ");
+    strcat(next->line,topNode->registerTemp);
+    strcat(next->line," => ");
+    strcat(next->line,"rbss");
+    strcat(next->line,", ");
     char rbssOffsetTemp[10];
     sprintf(rbssOffsetTemp,"%d", rbssOffset);
-    strcat(topNode->code->line,rbssOffsetTemp);
+    strcat(next->line,rbssOffsetTemp);
 
     struct symbolInfo* info = findSymbolInContexts(identifierNode->token_value);
     info->rbssOffset = rbssOffset;
@@ -614,7 +581,7 @@ void updateNodeCodeGLOBALDECLARATION(struct node* topNode, struct node* identifi
 
     //put in symbol table: regtemp, rfp
     info->registerTemp = topNode->registerTemp;
-    free(initializationRegisterLoad);
+
 }
 
 struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOperand, struct node* rightOperand){
@@ -625,7 +592,7 @@ struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOp
     char* registerName = "";
 
     if(strcmp(rightOperand->token_value, AST_LITERAL) == 0){
-        rightOperand->registerTemp = newRegister();
+        rightOperand->registerTemp = info->registerTemp;
         struct code* previousCode = newCode();
 
         strcat(previousCode->line,"loadI ");
@@ -662,6 +629,7 @@ struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOp
         strcat(topNode->code->line,rbssOffsetTemp);
     }
 
+;
     while(topNode->code->previous)
         topNode->code = topNode->code->previous;
 
@@ -700,7 +668,8 @@ char* newLabel(){
     sprintf(labelNumber,"%d", labelIndex++);
     char* labelName = malloc(sizeof(char)*10);
     labelName[0] = '\0';
-    strcat(labelName, "r");
+    
+    strcat(labelName, "L");
     strcat(labelName, labelNumber);
 
     return labelName;
@@ -740,8 +709,8 @@ struct code* concatTwoCodes(struct code* executedFirst, struct code* executedSec
 
 void updateNodeCodeIF(struct node* ifNode, struct node* condition, struct node* ifTrue){
     ifNode->code = newCode();
-    char * rot = newRegister();
-    char * rot2 = newRegister();
+    char * rot = newLabel();
+    char * rot2 = newLabel();
     patching(condition->code, rot, 1);
     patching(condition->code, rot2, 0);
 
