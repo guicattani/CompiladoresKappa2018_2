@@ -736,8 +736,6 @@ struct code* concatTwoCodes(struct code* executedFirst, struct code* executedSec
     
     return executedFirst;
 
-
-
 }
 
 void updateNodeCodeIF(struct node* ifNode, struct node* condition, struct node* ifTrue){
@@ -893,6 +891,9 @@ struct code* getNextLine(struct code* code){
             code = code->next;
         }
 
+    if(code->next){
+        printf("A1\n");
+    }
     code->next = newCode();
     code->next->previous = code;
     code = code->next;
@@ -940,8 +941,16 @@ void liberaCode(struct code* code){
     if(code == NULL){
         return;
     }
-    liberaCode(code->previous);
-    free(code);
+    while(code->previous){
+        code = code->previous;
+    }
+    while(code->next){
+        struct code* temp = code;
+        code = code->next;
+        free(temp->line);
+        free(temp);
+    }
+
 }
 
 //Given a string to replace, searches for #1 or #2, and replaces it with the string given as argument
