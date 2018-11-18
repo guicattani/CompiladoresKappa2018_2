@@ -171,7 +171,6 @@ void cleanList(struct nodeList* list){
     cleanList(list->next);
 
       if (list->data != NULL){
-        
         if(list->data->token_type != 5 && list->data->token_type != 6 && list->data->token_type != 7 && list->data->token_type != 0){
             //node has a string in it
                if (list->data->value.string_value != NULL)

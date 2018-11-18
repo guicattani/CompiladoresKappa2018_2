@@ -136,7 +136,6 @@
 programa:
     {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2, -1); deleteContext(); 
                                 printCode($2);
-                                liberaCode($2->code);
                                 libera(arvore);
                                 free(previous_text);
                                 };
@@ -504,10 +503,13 @@ primitiveAttribution:
       TK_IDENTIFICADOR vectorModifier '=' expression {$$ = createNode(AST_PRIMATTR); 
                                                         createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                         createChildren($$, $3, -1); createChildren($$, $4, -1);
-                                                     $$->code = updateNodeCodeATTRIBUTION($$, $1, $4);
-                                                     
-                                                     
 
+                                                     if(!isIdentifierDeclared($1)){
+                                                        semanticerror(ERR_UNDECLARED, $1, NULL); 
+                                                        exit(ERR_UNDECLARED);}
+                                                                                
+
+                                                     $$->code = updateNodeCodeATTRIBUTION($$, $1, $4);
                                                      };  
 
 userTypeAttribution:
@@ -772,15 +774,11 @@ lowPrecedenceTwoFoldRecursiveExpression:
                                                                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                                                    createChildren($$, $3, -1);
                                                                                                    updateNodeCodeOPERATION($$, $1, $3, $2);
-                                                                                                   if($1->code || $3->code)
-                                                                                                    $$->code = concatTwoCodes($3->code, $1->code);
                                                                                                    }
     | lowPrecedenceTwoFoldRecursiveExpression comparisonOperator mediumPrecedenceTwoFoldRecursiveExpression {$$ = createNode(AST_LOWPTFREXP); 
                                                                                                    createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                                                    createChildren($$, $3, -1);
                                                                                                    updateNodeCodeARITHCOMPARISON($$, $1, $3, $2);
-                                                                                                   
-                                                                                                   
                                                                                                   }; 
 
 mediumPrecedenceTwoFoldRecursiveExpression:

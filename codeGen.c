@@ -9,17 +9,18 @@ int rbssOffset = 0;
 
 void printCode(struct node* topNode){
     struct code* code = topNode->code;
-    while(code->previous){
-        code = code->previous;
-    }
+    struct code* temp;
     while(code){
         printf("%s\n",code->line);
+        temp = code;
         code = code->next; 
+        free(temp->line);
+        free(temp);
     }
 }
 
 void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperand, struct node* rightOperand, struct node* operatorNode){
-     topNode->registerTemp = newRegister();
+    topNode->registerTemp = newRegister();
     topNode->code = newCode();
 
     char* leftRegisterFromIdentifier = "";
@@ -40,9 +41,7 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
     if(strcmp(leftOperand->token_value, AST_LITERAL) == 0) {
         if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) {
 
-            
             //both literals
-
             leftOperand->registerTemp = newRegister(); 
             rightOperand->registerTemp = newRegister(); 
             //load to register left
@@ -205,8 +204,6 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
                 topNode->code->previous = compareCode;
             }
             else{
-                free(previousCode);
-
                 topNode->code->previous = compareCode;
                 compareCode->next = topNode->code;
             }
@@ -270,39 +267,30 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
         else { //both are registers
             //concat code
             if(strcmp(operatorNode->token_value, "&&") == 0){
-
-            
                 char* temp = newLabel();
                 patching(leftOperand->code, temp, 1);
-                if(leftOperand->code)
+                if(leftOperand->code){
                     topNode->code = concatTwoCodes(topNode->code, leftOperand->code);
+                }
                 struct code* nextLine = getNextLine(topNode->code);
                 strcat(nextLine->line, temp);
-                strcat(nextLine->line, ":");        
+                strcat(nextLine->line, ":");
                 topNode->code = concatTwoCodes(topNode->code, rightOperand->code);
-
-
-
-                
+                free(temp);
             }
             else if(strcmp(operatorNode->token_value, "||") == 0){
-
-            
                 char* temp = newLabel();
                 patching(leftOperand->code, temp, 0);
-                if(leftOperand->code)
+                if(leftOperand->code){
                     topNode->code = concatTwoCodes(topNode->code, leftOperand->code);
+                }
                 struct code* nextLine = getNextLine(topNode->code);
                 strcat(nextLine->line, temp);
-                strcat(nextLine->line, ":");        
+                strcat(nextLine->line, ":");  
                 topNode->code = concatTwoCodes(topNode->code, rightOperand->code);
-
-
-
-                
+                free(temp);
             }
             else{
-
 
                 //concat code
  		concatTwoCodes(topNode->code, leftOperand->code);
@@ -417,11 +405,10 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
 
         }
         else{ //left literal right register
-
             //concat code
             concatTwoCodes(topNode->code, rightOperand->code);
 
-	    struct code* next = getNextLine(topNode->code);
+	        struct code* next = getNextLine(topNode->code);
             //add imediate   
             if(strcmp(operatorNode->token_value, "+") == 0) {
                 strcat(next->line,"addI ");
@@ -452,6 +439,7 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
     }
 
     else { //left is register
+
         if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) { //right is literal
             //concat code
             concatTwoCodes(topNode->code, leftOperand->code);
@@ -485,6 +473,7 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
 
         } 
         else { //both are registers
+
             //concat code
             concatTwoCodes(topNode->code, leftOperand->code);
             concatTwoCodes(topNode->code, rightOperand->code);
@@ -591,51 +580,73 @@ struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOp
     topNode->code = newCode();
     char* registerName = "";
 
+
     if(strcmp(rightOperand->token_value, AST_LITERAL) == 0){
-        rightOperand->registerTemp = info->registerTemp;
-        struct code* previousCode = newCode();
+        char* printReg = info->registerTemp;
+        struct code* next;
 
-        strcat(previousCode->line,"loadI ");
-        strcat(previousCode->line,calculateCodeGenValue(rightOperand->child));
-        strcat(previousCode->line," => ");
-        strcat(previousCode->line,rightOperand->registerTemp);
+        strcat(topNode->code->line,"loadI ");
+        strcat(topNode->code->line,calculateCodeGenValue(rightOperand->child));
+        strcat(topNode->code->line," => ");
+        strcat(topNode->code->line,printReg);
+        registerName = printReg;
 
-        concatTwoCodes(previousCode, topNode->code);
+        next = getNextLine(topNode->code);
 
-        registerName = rightOperand->registerTemp;
+        strcat(next->line,"storeAI ");
+        strcat(next->line,registerName);
+        strcat(next->line," => ");
+        if(info->rfpOffset >= 0){
+            strcat(next->line,"rfp");
+            strcat(next->line,", ");
+            char rfpOffsetTemp[10];
+            sprintf(rfpOffsetTemp,"%d", info->rfpOffset);
+            strcat(next->line,rfpOffsetTemp);
+        }
+        else{
+            strcat(next->line,"rbss");
+            strcat(next->line,", ");
+            char rbssOffsetTemp[10];
+            sprintf(rbssOffsetTemp,"%d", info->rbssOffset);
+            strcat(next->line,rbssOffsetTemp);
+        }
+
     }
     else{
-       
-        registerName = rightOperand->registerTemp;
-        concatTwoCodes(rightOperand->code, topNode->code);
+        struct symbolInfo* rightInfo;
+        if(rightOperand->token_type == NATUREZA_IDENTIFICADOR){
+            rightInfo = findSymbolInContexts(rightOperand->token_value);
+            registerName = rightInfo->registerTemp;
+        }
+        else{
+            registerName = rightOperand->registerTemp;
+            concatTwoCodes(rightOperand->code, topNode->code);
+        }
 
-    }
+        strcat(topNode->code->line,"storeAI ");
+        strcat(topNode->code->line,registerName);
+        strcat(topNode->code->line," => ");
+        if(info->rfpOffset >= 0){
+            strcat(topNode->code->line,"rfp");
+            strcat(topNode->code->line,", ");
+            char rfpOffsetTemp[10];
+            sprintf(rfpOffsetTemp,"%d", info->rfpOffset);
+            strcat(topNode->code->line,rfpOffsetTemp);
+        }
+        else{
+            strcat(topNode->code->line,"rbss");
+            strcat(topNode->code->line,", ");
+            char rbssOffsetTemp[10];
+            sprintf(rbssOffsetTemp,"%d", info->rbssOffset);
+            strcat(topNode->code->line,rbssOffsetTemp);
+        }
 
-    strcat(topNode->code->line,"storeAI ");
-    strcat(topNode->code->line,rightOperand->registerTemp);
-    strcat(topNode->code->line," => ");
-    if(info->rfpOffset >= 0){
-        strcat(topNode->code->line,"rfp");
-        strcat(topNode->code->line,", ");
-        char rfpOffsetTemp[10];
-        sprintf(rfpOffsetTemp,"%d", info->rfpOffset);
-        strcat(topNode->code->line,rfpOffsetTemp);
+        if(rightOperand->token_type != NATUREZA_IDENTIFICADOR){
+            return rightOperand->code;
+        }
     }
-    else{
-        strcat(topNode->code->line,"rbss");
-        strcat(topNode->code->line,", ");
-        char rbssOffsetTemp[10];
-        sprintf(rbssOffsetTemp,"%d", info->rbssOffset);
-        strcat(topNode->code->line,rbssOffsetTemp);
-    }
-
-;
-    while(topNode->code->previous)
-        topNode->code = topNode->code->previous;
 
     return topNode->code;
-
-
 }
 
 char* calculateCodeGenValue(struct node* node){
@@ -648,7 +659,7 @@ char* calculateCodeGenValue(struct node* node){
             return "0";
     }
     else if(node->token_type == NATUREZA_LITERAL_FLOAT){
-        return "FLOAT";
+        return "FLOAT_ERROR";
     }
     return "";
 }
@@ -860,9 +871,6 @@ struct code* getNextLine(struct code* code){
             code = code->next;
         }
 
-    if(code->next){
-        printf("A1\n");
-    }
     code->next = newCode();
     code->next->previous = code;
     code = code->next;
@@ -874,11 +882,11 @@ struct code* getNextLine(struct code* code){
 //Patches the code with the string given
 //par: Parameter - 1 replaces #1 with the replacement, 0 replaces #2
 void patching(struct code* code, char* replacement, int par){
+    struct code* codeIterator = code;
 
-
-    while(code){
-        fixLine(code->line, par, replacement);
-        code = code->next;
+    while(codeIterator){
+        fixLine(codeIterator->line, par, replacement);
+        codeIterator = codeIterator->next;
     }
 }
 
@@ -910,16 +918,17 @@ void liberaCode(struct code* code){
     if(code == NULL){
         return;
     }
-    while(code->previous){
-        code = code->previous;
-    }
-    while(code->next){
-        struct code* temp = code;
-        code = code->next;
-        free(temp->line);
+    struct code* codeIterator = code;
+    while(codeIterator->next){
+        struct code* temp = codeIterator;
+        codeIterator = codeIterator->next;
+        if(temp->line)
+            free(temp->line);
         free(temp);
     }
-
+    if(code->line)
+        free(code->line);
+    free(code);
 }
 
 //Given a string to replace, searches for #1 or #2, and replaces it with the string given as argument

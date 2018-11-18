@@ -263,6 +263,7 @@ int checkAttribution(struct node* id, struct node* vector, struct node* expressi
     int typeInferenceOfExpression; 
     char* userTypeTypeInfer = NULL;
     if(expression->child != NULL || expression->brother != NULL){//not a literal
+
         typeInferenceOfExpression = calculateTypeInfer(expression, &userTypeTypeInfer, -1);
 
         if(typeInferenceOfExpression > NATUREZA_IDENTIFICADOR){
@@ -344,9 +345,11 @@ int calculateTypeInfer(struct node* node, char** userType, int typeOfAttribution
     
     if(node != NULL && node->child != NULL && node->child->brother != NULL && node->child->brother->brother->brother != NULL){
         int referenceType = node->child->token_type;
+
         if(referenceType == NATUREZA_IDENTIFICADOR){
             struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
             referenceType = referenceInfo->type;
+
 
             if(referenceInfo->nature == NATUREZA_FUNC) {
                 referenceInfo = findSymbolInContexts(referenceInfo->name);
@@ -359,14 +362,13 @@ int calculateTypeInfer(struct node* node, char** userType, int typeOfAttribution
         }
     }
 
-  
-    
-
     if(node != NULL && node->brother == NULL && node->child != NULL &&node->child->brother == NULL){
+
         int referenceType = node->child->token_type;
         if(referenceType == NATUREZA_IDENTIFICADOR){
             struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
             referenceType = referenceInfo->type;
+
             if(referenceInfo->nature == NATUREZA_CLASSE || referenceInfo->nature == NATUREZA_VETOR_CLASSE){
                 *userType = referenceInfo->userType;
                 return NATUREZA_IDENTIFICADOR;
@@ -460,7 +462,7 @@ int calculateTypeInferRecursion(struct node* node, int typeOfAttribution){
             int isClassFieldDeclared = searchFieldList(classInfo->fields, node->brother->brother->token_value, referenceInfo->userType);
             if (isClassFieldDeclared == -1)
                 return ERR_CLASS_ID_NOT_FOUND;
-
+                
             int typeClassField = getTypeFromUserClassField(node, node->brother->brother);
             if(typeClassField > NATUREZA_IDENTIFICADOR)
                 return ERR_CLASS_ID_NOT_FOUND;
@@ -526,7 +528,6 @@ int calculateTypeInferRecursion(struct node* node, int typeOfAttribution){
         node->implicitConversion = returnImplicitConversionCode(nodeType, typeOfAttribution);
         return precedenceConversion;
     }
-
     return nodeType;
 }
 
