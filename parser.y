@@ -674,7 +674,7 @@ iterativeFluxControl:
                                                                                              createChildren($$, $4, -1); 
                                                                                              createChildren($$, $5, -1); createChildren($$, $6, -1);
 
-                                                                                             updateCodeWHILE($$, $3, $5);
+                                                                                             updateCodeWHILE($$, $3, $6);
                                                                                              }
     | TK_PR_DO commandsBlock TK_PR_WHILE '(' expression ')'                                 {$$ = createNode(AST_CONDFLUXCONT); 
                                                                                              createChildren($$, $1, -1); createChildren($$, $2, -1);
