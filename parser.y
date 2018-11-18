@@ -494,7 +494,9 @@ attribution:
       primitiveAttribution  {$$ = $1; int err = checkPrimitiveAttribution($1);
                             if(err){ semanticerror(err, $1->child, NULL); exit(err);}
                             $$->code = $1->code;
-                            
+                            printf("##before\n");
+                            $$->code = removeCBR($$->code);
+                            printf("##after\n");
                             }
     | userTypeAttribution   {$$ = $1; int err = checkUserTypeAttribution($1);
                             if(err){ semanticerror(err, $1->child, $1->child->brother->brother->brother); exit(err);}};

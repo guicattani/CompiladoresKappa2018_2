@@ -864,7 +864,7 @@ struct code* removeCBR(struct code* code){
         struct code* replaceCode = codeIterator->next;
 
         if(token){
-            codeIterator->previous = codeIterator->next;
+            codeIterator->previous->next = codeIterator->next;
             free(codeIterator);
         }
         codeIterator = replaceCode;
