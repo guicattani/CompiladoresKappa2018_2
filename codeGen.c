@@ -102,16 +102,16 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
 
         }
         else{ //left literal right register
+            struct code* next;
 
             topNode->code = concatTwoCodes(leftOperand->code, topNode->code);
             leftOperand->registerTemp = newRegister(); 
-
-            strcat(topNode->code->line,"loadI ");
-            strcat(topNode->code->line,calculateCodeGenValue(leftOperand->child));
-            strcat(topNode->code->line," => ");
-            strcat(topNode->code->line,leftOperand->registerTemp);
+            next = getNextLine(topNode->code);
+            strcat(next->line,"loadI ");
+            strcat(next->line,calculateCodeGenValue(leftOperand->child));
+            strcat(next->line," => ");
+            strcat(next->line,leftOperand->registerTemp);
             
-            struct code* next;
             next = getNextLine(topNode->code);
 
             if(strcmp(operatorNode->token_value, "<") == 0) {
@@ -166,14 +166,15 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
     else { //left is not literal
         if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) { //right is literal
             //concat code
+            struct code* next;
             topNode->code = concatTwoCodes(leftOperand->code,topNode->code);
             rightOperand->registerTemp = newRegister(); 
 
-            strcat(topNode->code->line,"loadI ");
-            strcat(topNode->code->line,calculateCodeGenValue(rightOperand->child));
-            strcat(topNode->code->line," => ");
-            strcat(topNode->code->line,rightOperand->registerTemp);
-            struct code* next;
+            next = getNextLine(topNode->code);
+            strcat(next->line,"loadI ");
+            strcat(next->line,calculateCodeGenValue(rightOperand->child));
+            strcat(next->line," => ");
+            strcat(next->line,rightOperand->registerTemp);
             next = getNextLine(topNode->code);
 
             if(strcmp(operatorNode->token_value, "<") == 0) {
