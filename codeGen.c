@@ -600,6 +600,13 @@ struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOp
             strcat(topNode->code->line,rbssOffsetTemp);
         }
 
+        struct code* next = getNextLine(topNode->code);
+
+        strcat(next->line, "i2i ");
+        strcat(next->line, registerName);
+        strcat(next->line, " => ");
+        strcat(next->line, attributionRegister);
+
         if(rightOperand->token_type != NATUREZA_IDENTIFICADOR){
             return rightOperand->code;
         }
