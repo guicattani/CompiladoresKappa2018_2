@@ -342,7 +342,6 @@ int calculateTypeInfer(struct node* node, char** userType, int typeOfAttribution
     if(node->typeInfered > 0){
         return node->typeInfered;
     }
-    
     if(node != NULL && node->child != NULL && node->child->brother != NULL && node->child->brother->brother->brother != NULL){
         int referenceType = node->child->token_type;
 
@@ -350,9 +349,12 @@ int calculateTypeInfer(struct node* node, char** userType, int typeOfAttribution
             struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
             referenceType = referenceInfo->type;
 
-
             if(referenceInfo->nature == NATUREZA_FUNC) {
                 referenceInfo = findSymbolInContexts(referenceInfo->name);
+                if(node->brother != NULL || strcmp(node->brother->token_value , "(") == 0){
+                    return ERR_MISSING_ARGS;
+                }
+
                 if(strcmp(node->child->brother->token_value , "(") == 0){
                     if(strcmp(node->child->brother->brother->brother->token_value , ")") == 0){
                         return referenceInfo->type;
@@ -362,24 +364,25 @@ int calculateTypeInfer(struct node* node, char** userType, int typeOfAttribution
         }
     }
 
-    if(node != NULL && node->brother == NULL && node->child != NULL &&node->child->brother == NULL){
+    // if(node != NULL && node->brother == NULL && node->child != NULL &&node->child->brother == NULL){
 
-        int referenceType = node->child->token_type;
-        if(referenceType == NATUREZA_IDENTIFICADOR){
-            struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
-            referenceType = referenceInfo->type;
+    //     int referenceType = node->child->token_type;
+    //     if(referenceType == NATUREZA_IDENTIFICADOR){
+    //         struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
+    //         referenceType = referenceInfo->type;
 
-            if(referenceInfo->nature == NATUREZA_CLASSE || referenceInfo->nature == NATUREZA_VETOR_CLASSE){
-                *userType = referenceInfo->userType;
-                return NATUREZA_IDENTIFICADOR;
-            }
-        }
+    //         if(referenceInfo->nature == NATUREZA_CLASSE || referenceInfo->nature == NATUREZA_VETOR_CLASSE){
+    //             *userType = referenceInfo->userType;
+    //             return NATUREZA_IDENTIFICADOR;
+    //         }
+    //     }
  
-        return referenceType;
-    }
-    else {
+    // printf("OIXA %d",referenceType);
+    //     return referenceType;
+    // }
+    // else {
         return calculateTypeInferRecursion(node, typeOfAttribution);
-    }
+    //}
 }
 
 
@@ -396,15 +399,38 @@ int calculateTypeInferRecursion(struct node* node, int typeOfAttribution){
         
         return brotherInfer;
     }
-    if(strcmp(node->token_value , "(") == 0){
-        while(node->brother != NULL){
-            node = node->brother;
-            if(strcmp(node->brother->token_value , ")") == 0){
-                node = node->brother;
-                break;
+
+    struct symbolInfo* referenceInfo;
+    if(node->token_type == NATUREZA_IDENTIFICADOR){
+
+        referenceInfo = findSymbolInContexts(node->token_value);
+
+        if(referenceInfo == NULL)
+            return ERR_UNDECLARED;
+        
+        int functionNodeType = referenceInfo->type;
+
+        if(referenceInfo->nature == NATUREZA_FUNC){
+            if(node->brother != NULL) {
+                if(strcmp(node->brother->token_value , "(") != 0)
+                    return ERR_FUNCTION;
+                else
+                    node = node->brother;
+                while(node->brother != NULL){
+                    node = node->brother;
+                    if(strcmp(node->brother->token_value , ")") == 0){
+                        node = node->brother;
+                        break;
+                    }
+                }
             }
+            else {
+                return ERR_FUNCTION;
+            }
+            node->token_type = functionNodeType;
         }
-    } 
+
+    }
     
     int childInfer = calculateTypeInferRecursion(node->child, typeOfAttribution);
     int brotherInfer = calculateTypeInferRecursion(node->brother, typeOfAttribution);
@@ -439,7 +465,6 @@ int calculateTypeInferRecursion(struct node* node, int typeOfAttribution){
     }
 
     //dereference variable
-    struct symbolInfo* referenceInfo;
     if(nodeType == NATUREZA_IDENTIFICADOR){
         referenceInfo = findSymbolInContexts(node->token_value);
         int referenceType = referenceInfo->type;

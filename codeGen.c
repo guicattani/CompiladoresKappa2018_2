@@ -28,13 +28,19 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
     if(leftOperand->token_type == NATUREZA_IDENTIFICADOR){
         struct symbolInfo* info = findSymbolInContexts(leftOperand->token_value);
         if(info != NULL){
-            leftRegisterFromIdentifier = info->registerTemp;
+            if(info->type == NATUREZA_FUNC)
+                leftRegisterFromIdentifier = "FUNC";
+            else
+                leftRegisterFromIdentifier = info->registerTemp;
         }
     }
     if(rightOperand->token_type == NATUREZA_IDENTIFICADOR){
         struct symbolInfo* info = findSymbolInContexts(rightOperand->token_value);
         if(info != NULL){
-            rightRegisterFromIdentifier = info->registerTemp;
+          if(info->type == NATUREZA_FUNC)
+                rightRegisterFromIdentifier = "FUNC";
+            else
+                rightRegisterFromIdentifier= info->registerTemp;
         }
     }
 
@@ -318,13 +324,19 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
     if(leftOperand->token_type == NATUREZA_IDENTIFICADOR){
         struct symbolInfo* info = findSymbolInContexts(leftOperand->token_value);
         if(info != NULL){
-            leftRegisterFromIdentifier = info->registerTemp;
+            if(info->registerTemp)
+                leftRegisterFromIdentifier = info->registerTemp;
+            else
+                leftRegisterFromIdentifier = "FUNC";
         }
     }
     if(rightOperand->token_type == NATUREZA_IDENTIFICADOR){
         struct symbolInfo* info = findSymbolInContexts(rightOperand->token_value);
         if(info != NULL){
-            rightRegisterFromIdentifier = info->registerTemp;
+            if(info->registerTemp)
+                rightRegisterFromIdentifier = info->registerTemp;
+            else
+                rightRegisterFromIdentifier = "FUNC";
         }
     }
 
@@ -398,7 +410,6 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
     }
 
     else { //left is register
-
         if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) { //right is literal
             //concat code
             concatTwoCodes(topNode->code, leftOperand->code);
@@ -454,13 +465,21 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
 
             char* leftAttributionRegister;
             char* rightAttributionRegister;
-            if(leftOperand->token_type != NATUREZA_IDENTIFICADOR)
-                leftAttributionRegister = leftOperand->registerTemp;
+            if(leftOperand->token_type != NATUREZA_IDENTIFICADOR){
+                if(rightOperand->registerTemp)
+                    leftAttributionRegister = leftOperand->registerTemp;
+                else
+                    leftAttributionRegister = "ERROR";
+            }
             else
                 leftAttributionRegister = leftRegisterFromIdentifier;
 
-            if(rightOperand->token_type != NATUREZA_IDENTIFICADOR)
-                rightAttributionRegister = rightOperand->registerTemp;
+            if(rightOperand->token_type != NATUREZA_IDENTIFICADOR){
+                if(rightOperand->registerTemp)
+                    rightAttributionRegister = rightOperand->registerTemp;
+                else
+                    rightAttributionRegister = "ERROR";
+            }
             else
                 rightAttributionRegister = rightRegisterFromIdentifier;
 

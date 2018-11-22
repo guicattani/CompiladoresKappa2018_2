@@ -502,12 +502,19 @@ attribution:
 primitiveAttribution:
       TK_IDENTIFICADOR vectorModifier '=' expression {$$ = createNode(AST_PRIMATTR); 
                                                         createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                        createChildren($$, $3, -1); createChildren($$, $4, -1);
+                                                        createChildren($$, $3, -1); 
 
                                                      if(!isIdentifierDeclared($1)){
                                                         semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                         exit(ERR_UNDECLARED);}
-                                                                                
+                                                    
+                                                     //expression
+
+                                                     int typeInfer = calculateTypeInfer($4, NULL, -1);
+                                                     createChildren($$, $4, typeInfer);
+                                                     
+                                                     if(typeInfer > 6){ semanticerror(typeInfer, $4,$1); exit(typeInfer);}
+                                                     //expression end
 
                                                      $$->code = updateNodeCodeATTRIBUTION($$, $1, $4);
                                                      };  
