@@ -561,7 +561,6 @@ void updateNodeCodeGLOBALDECLARATION(struct node* topNode, struct node* identifi
 
 struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOperand, struct node* rightOperand){
     struct symbolInfo* info = findSymbolInContexts(leftOperand->token_value);
-
     char* attributionRegister = info->registerTemp;
     topNode->code = newCode();
     char* registerName = "";
@@ -607,8 +606,8 @@ struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOp
                 registerName = "ERROR";
         }
         else{
-             if(rightInfo->registerTemp)
-                registerName = rightInfo->registerTemp;
+            if(rightOperand->registerTemp)
+                registerName = rightOperand->registerTemp;
             else
                 registerName = "ERROR";
             concatTwoCodes(rightOperand->code, topNode->code);
