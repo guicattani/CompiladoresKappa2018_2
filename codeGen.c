@@ -395,8 +395,12 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
             }
 
             char* attributionRegister;
-            if(rightOperand->token_type != NATUREZA_IDENTIFICADOR)
-                attributionRegister = rightOperand->registerTemp;
+            if(rightOperand->token_type != NATUREZA_IDENTIFICADOR){
+                if(rightOperand->registerTemp)
+                    attributionRegister = rightOperand->registerTemp;
+                else
+                    attributionRegister = "ERROR";
+            }
             else
                 attributionRegister = rightRegisterFromIdentifier;
             
@@ -430,8 +434,12 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
             }
 
             char* attributionRegister;
-            if(leftOperand->token_type != NATUREZA_IDENTIFICADOR)
-                attributionRegister = leftOperand->registerTemp;
+            if(leftOperand->token_type != NATUREZA_IDENTIFICADOR){
+                if(leftOperand->registerTemp)
+                    attributionRegister = leftOperand->registerTemp;
+                else
+                    attributionRegister = "ERROR";
+            }
             else
                 attributionRegister = leftRegisterFromIdentifier;
 
@@ -558,7 +566,6 @@ struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOp
     topNode->code = newCode();
     char* registerName = "";
 
-
     if(strcmp(rightOperand->token_value, AST_LITERAL) == 0){
         char* printReg = info->registerTemp;
         struct code* next;
@@ -594,10 +601,16 @@ struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOp
         struct symbolInfo* rightInfo;
         if(rightOperand->token_type == NATUREZA_IDENTIFICADOR){
             rightInfo = findSymbolInContexts(rightOperand->token_value);
-            registerName = rightInfo->registerTemp;
+            if(rightInfo->registerTemp)
+                registerName = rightInfo->registerTemp;
+            else
+                registerName = "ERROR";
         }
         else{
-            registerName = rightOperand->registerTemp;
+             if(rightInfo->registerTemp)
+                registerName = rightInfo->registerTemp;
+            else
+                registerName = "ERROR";
             concatTwoCodes(rightOperand->code, topNode->code);
         }
 
@@ -626,11 +639,10 @@ struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOp
         strcat(next->line, " => ");
         strcat(next->line, attributionRegister);
 
-        if(rightOperand->token_type != NATUREZA_IDENTIFICADOR){
+        if(rightOperand->token_type != NATUREZA_IDENTIFICADOR && strcmp(rightOperand->token_value,AST_FUNCTIONCALL) != 0){
             return rightOperand->code;
         }
     }
-
     return topNode->code;
 }
 
@@ -877,9 +889,10 @@ void patching(struct code* code, char* replacement, int par){
 }
 
 struct code* removeCBR(struct code* code){
+    if(code == NULL)
+        return code;
     struct code* codeIterator = code;
     struct code* returnCode = code;
-
     //if first line is cbr
     char *token = strstr(codeIterator->line, "cbr");
     if(token){
