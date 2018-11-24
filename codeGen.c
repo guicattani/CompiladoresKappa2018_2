@@ -996,7 +996,7 @@ void declareFunctionCode(struct node* functionDeclaration){
 struct code* writeFunctionCall(struct node* functionCall){
     //Prepare to update RSP by putting rfpoffset in a string
     char RSPUpdate[33];
-    itoa(rfpOffset, RSPUpdate, 10);
+    sprintf(RSPUpdate, "%d", rfpOffset);
     //Creates a new line updating RSP
     struct code* code = newCode();
     strcat(code->line, "addi rsp, ");
@@ -1007,7 +1007,7 @@ struct code* writeFunctionCall(struct node* functionCall){
     //Gets the value to jump the PC to after the function
     int jumpPCOffset = getFunctionArgumentsNumber(functionCall) + 5;
     char jumpPCString[33];
-    itoa(jumpPCOffset, jumpPCString, 10);
+    sprintf(jumpPCString, "%d", jumpPCOffset);
     char* jumpPCLabel = newRegister();
 
     //Creates the line to add PC an saves it in a new register
@@ -1061,7 +1061,7 @@ struct code* writeFunctionCall(struct node* functionCall){
 
             //Gets the offset to be saved
             char stackOffsetString[33];
-            itoa(stackOffset, stackOffsetString, 10);
+            sprintf(stackOffsetString, "%d", stackOffset);
             
             next = getNextLine(code);
             strcat(next->line, "storeAI ");
@@ -1101,7 +1101,7 @@ struct code* writeFunctionCall(struct node* functionCall){
         
         //Gets the offset to be saved
         char stackOffsetString[33];
-        itoa(stackOffset, stackOffsetString, 10);
+        sprintf(stackOffsetString, "%d", stackOffset);
 
         next = getNextLine(code);
         strcat(next->line, "storeAI ");
@@ -1123,7 +1123,7 @@ struct code* writeFunctionCall(struct node* functionCall){
     //Now all that is needed to do is load the value returned by the function
     //The value will be in the stackOffset
     char stackOffsetString[33];
-    itoa(stackOffset, stackOffsetString, 10);
+    sprintf(stackOffsetString, "%d", stackOffset);
     char* functionValue = newRegister();
 
     next = getNextLine(code);
