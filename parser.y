@@ -17,7 +17,7 @@
     extern char* yytext;
     extern void* arvore;
     extern struct nodeList* nodeList;
-
+    extern struct functionLabels* functionLabels;
     void semanticerror(int err, struct node* id, struct node* type);
     void libera (void *arvore);
 }
@@ -134,8 +134,11 @@
 %%
 
 programa:
-    {createContext();}  code   {arvore = createChildren(createNode(AST_PROGRAMA), $2, -1); deleteContext(); 
-                                printCode($2);
+    {createContext();}  code   {$$ = createChildren(createNode(AST_PROGRAMA), $2, -1); 
+                                $$->code = addJumpToFirstLine($2->code);
+                                arvore = $$;
+                                printCode($$);
+                                deleteContext(); 
                                 libera(arvore);
                                 free(previous_text);
                                 };
@@ -324,14 +327,9 @@ functionDeclaration:
                                                     createChildren($$, $3, -1);
                                                     deleteContext();
                                                     $$->code = $3->code;
+                                                    declareFunctionCode($$);
                                                    };
 
-functionCommandsBlock:
-    '{' commandsList '}'    {$$ = createNode(AST_FUNCCOMMANDSBLOCK); 
-                             createChildren($$, $1, -1); createChildren($$, $2, -1);
-                             createChildren($$, $3, -1);
-                             $$->code = $2->code;
-                             }; 
 
 functionHead:
       primitiveType TK_IDENTIFICADOR '(' functionArgumentsList ')'               {$$ = createNode(AST_FUNCHEAD); 
@@ -346,6 +344,13 @@ functionHead:
                                                                                   createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                                   createChildren($$, $3, -1); createChildren($$, $4, -1);
                                                                                   createChildren($$, $5, -1); createChildren($$, $6, -1);};
+
+functionCommandsBlock:
+    '{' commandsList '}'    {$$ = createNode(AST_FUNCCOMMANDSBLOCK); 
+                             createChildren($$, $1, -1); createChildren($$, $2, -1);
+                             createChildren($$, $3, -1);
+                             $$->code = $2->code;
+                             }; 
 
 commandsBlock:
     { createContext(); }'{' commandsList '}'    {$$ = createNode(AST_COMMANDSBLOCK); 
@@ -435,7 +440,8 @@ commandSimple:
                                                      if(typeInfer > 6){ semanticerror(typeInfer, $1,$1); exit(typeInfer);}
                                                      //expression end
                                                     }
-    | functionCall                                  {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, NULL); exit(err);}}
+    | functionCall                                  {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, NULL); exit(err);}
+                                                     $$->code = $1->code; $$->registerTemp = $1->registerTemp;}
     | shiftCommand                                  {$$ = $1;}
     | TK_PR_RETURN expression                       {
                                                      struct node* exp = createNode(AST_EXPRESSION);
@@ -567,7 +573,7 @@ functionCall:
     TK_IDENTIFICADOR '(' functionCallArguments ')' {$$ = createNode(AST_FUNCTIONCALL); 
                                                     createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                     createChildren($$, $3, -1); createChildren($$, $4, -1);
-                                                    
+                                                    writeFunctionCall($$);
                                                     };
 
 //Arguments can be empty or can be a list of expressions/dots
@@ -739,6 +745,7 @@ simpleExpression:
                                                     semanticerror(ERR_UNDECLARED, $1, NULL); 
                                                     exit(ERR_UNDECLARED);}
                                                 }
+                                            
     | functionCall                              {$$ = $1; int err = checkFunction($1, -1, NULL); if (err){ semanticerror(err, $1->child, $1->child);exit(err); }}
     | pipeCommands                              {$$ = $1; int err = checkFunctionPipe($1); if (err){ semanticerror(err, $1->child, $1->child);exit(err); }}
     | literal                                   {$$ = createNode(AST_LITERAL); 

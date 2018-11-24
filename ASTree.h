@@ -46,5 +46,7 @@ int numberOfChildren(struct node* node);
 int numberOfSiblings(struct node* node);
 int isVectorEmpty(struct node* vectorNode);
 
+int getFunctionArgumentsNumber(struct node* func);
+
 
 #endif

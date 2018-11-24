@@ -2,10 +2,12 @@
 
 int registerIndex = 0;
 int labelIndex = 0;
+struct functionLabels *functionLabels = NULL;
 
 //rfpOffset have been moved to symbolTable because it changes with contex
 extern int rfpOffset;
 int rbssOffset = 0;
+char* mainLabel = NULL;
 
 void printCode(struct node* topNode){
     struct code* code = topNode->code;
@@ -28,8 +30,11 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
     if(leftOperand->token_type == NATUREZA_IDENTIFICADOR){
         struct symbolInfo* info = findSymbolInContexts(leftOperand->token_value);
         if(info != NULL){
-            if(info->type == NATUREZA_FUNC)
-                leftRegisterFromIdentifier = "FUNC";
+            if(info->type == NATUREZA_FUNC){
+
+                topNode->code = concatTwoCodes(topNode->code, writeFunctionCall(leftOperand));
+                leftRegisterFromIdentifier = info->registerTemp;
+            }
             else
                 leftRegisterFromIdentifier = info->registerTemp;
         }
@@ -37,8 +42,10 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
     if(rightOperand->token_type == NATUREZA_IDENTIFICADOR){
         struct symbolInfo* info = findSymbolInContexts(rightOperand->token_value);
         if(info != NULL){
-          if(info->type == NATUREZA_FUNC)
-                rightRegisterFromIdentifier = "FUNC";
+          if(info->type == NATUREZA_FUNC){
+                topNode->code = concatTwoCodes(topNode->code, writeFunctionCall(rightOperand));
+                rightRegisterFromIdentifier = info->registerTemp;
+            }
             else
                 rightRegisterFromIdentifier= info->registerTemp;
         }
@@ -955,3 +962,193 @@ void fixLine(char* line, int par, char* replacement){
 
 
 }
+
+//given a functionNode, adds it to the global functionlabels writes the label now. If the function is called "main", updates mainLabel
+//Then adds the label of the function before the code of its commands
+void declareFunctionCode(struct node* functionDeclaration){
+
+    struct node* functionHead = functionDeclaration->child;
+    char* name;
+    if(numberOfChildren(functionHead) == 5){
+        name = functionHead->child->brother->token_value; 
+    } else if(numberOfChildren(functionHead) == 6){
+        name = functionHead->child->brother->brother->token_value;
+    }
+
+    char* label = newLabel();
+    functionLabels = addFunctionLabelList(functionLabels, name, label);
+    if(strcmp(name, "main") == 0){
+        mainLabel = strdup(label);
+    }
+    struct code* code = newCode();
+    strcat(code->line, label);
+    strcat(code->line, ":");
+    functionDeclaration->code = concatTwoCodes(code, functionDeclaration->code);
+
+
+
+}
+
+
+
+
+//Given a functionCall node, writes the code for it
+struct code* writeFunctionCall(struct node* functionCall){
+    //Prepare to update RSP by putting rfpoffset in a string
+    char RSPUpdate[33];
+    itoa(rfpOffset, RSPUpdate, 10);
+    //Creates a new line updating RSP
+    struct code* code = newCode();
+    strcat(code->line, "addi rsp, ");
+    strcat(code->line, RSPUpdate);
+    strcat(code->line, " => rsp");
+
+
+    //Gets the value to jump the PC to after the function
+    int jumpPCOffset = getFunctionArgumentsNumber(functionCall) + 5;
+    char jumpPCString[33];
+    itoa(jumpPCOffset, jumpPCString, 10);
+    char* jumpPCLabel = newRegister();
+
+    //Creates the line to add PC an saves it in a new register
+    struct code* next = getNextLine(code);
+    strcat(next->line, "addI rpc, ");
+    strcat(next->line, jumpPCString);
+    strcat(next->line, " => ");
+    strcat(next->line, jumpPCLabel);
+
+    //RSP and rfpOffset now have the future rfp of the function to be called
+    next = getNextLine(code);
+    strcat(next->line, "storeAI ");
+    strcat(next->line, jumpPCLabel);
+    strcat(next->line, " => rsp, 0");
+
+    //Now we save the RSP and RFP in the base of the frame of the future function
+    next = getNextLine(code);
+    strcat(next->line, "storeAI rsp => rsp, 4");
+    next = getNextLine(code);
+    strcat(next->line, "storeAI rfp => rsp, 8");
+
+    //Now we need to stack each parameter and store them
+    int stackOffset = 12;
+    struct node* functionCallArguments = functionCall->child->brother->brother;
+    if(numberOfChildren(functionCallArguments) == 1){
+        struct node* functionCallArgumentsList = functionCallArguments->child;
+        //We are now inside the arguments, we need to get each register for each one and save it
+        while(numberOfChildren(functionCallArgumentsList) == 3){
+            
+            struct node* expression = functionCallArgumentsList->child->child;
+            char* reg;
+            
+            //If expression is a literal we need to put it in a register first
+            if(strcmp(expression->token_value, AST_LITERAL) == 0){
+                reg = newRegister();
+                next = getNextLine(code);
+                strcat(next->line, "loadAI ");
+                strcat(next->line, calculateCodeGenValue(expression));
+                strcat(next->line, " => ");
+                strcat(next->line, reg);
+
+            }
+            else if(expression->token_type == NATUREZA_IDENTIFICADOR){
+                struct symbolInfo* info =  findSymbolInContexts(expression->token_value);
+                if(info->nature == NATUREZA_FUNC){
+                    reg = expression->registerTemp;
+                } else reg = info->registerTemp;
+            }
+            else reg = expression->registerTemp;
+
+
+            //Gets the offset to be saved
+            char stackOffsetString[33];
+            itoa(stackOffset, stackOffsetString, 10);
+            
+            next = getNextLine(code);
+            strcat(next->line, "storeAI ");
+            strcat(next->line, reg);
+            strcat(next->line, " => rsp, ");
+            strcat(next->line, stackOffsetString);
+            stackOffset +=4; //updates offset
+
+            functionCallArgumentsList = functionCallArgumentsList->child->brother->brother;
+
+        }
+
+        //We are now on the last node
+
+        //Gets register where the expression is saved        
+        struct node* expression = functionCallArgumentsList->child->child;
+        char* reg;
+        
+        //If expression is a literal we need to put it in a register first
+        if(strcmp(expression->token_value, AST_LITERAL) == 0){
+            reg = newRegister();
+            next = getNextLine(code);
+            strcat(next->line, "loadAI ");
+            strcat(next->line, calculateCodeGenValue(expression));
+            strcat(next->line, " => ");
+            strcat(next->line, reg);
+
+        }
+        else if(expression->token_type == NATUREZA_IDENTIFICADOR){
+            struct symbolInfo* info =  findSymbolInContexts(expression->token_value);
+            if(info->nature == NATUREZA_FUNC){
+                reg = expression->registerTemp;
+            } else reg = info->registerTemp;
+        }
+        else reg = expression->registerTemp;
+
+        
+        //Gets the offset to be saved
+        char stackOffsetString[33];
+        itoa(stackOffset, stackOffsetString, 10);
+
+        next = getNextLine(code);
+        strcat(next->line, "storeAI ");
+        strcat(next->line, reg);
+        strcat(next->line, " => rsp, ");
+        strcat(next->line, stackOffsetString);
+        stackOffset +=4; //updates offset
+
+        
+    }
+
+
+    //Everything is now stacked,, now we JUMP
+    char* functionLabel = findLabel(functionLabels, functionCall->child->token_value);
+    next = getNextLine(code);
+    strcat(next->line, "jumpI => ");
+    strcat(next->line, functionLabel);
+
+    //Now all that is needed to do is load the value returned by the function
+    //The value will be in the stackOffset
+    char stackOffsetString[33];
+    itoa(stackOffset, stackOffsetString, 10);
+    char* functionValue = newRegister();
+
+    next = getNextLine(code);
+    strcat(next->line, "loadAI rsp, ");
+    strcat(next->line, stackOffsetString);
+    strcat(next->line, " => ");
+    strcat(next->line, functionValue);
+
+    functionCall->registerTemp = functionValue;
+    functionCall->code = code;
+
+}
+
+//Makes the code jump to the "main function" at the start of the code
+struct code* addJumpToFirstLine(struct code* program){
+    if(mainLabel != NULL){
+
+    struct code* firstLine = newCode();
+    strcat(firstLine->line, "jumpI => ");
+    strcat(firstLine->line, mainLabel);
+    return concatTwoCodes(firstLine, program); 
+    
+    }
+
+    else return program;
+}
+
+

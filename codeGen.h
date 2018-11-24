@@ -32,4 +32,8 @@ void liberaCode(struct code* code);
 struct code* removeCBR(struct code* code);
 void patching(struct code* code, char* replacement, int par);
 
+struct code* addJumpToFirstLine(struct code* program);
+void declareFunctionCode(struct node* functionDeclaration);
+struct code* writeFunctionCall(struct node* functionCall);
+
 #endif

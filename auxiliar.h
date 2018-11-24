@@ -152,8 +152,20 @@ typedef struct code{
     struct code* next;
 } CODE;
 
+//Function labels is a list detailing the function and the label it starts
+typedef struct functionLabels{
+    char* label;
+    char* functionName;
+    struct functionLabels *next;
+} FUNCTIONLABELS;
+
+
 char* newRegister();
 char* newLabel();
 struct code* newCode();
+
+
+struct functionLabels* addFunctionLabelList(struct functionLabels* list, char* name, char* label);
+char* findLabel(struct functionLabels* list, char* name);
 
 #endif

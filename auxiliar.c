@@ -1,5 +1,7 @@
 #include "auxiliar.h"
 
+
+
 union value createValue(int type, char* text){
     union value value;
     switch (type){
@@ -102,4 +104,50 @@ int parseType(char* typeString){
         return NATUREZA_LITERAL_STRING;
     else
         return NATUREZA_IDENTIFICADOR;
+}
+
+
+struct functionLabels* addFunctionLabelList(struct functionLabels* list, char* name, char* label){
+    struct functionLabels* node = NULL;
+    node = malloc(sizeof(struct functionLabels));
+    node->label = strdup(label);
+    node->functionName = strdup(name);
+    node->next = NULL;
+ 
+    if(list == NULL){
+        return node;
+    }
+    else{
+        struct functionLabels* iter = list;
+        while(iter->next != NULL){
+            iter = iter->next;
+        }
+        iter->next = node;
+    }
+    return list;
+}
+
+//Given a name, finds the label of that function in a functionLabel structure
+//Returns NULL if not found
+char* findLabel(struct functionLabels* list, char* name){
+    
+    while(list != NULL){
+        if(strcmp(name, list->functionName) == 0){
+            return list->label;
+        }    
+        list = list->next;
+    }
+    return NULL;
+}
+
+void freeLabels(struct functionLabels* list){
+    while (list != NULL){
+        if(list->label != NULL)
+            free(list->label);
+        if(list->functionName != NULL)
+            free(list->functionName);
+        struct functionLabels* temp = list;
+        list = list->next;
+        free(temp); 
+    }
 }

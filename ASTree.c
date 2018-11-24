@@ -126,7 +126,6 @@ void showTreeRecursion(struct node* currentNode, int treeLevel)
 
 void liberaTree(struct node* node){
     if (node != NULL){
-        printf("%p\n",node->registerTemp);
         liberaTree(node->child);
         if(node->code)
             free(node->code);
@@ -211,4 +210,24 @@ int isVectorEmpty(struct node* vectorNode){
     if(vectorNode->child == NULL)
         return 1;
     else return 0;
+}
+
+int getFunctionArgumentsNumber(struct node* func){
+    struct node* functionCallArguments = func->child->brother->brother;
+    int children = 0;
+    if(numberOfChildren(functionCallArguments) != 0){
+        children++;
+        struct node* functionCallArgumentsList = functionCallArguments->child;
+        while(numberOfChildren( functionCallArgumentsList) != 1){
+            if(strcmp(functionCallArgumentsList->child->child->token_value, AST_LITERAL) == 0)
+                children++;
+            children++;
+            functionCallArgumentsList = functionCallArgumentsList->child->brother->brother;
+        }
+     
+    }
+    return children;
+    
+
+
 }
