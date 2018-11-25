@@ -966,6 +966,7 @@ void fixLine(char* line, int par, char* replacement){
 //given a functionNode, adds it to the global functionlabels writes the label now. If the function is called "main", updates mainLabel
 //Then adds the label of the function before the code of its commands
 void declareFunctionCode(struct node* functionDeclaration){
+    int isFunctionMain = 0;
 
     struct node* functionHead = functionDeclaration->child;
     char* name;
@@ -979,24 +980,90 @@ void declareFunctionCode(struct node* functionDeclaration){
     functionLabels = addFunctionLabelList(functionLabels, name, label);
     if(strcmp(name, "main") == 0){
         mainLabel = strdup(label);
+        isFunctionMain = 1;
     }
     struct code* code = newCode();
     strcat(code->line, label);
     strcat(code->line, ":");
+
+    if(!isFunctionMain){
+        struct node* functionCallArgumentList = functionHead->child->brother->brother->brother;
+        int numberOfParameters = 0;
+
+        struct node* functionCallIterator = functionCallArgumentList;
+        
+        int childCount = numberOfChildren(functionCallIterator);
+
+        while(childCount > 3){
+            numberOfParameters++;
+            functionCallIterator = functionCallIterator->child->brother->brother;
+                printf("cu%d\n",childCount);
+        
+            int childCount = numberOfChildren(functionCallIterator);
+            if(childCount < 3){
+                numberOfParameters++;
+                printf("cu%d\n",childCount);
+                break;
+            }
+        }
+
+        printf("oi %d\n",numberOfParameters);
+
+        struct code* next;
+        next = getNextLine(code);
+        strcat(next->line, "i2i rsp => rfp ");
+        
+        char numberOfArgumentsOffset[25];
+        sprintf(numberOfArgumentsOffset, "%d", numberOfParameters*4);
+        next = getNextLine(next);
+        strcat(next->line, "loadAI rfp, ");
+        strcat(next->line, numberOfArgumentsOffset);  
+        strcat(next->line, " => rsp ");     
+
+        
+        //Now we need to stack each parameter and store them
+        int stackOffset = 12;
+        if(numberOfParameters < 1){
+            struct node* functionCallArgumentsList = functionCallArgumentsList->child;
+            //We are now inside the arguments, we need to get each register for each one and save it
+            while(numberOfChildren(functionCallArgumentsList) == 3){
+                char* reg = newRegister();
+                next = getNextLine(code);
+
+                char stackOffsetString[25];
+                sprintf(stackOffsetString, "%d", stackOffset);
+
+                strcat(next->line, "loadAI rfp, ");
+                strcat(next->line, stackOffsetString);
+                strcat(next->line, " => ");
+                strcat(next->line, reg); 
+
+                next = getNextLine(code);
+
+                sprintf(stackOffsetString, "%d", stackOffset);
+
+                strcat(next->line, "storeAI ");
+                strcat(next->line, reg);
+                strcat(next->line, " => ");
+                strcat(next->line, reg); 
+
+                stackOffset += 4;
+                functionCallArgumentsList = functionCallArgumentsList->child->brother->brother;
+            }
+        }
+    }
+
+    //ACTUAL CODE
     functionDeclaration->code = concatTwoCodes(code, functionDeclaration->code);
 
-
-
 }
-
-
-
 
 //Given a functionCall node, writes the code for it
 struct code* writeFunctionCall(struct node* functionCall){
     //Prepare to update RSP by putting rfpoffset in a string
     char RSPUpdate[33];
     sprintf(RSPUpdate, "%d", rfpOffset);
+
     //Creates a new line updating RSP
     struct code* code = newCode();
     strcat(code->line, "addi rsp, ");
@@ -1038,14 +1105,14 @@ struct code* writeFunctionCall(struct node* functionCall){
         while(numberOfChildren(functionCallArgumentsList) == 3){
             
             struct node* expression = functionCallArgumentsList->child->child;
-            char* reg;
+            char* reg; //functionDeclarationArgumentList
             
             //If expression is a literal we need to put it in a register first
             if(strcmp(expression->token_value, AST_LITERAL) == 0){
                 reg = newRegister();
                 next = getNextLine(code);
                 strcat(next->line, "loadAI ");
-                strcat(next->line, calculateCodeGenValue(expression));
+                strcat(next->line, calculateCodeGenValue(expression->child));
                 strcat(next->line, " => ");
                 strcat(next->line, reg);
 
@@ -1085,7 +1152,7 @@ struct code* writeFunctionCall(struct node* functionCall){
             reg = newRegister();
             next = getNextLine(code);
             strcat(next->line, "loadAI ");
-            strcat(next->line, calculateCodeGenValue(expression));
+            strcat(next->line, calculateCodeGenValue(expression->child));
             strcat(next->line, " => ");
             strcat(next->line, reg);
 
@@ -1152,3 +1219,7 @@ struct code* addJumpToFirstLine(struct code* program){
 }
 
 
+//Given a functionCall node, writes the code for it
+struct code* receiveFunctionCall(struct node* functionCall){
+
+}

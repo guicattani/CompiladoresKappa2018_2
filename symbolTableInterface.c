@@ -342,25 +342,7 @@ int calculateTypeInfer(struct node* node, char** userType, int typeOfAttribution
     if(node->typeInfered > 0){
         return node->typeInfered;
     }
-
-    if(node != NULL && node->brother == NULL && node->child != NULL &&node->child->brother == NULL){
-
-        int referenceType = node->child->token_type;
-        if(referenceType == NATUREZA_IDENTIFICADOR){
-            struct symbolInfo* referenceInfo = findSymbolInContexts(node->child->token_value);
-            referenceType = referenceInfo->type;
-
-            if(referenceInfo->nature == NATUREZA_CLASSE || referenceInfo->nature == NATUREZA_VETOR_CLASSE){
-                *userType = referenceInfo->userType;
-                return NATUREZA_IDENTIFICADOR;
-            }
-        }
- 
-        return referenceType;
-    }
-    else {
-        return calculateTypeInferRecursion(node, typeOfAttribution);
-    }
+    return calculateTypeInferRecursion(node, typeOfAttribution);
 }
 
 

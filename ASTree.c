@@ -191,8 +191,11 @@ int getAttributedStringSize(struct node* node){
     return strlen(node->child->brother->token_value);
 }
 
-    int numberOfChildren(struct node* node){
-    return numberOfSiblings(node->child);
+int numberOfChildren(struct node* node){
+    if(node && node->child)
+        return numberOfSiblings(node->child);
+    else
+        return 0;
 }
 
 int numberOfSiblings(struct node* node){
@@ -218,6 +221,9 @@ int getFunctionArgumentsNumber(struct node* func){
     if(numberOfChildren(functionCallArguments) != 0){
         children++;
         struct node* functionCallArgumentsList = functionCallArguments->child;
+        if(strcmp(functionCallArgumentsList->child->child->token_value, AST_LITERAL) == 0)
+                children++;
+
         while(numberOfChildren( functionCallArgumentsList) != 1){
             if(strcmp(functionCallArgumentsList->child->child->token_value, AST_LITERAL) == 0)
                 children++;
