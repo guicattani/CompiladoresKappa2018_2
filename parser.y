@@ -319,15 +319,16 @@ functionDeclaration:
                        semanticerror(err, $1->child->brother->brother, $1->child->brother);
                        exit(err);
                     };     
+                    
                      
                 } 
     functionCommandsBlock                           { 
                                                     $$ = createNode(AST_FUNCDEC);
                                                     createChildren($$, $1, -1);
                                                     createChildren($$, $3, -1);
-                                                    deleteContext();
-                                                    $$->code = $3->code;
                                                     declareFunctionCode($$);
+                                                    $$->code = concatTwoCodes($$->code,$3->code);
+                                                    deleteContext();
                                                    };
 
 
@@ -373,7 +374,8 @@ functionArgumentsList:
 functionArgumentElements:
       constModifier type TK_IDENTIFICADOR                              {$$ = createNode(AST_FUNCARGELEM); 
                                                                         createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                                        createChildren($$, $3, -1);}
+                                                                        createChildren($$, $3, -1);
+                                                                        }
     | constModifier type TK_IDENTIFICADOR ',' functionArgumentElements {$$ = createNode(AST_FUNCARGELEM); 
                                                                         createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                                         createChildren($$, $3, -1); createChildren($$, $4, -1);
