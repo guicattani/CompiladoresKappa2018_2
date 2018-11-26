@@ -511,6 +511,7 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
 void updateNodeCodeLOCALDECLARATION(struct node* topNode, struct node* identifierNode, struct node* typeNode){
     struct symbolInfo* info = findSymbolInCurrentContext(identifierNode->token_value);
 
+
     if(info == NULL){
         info = findSymbolInContexts(identifierNode->token_value);
         if(info == NULL)
@@ -963,6 +964,23 @@ void fixLine(char* line, int par, char* replacement){
 
 }
 
+int getParameterCount(struct node* functionDeclaration){
+    struct node* functionHead = functionDeclaration->child;
+    struct node* functionCallArgumentList = functionHead->child->brother->brother->brother;
+    int numberOfParameters = 0;
+
+    if(numberOfChildren(functionCallArgumentList) != 0){
+        struct node* functionArgumentElement = functionCallArgumentList;
+        numberOfParameters++;
+        while(numberOfChildren(functionArgumentElement) == 5){
+            numberOfParameters++;
+            functionArgumentElement = functionArgumentElement->child->brother->brother->brother->brother;
+        }
+    }
+
+    return numberOfParameters;
+}
+
 //given a functionNode, adds it to the global functionlabels writes the label now. If the function is called "main", updates mainLabel
 //Then adds the label of the function before the code of its commands
 void declareFunctionCode(struct node* functionDeclaration){
@@ -987,69 +1005,71 @@ void declareFunctionCode(struct node* functionDeclaration){
     strcat(code->line, ":");
 
     if(!isFunctionMain){
-        struct node* functionCallArgumentList = functionHead->child->brother->brother->brother;
-        int numberOfParameters = 0;
-
-        struct node* functionCallIterator = functionCallArgumentList;
         
-        int childCount = numberOfChildren(functionCallIterator);
-
-        while(childCount > 3){
-            numberOfParameters++;
-            functionCallIterator = functionCallIterator->child->brother->brother;
-                printf("cu%d\n",childCount);
-        
-            int childCount = numberOfChildren(functionCallIterator);
-            if(childCount < 3){
-                numberOfParameters++;
-                printf("cu%d\n",childCount);
-                break;
-            }
-        }
-
-        printf("oi %d\n",numberOfParameters);
+        int numberOfParameters = getParameterCount(functionDeclaration);
 
         struct code* next;
         next = getNextLine(code);
         strcat(next->line, "i2i rsp => rfp ");
         
         char numberOfArgumentsOffset[25];
-        sprintf(numberOfArgumentsOffset, "%d", numberOfParameters*4);
+        int rspPointer = numberOfParameters*4 + 16;
+        sprintf(numberOfArgumentsOffset, "%d", rspPointer);
         next = getNextLine(next);
-        strcat(next->line, "loadAI rfp, ");
+        strcat(next->line, "loadAI rsp, ");
         strcat(next->line, numberOfArgumentsOffset);  
         strcat(next->line, " => rsp ");     
 
         
         //Now we need to stack each parameter and store them
         int stackOffset = 12;
-        if(numberOfParameters < 1){
-            struct node* functionCallArgumentsList = functionCallArgumentsList->child;
+        if(numberOfParameters > 0){
             //We are now inside the arguments, we need to get each register for each one and save it
-            while(numberOfChildren(functionCallArgumentsList) == 3){
-                char* reg = newRegister();
-                next = getNextLine(code);
+            struct node* functionCallElement = functionHead->child->brother->brother->brother;
+            while(numberOfChildren(functionCallElement) == 5){
+                struct node* identifierNode = functionCallElement->child->brother->brother;
+                struct symbolInfo* info = findSymbolInCurrentContext(identifierNode->token_value);
 
                 char stackOffsetString[25];
                 sprintf(stackOffsetString, "%d", stackOffset);
 
+                next = getNextLine(code);
                 strcat(next->line, "loadAI rfp, ");
                 strcat(next->line, stackOffsetString);
                 strcat(next->line, " => ");
-                strcat(next->line, reg); 
+                strcat(next->line, info->registerTemp); 
 
                 next = getNextLine(code);
 
-                sprintf(stackOffsetString, "%d", stackOffset);
+                sprintf(stackOffsetString, "%d", rspPointer);
 
                 strcat(next->line, "storeAI ");
-                strcat(next->line, reg);
-                strcat(next->line, " => ");
-                strcat(next->line, reg); 
+                strcat(next->line, info->registerTemp);
+                strcat(next->line, " => rfp, ");
+                strcat(next->line, stackOffsetString); 
 
                 stackOffset += 4;
-                functionCallArgumentsList = functionCallArgumentsList->child->brother->brother;
+                rspPointer += 4;
+                functionCallElement = functionCallElement->child->brother->brother->brother->brother;
             }
+            struct node* identifierNode = functionCallElement->child->brother->brother;
+            
+            struct symbolInfo* info = findSymbolInCurrentContext(identifierNode->token_value);
+            char stackOffsetString[25];
+            sprintf(stackOffsetString, "%d", stackOffset);
+
+            next = getNextLine(code);
+            strcat(next->line, "loadAI rfp, ");
+            strcat(next->line, stackOffsetString);
+            strcat(next->line, " => ");
+            strcat(next->line, info->registerTemp); 
+
+            next = getNextLine(code);
+            sprintf(stackOffsetString, "%d", rspPointer);
+            strcat(next->line, "storeAI ");
+            strcat(next->line, info->registerTemp);
+            strcat(next->line, " => rfp, ");
+            strcat(next->line, stackOffsetString); 
         }
     }
 

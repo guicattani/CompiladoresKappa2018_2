@@ -192,10 +192,7 @@ int getAttributedStringSize(struct node* node){
 }
 
 int numberOfChildren(struct node* node){
-    if(node && node->child)
         return numberOfSiblings(node->child);
-    else
-        return 0;
 }
 
 int numberOfSiblings(struct node* node){

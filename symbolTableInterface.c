@@ -1,6 +1,7 @@
 #include "symbolTableInterface.h"
 
 struct field field;
+extern int rfpOffset;
 
 //given a node and its type, adds it to the current symbol table
 //Returns 1 if succesful
@@ -102,8 +103,10 @@ int  addSymbolFromNodeFunction(struct node* functionhead){
     if(findSymbolInContexts(typeNode->token_value) == NULL && typeOfTypeNode == NATUREZA_IDENTIFICADOR)
         return ERR_TYPE_UNDECLARED;
 
-    if (addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, NATUREZA_FUNC, fieldList, 1, 1, userType) == 0)
+    
+    if (addSymbol(idNode->token_value, idNode->line_number, typeOfTypeNode, NATUREZA_FUNC, fieldList, 1, 1, userType) == 0){
         return 0;
+    }
     else
         return ERR_DECLARED; 
 }
@@ -750,6 +753,7 @@ void insertSymbolsFunction(struct node *function){
 
 int addFunctionFields(struct node* functionHead){
     struct node* functionArgumentsList;
+    rfpOffset = 12;
     if(numberOfChildren(functionHead) == 5){
         functionArgumentsList = functionHead->child->brother->brother->brother;
     } else if(numberOfChildren(functionHead) == 6)
@@ -766,9 +770,23 @@ int addFunctionFields(struct node* functionHead){
             int err = addSymbolFromNode(functionArgumentElements->child->brother->brother, functionArgumentElements->child->brother);
             if(err)
                 return err;
+            
+            //add reg temp
+            struct symbolInfo* info = findSymbolInCurrentContext(functionArgumentElements->child->brother->brother->token_value);
+            info->registerTemp = newRegister();
+            info->rfpOffset = rfpOffset;
+            rfpOffset += 4;
+
             functionArgumentElements = functionArgumentElements->child->brother->brother->brother->brother;
         }
         int err = addSymbolFromNode(functionArgumentElements->child->brother->brother, functionArgumentElements->child->brother);
+        
+        //add reg temp
+        struct symbolInfo* info = findSymbolInCurrentContext(functionArgumentElements->child->brother->brother->token_value);
+        info->registerTemp = newRegister();
+        info->rfpOffset = rfpOffset;
+        rfpOffset += 4;
+
         if(err)
             return err;
     }

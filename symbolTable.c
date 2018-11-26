@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 struct contextStack* contextStack = NULL;
+extern int rfpOffset;
 
 //Create a new context for the currentContext by pushing a new symbol table
 //Since it is a stack, the table has to be moved to the front of the stack
