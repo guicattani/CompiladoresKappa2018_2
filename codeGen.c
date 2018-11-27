@@ -971,7 +971,7 @@ struct code* makeReturnCode(struct node* expressionNode){
     if(expressionNode->registerTemp){
         strcat(code->line,"storeAI ");
         strcat(code->line, expressionNode->registerTemp);
-        strcat(code->line," => rfp, 24 //store expression reg in return ");
+        strcat(code->line," => rfp, 20 //store expression reg in return ");
     }
     else{ //if it is a literal and has no register
         char* expressionReg = newRegister();
@@ -984,7 +984,7 @@ struct code* makeReturnCode(struct node* expressionNode){
         struct code* next = getNextLine(code);
         strcat(next->line,"storeAI ");
         strcat(next->line, expressionReg);
-        strcat(next->line," => rfp, 24 //store expression reg in return ");
+        strcat(next->line," => rfp, 20 //store expression reg in return ");
     }
 
     return code;
@@ -1095,8 +1095,8 @@ void declareFunctionCode(struct node* functionHead){
     if(!isFunctionMain){
         
         int numberOfParameters = getParameterCount(functionHead);
-        int returnOnStack = numberOfParameters*4 + 20; // 4 bytes under top of stack
         int rspPointer = numberOfParameters*4 + 24; // on top of stack, for new variables
+                                                    // 24 because 20 is the return
 
         struct code* next;
         next = getNextLine(code);
@@ -1364,7 +1364,7 @@ struct code* writeFunctionCall(struct node* functionCall){
     char* functionValue = newRegister();
 
     next = getNextLine(code);
-    strcat(next->line, "loadAI rsp, 24");
+    strcat(next->line, "loadAI rsp, 20");
     strcat(next->line, " => ");
     strcat(next->line, functionValue);
     strcat(next->line, " //save return from function on reg");
