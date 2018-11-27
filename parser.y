@@ -328,7 +328,9 @@ functionDeclaration:
                                                     $$ = createNode(AST_FUNCDEC);
                                                     createChildren($$, $1, -1);
                                                     createChildren($$, $3, -1);
+                                                    struct code* endFuncCode = endFunctionCode($1);
                                                     $$->code = concatTwoCodes($1->code,$3->code);
+                                                    $$->code = concatTwoCodes($$->code,endFuncCode);
                                                     deleteContext();
                                                    };
 
@@ -466,6 +468,11 @@ commandSimple:
                                                      if(typeInfer > 6){ semanticerror(ERR_WRONG_PAR_OUTPUT, $1,$1); exit(ERR_WRONG_PAR_OUTPUT);} 
                                                      //expression end
 
+                                                    //get previous code 
+                                                    $$->code = concatTwoCodes($$->code,$2->code);
+                                                    //and add the return code to it
+                                                    struct code* returnCode = makeReturnCode($2);
+                                                    $$->code = concatTwoCodes($$->code,returnCode);
 
                                                     }
     | TK_PR_CONTINUE                                {$$ = $1;}

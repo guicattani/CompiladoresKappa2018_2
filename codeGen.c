@@ -8,6 +8,7 @@ struct functionLabels *functionLabels = NULL;
 extern int rfpOffset;
 int rbssOffset = 0;
 int rspOffset = 0;
+int dynamicLink = 0;
 char* mainLabel = NULL;
 
 void printCode(struct node* topNode){
@@ -965,6 +966,30 @@ void fixLine(char* line, int par, char* replacement){
 
 }
 
+struct code* makeReturnCode(struct node* expressionNode){
+    struct code* code = newCode();
+    if(expressionNode->registerTemp){
+        strcat(code->line,"storeAI ");
+        strcat(code->line, expressionNode->registerTemp);
+        strcat(code->line," => rfp, 24 //store expression reg in return ");
+    }
+    else{ //if it is a literal and has no register
+        char* expressionReg = newRegister();
+
+        strcat(code->line,"loadAI ");
+        strcat(code->line, expressionNode->child->child->token_value);
+        strcat(code->line," => ");
+        strcat(code->line, expressionReg);
+
+        struct code* next = getNextLine(code);
+        strcat(next->line,"storeAI ");
+        strcat(next->line, expressionReg);
+        strcat(next->line," => rfp, 24 //store expression reg in return ");
+    }
+
+    return code;
+}
+
 int getParameterCount(struct node* functionHead){
     struct node* functionCallArgumentList = functionHead->child->brother->brother->brother;
     int numberOfParameters = 0;
@@ -983,8 +1008,70 @@ int getParameterCount(struct node* functionHead){
 
 //given a functionNode, adds it to the global functionlabels writes the label now. If the function is called "main", updates mainLabel
 //Then adds the label of the function before the code of its commands
-void declareFunctionCode(struct node* functionHead){
+struct code* endFunctionCode(struct node* functionHead){
+    char* name;
+    if(numberOfChildren(functionHead) == 5){
+        name = functionHead->child->brother->token_value; 
+    } else if(numberOfChildren(functionHead) == 6){
+        name = functionHead->child->brother->brother->token_value;
+    }
+
     int isFunctionMain = 0;
+    if(strcmp(name, "main") == 0){
+        isFunctionMain = 1;
+    }
+    if(!isFunctionMain){
+        struct code* code = newCode();
+        char* regReturnAdress = newRegister();
+        char* regRsp = newRegister();
+        char* regRfp = newRegister();
+
+        strcat(code->line, "loadAI ");
+        strcat(code->line, "rfp, 0"); 
+        strcat(code->line, " => ");
+        strcat(code->line, regReturnAdress);
+        strcat(code->line, " //start of end function code");
+        
+        struct code* next;
+        next = getNextLine(code);
+        strcat(next->line, "loadAI ");
+        strcat(next->line, "rfp, 4"); 
+        strcat(next->line, " => ");
+        strcat(next->line, regRsp);
+
+        next = getNextLine(code);
+        strcat(next->line, "loadAI ");
+        strcat(next->line, "rfp, 8"); 
+        strcat(next->line, " => ");
+        strcat(next->line, regRfp);
+
+        next = getNextLine(code);
+        strcat(next->line, "i2i ");
+        strcat(next->line, regRsp); 
+        strcat(next->line, " => rsp");
+
+        next = getNextLine(code);
+        strcat(next->line, "i2i ");
+        strcat(next->line, regRfp); 
+        strcat(next->line, " => rfp");
+
+        next = getNextLine(code);
+        strcat(next->line, "jump ");
+        strcat(next->line, "=> ");
+        strcat(next->line, regReturnAdress); 
+
+
+        free(regReturnAdress);
+        free(regRsp);
+        free(regRfp);
+        return code;
+    }
+    return NULL;
+}
+
+//given a functionNode, adds it to the global functionlabels writes the label now. If the function is called "main", updates mainLabel
+//Then adds the label of the function before the code of its commands
+void declareFunctionCode(struct node* functionHead){
 
     char* name;
     if(numberOfChildren(functionHead) == 5){
@@ -995,6 +1082,8 @@ void declareFunctionCode(struct node* functionHead){
 
     char* label = newLabel();
     functionLabels = addFunctionLabelList(functionLabels, name, label);
+
+    int isFunctionMain = 0;
     if(strcmp(name, "main") == 0){
         mainLabel = strdup(label);
         isFunctionMain = 1;
@@ -1006,8 +1095,8 @@ void declareFunctionCode(struct node* functionHead){
     if(!isFunctionMain){
         
         int numberOfParameters = getParameterCount(functionHead);
-        int returnOnStack = numberOfParameters*4 + 12; // 4 bytes under top of stack
-        int rspPointer = numberOfParameters*4 + 16; // on top of stack, for new variables
+        int returnOnStack = numberOfParameters*4 + 20; // 4 bytes under top of stack
+        int rspPointer = numberOfParameters*4 + 24; // on top of stack, for new variables
 
         struct code* next;
         next = getNextLine(code);
@@ -1022,7 +1111,7 @@ void declareFunctionCode(struct node* functionHead){
 
         
         //Now we need to stack each parameter and store them
-        int stackOffset = 12;
+        int stackOffset = 24;
         if(numberOfParameters > 0){
             //We are now inside the arguments, we need to get each register for each one and save it
             struct node* functionCallElement = functionHead->child->brother->brother->brother;
@@ -1048,6 +1137,8 @@ void declareFunctionCode(struct node* functionHead){
                 strcat(next->line, info->registerTemp);
                 strcat(next->line, " => rfp, ");
                 strcat(next->line, stackOffsetString); 
+                strcat(next->line, " //store of "); 
+                strcat(next->line, identifierNode->token_value); 
 
                 stackOffset += 4;
                 rspPointer += 4;
@@ -1073,6 +1164,8 @@ void declareFunctionCode(struct node* functionHead){
             strcat(next->line, info->registerTemp);
             strcat(next->line, " => rfp, ");
             strcat(next->line, stackOffsetString); 
+            strcat(next->line, " //store of "); 
+            strcat(next->line, identifierNode->token_value); 
             rspPointer += 4;
 
         }
@@ -1092,15 +1185,26 @@ struct code* writeFunctionCall(struct node* functionCall){
     char RSPUpdate[33];
     sprintf(RSPUpdate, "%d", rfpOffset);
 
+    dynamicLink = rfpOffset;
+
     //Creates a new line updating RSP
     struct code* code = newCode();
-    strcat(code->line, "addi rsp, ");
+    strcat(code->line, "addI rsp, ");
     strcat(code->line, RSPUpdate);
     strcat(code->line, " => rsp");
 
 
     //Gets the value to jump the PC to after the function
-    int jumpPCOffset = getFunctionArgumentsNumber(functionCall) + 5;
+    int jumpPCOffset = getFunctionArgumentsNumber(functionCall) + 9; 
+                                                                    // 1 - return adress
+                                                                    // 2 - rsp save
+                                                                    // 3 - rfp save
+                                                                    // 4 - static link load
+                                                                    // 5 - static link
+                                                                    // 6 - dynamic link load
+                                                                    // 7 - dynamic link
+                                                                    // 8 - jumpI
+                                                                    // 9 - save return value to reg
     char jumpPCString[33];
     sprintf(jumpPCString, "%d", jumpPCOffset);
     char* jumpPCLabel = newRegister();
@@ -1117,15 +1221,52 @@ struct code* writeFunctionCall(struct node* functionCall){
     strcat(next->line, "storeAI ");
     strcat(next->line, jumpPCLabel);
     strcat(next->line, " => rsp, 0");
+    strcat(next->line, " //return adress save");
 
     //Now we save the RSP and RFP in the base of the frame of the future function
     next = getNextLine(code);
     strcat(next->line, "storeAI rsp => rsp, 4");
+    strcat(next->line, " //rsp save");
     next = getNextLine(code);
     strcat(next->line, "storeAI rfp => rsp, 8");
+    strcat(next->line, " //rfp save");
+
+    //We need to save the dynamic link (varies, as it is the base of the activation record of the calling function)
+    //and static link (which will always be zero)
+    char* dynamicLinkReg = newRegister();
+    char* staticLinkReg = newRegister();
+    //Static Link
+    next = getNextLine(code);
+    strcat(next->line, "loadI 0 => ");
+    strcat(next->line, staticLinkReg);
+    
+    next = getNextLine(code);
+    strcat(next->line, "storeAI ");
+    strcat(next->line, staticLinkReg);
+    strcat(next->line, " => rsp, 12");
+    strcat(next->line, " //static link");
+
+    //Dynamic Link
+    next = getNextLine(code);
+    strcat(next->line, "loadI ");
+
+    char dynamicLinkString[33];
+    sprintf(dynamicLinkString, "%d", dynamicLink);
+    strcat(next->line, dynamicLinkString);
+    strcat(next->line, " => ");
+    strcat(next->line, dynamicLinkReg);
+    
+    next = getNextLine(code);
+    strcat(next->line, "storeAI ");
+    strcat(next->line, dynamicLinkReg);
+    strcat(next->line, " => rsp, 16");
+    strcat(next->line, " //dynamic link");
+
+    free(dynamicLinkReg);
+    free(staticLinkReg);
 
     //Now we need to stack each parameter and store them
-    int stackOffset = 12;
+    int stackOffset = 24;
     struct node* functionCallArguments = functionCall->child->brother->brother;
     if(numberOfChildren(functionCallArguments) == 1){
         struct node* functionCallArgumentsList = functionCallArguments->child;
@@ -1151,8 +1292,9 @@ struct code* writeFunctionCall(struct node* functionCall){
                     reg = expression->registerTemp;
                 } else reg = info->registerTemp;
             }
-            else reg = expression->registerTemp;
-
+            else {
+                reg = expression->registerTemp;
+            }
 
             //Gets the offset to be saved
             char stackOffsetString[33];
@@ -1163,6 +1305,7 @@ struct code* writeFunctionCall(struct node* functionCall){
             strcat(next->line, reg);
             strcat(next->line, " => rsp, ");
             strcat(next->line, stackOffsetString);
+            strcat(next->line, " //store of parameter");
             stackOffset +=4; //updates offset
 
             functionCallArgumentsList = functionCallArgumentsList->child->brother->brother;
@@ -1203,6 +1346,7 @@ struct code* writeFunctionCall(struct node* functionCall){
         strcat(next->line, reg);
         strcat(next->line, " => rsp, ");
         strcat(next->line, stackOffsetString);
+        strcat(next->line, " //store of parameter");
         stackOffset +=4; //updates offset
 
         
@@ -1217,15 +1361,13 @@ struct code* writeFunctionCall(struct node* functionCall){
 
     //Now all that is needed to do is load the value returned by the function
     //The value will be in the stackOffset
-    char stackOffsetString[33];
-    sprintf(stackOffsetString, "%d", stackOffset);
     char* functionValue = newRegister();
 
     next = getNextLine(code);
-    strcat(next->line, "loadAI rsp, ");
-    strcat(next->line, stackOffsetString);
+    strcat(next->line, "loadAI rsp, 24");
     strcat(next->line, " => ");
     strcat(next->line, functionValue);
+    strcat(next->line, " //save return from function on reg");
 
     functionCall->registerTemp = functionValue;
     functionCall->code = code;
@@ -1251,3 +1393,4 @@ struct code* addJumpToFirstLine(struct code* program){
 struct code* receiveFunctionCall(struct node* functionCall){
 
 }
+

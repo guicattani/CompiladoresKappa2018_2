@@ -27,7 +27,9 @@ struct code* concatTwoCodes(struct code* executedFirst, struct code* executedSec
 struct code* getNextLine(struct code* code);
 void fixLine(char* line, int par, char* replacement);
 
+struct code* makeReturnCode(struct node* expressionNode);
 int getParameterCount(struct node* functionDeclaration);
+struct code* endFunctionCode(struct node* functionHead);
 
 void liberaCode(struct code* code);
 
