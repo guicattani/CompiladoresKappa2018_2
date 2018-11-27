@@ -1,6 +1,6 @@
 #include "auxiliar.h"
 
-int rfpOffset;
+int rfpOffset = 0;
 
 union value createValue(int type, char* text){
     union value value;

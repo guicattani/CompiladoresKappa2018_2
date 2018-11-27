@@ -7,6 +7,7 @@ struct functionLabels *functionLabels = NULL;
 //rfpOffset have been moved to symbolTable because it changes with contex
 extern int rfpOffset;
 int rbssOffset = 0;
+int rspOffset = 0;
 char* mainLabel = NULL;
 
 void printCode(struct node* topNode){
@@ -964,8 +965,7 @@ void fixLine(char* line, int par, char* replacement){
 
 }
 
-int getParameterCount(struct node* functionDeclaration){
-    struct node* functionHead = functionDeclaration->child;
+int getParameterCount(struct node* functionHead){
     struct node* functionCallArgumentList = functionHead->child->brother->brother->brother;
     int numberOfParameters = 0;
 
@@ -983,10 +983,9 @@ int getParameterCount(struct node* functionDeclaration){
 
 //given a functionNode, adds it to the global functionlabels writes the label now. If the function is called "main", updates mainLabel
 //Then adds the label of the function before the code of its commands
-void declareFunctionCode(struct node* functionDeclaration){
+void declareFunctionCode(struct node* functionHead){
     int isFunctionMain = 0;
 
-    struct node* functionHead = functionDeclaration->child;
     char* name;
     if(numberOfChildren(functionHead) == 5){
         name = functionHead->child->brother->token_value; 
@@ -1006,14 +1005,15 @@ void declareFunctionCode(struct node* functionDeclaration){
 
     if(!isFunctionMain){
         
-        int numberOfParameters = getParameterCount(functionDeclaration);
+        int numberOfParameters = getParameterCount(functionHead);
+        int returnOnStack = numberOfParameters*4 + 12; // 4 bytes under top of stack
+        int rspPointer = numberOfParameters*4 + 16; // on top of stack, for new variables
 
         struct code* next;
         next = getNextLine(code);
         strcat(next->line, "i2i rsp => rfp ");
         
         char numberOfArgumentsOffset[25];
-        int rspPointer = numberOfParameters*4 + 16;
         sprintf(numberOfArgumentsOffset, "%d", rspPointer);
         next = getNextLine(next);
         strcat(next->line, "loadAI rsp, ");
@@ -1042,6 +1042,7 @@ void declareFunctionCode(struct node* functionDeclaration){
                 next = getNextLine(code);
 
                 sprintf(stackOffsetString, "%d", rspPointer);
+                info->rfpOffset = rspPointer;
 
                 strcat(next->line, "storeAI ");
                 strcat(next->line, info->registerTemp);
@@ -1066,15 +1067,22 @@ void declareFunctionCode(struct node* functionDeclaration){
 
             next = getNextLine(code);
             sprintf(stackOffsetString, "%d", rspPointer);
+            info->rfpOffset = rspPointer;
+
             strcat(next->line, "storeAI ");
             strcat(next->line, info->registerTemp);
             strcat(next->line, " => rfp, ");
             strcat(next->line, stackOffsetString); 
+            rspPointer += 4;
+
         }
+
+        rfpOffset = rspPointer; //for new variables
     }
 
+
     //ACTUAL CODE
-    functionDeclaration->code = concatTwoCodes(code, functionDeclaration->code);
+    functionHead->code = concatTwoCodes(code, functionHead->code);
 
 }
 

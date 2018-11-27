@@ -753,7 +753,7 @@ void insertSymbolsFunction(struct node *function){
 
 int addFunctionFields(struct node* functionHead){
     struct node* functionArgumentsList;
-    rfpOffset = 12;
+    int localRfpOffset = 12;
     if(numberOfChildren(functionHead) == 5){
         functionArgumentsList = functionHead->child->brother->brother->brother;
     } else if(numberOfChildren(functionHead) == 6)
@@ -774,8 +774,8 @@ int addFunctionFields(struct node* functionHead){
             //add reg temp
             struct symbolInfo* info = findSymbolInCurrentContext(functionArgumentElements->child->brother->brother->token_value);
             info->registerTemp = newRegister();
-            info->rfpOffset = rfpOffset;
-            rfpOffset += 4;
+            info->rfpOffset = localRfpOffset;
+            localRfpOffset += 4;
 
             functionArgumentElements = functionArgumentElements->child->brother->brother->brother->brother;
         }
@@ -784,8 +784,8 @@ int addFunctionFields(struct node* functionHead){
         //add reg temp
         struct symbolInfo* info = findSymbolInCurrentContext(functionArgumentElements->child->brother->brother->token_value);
         info->registerTemp = newRegister();
-        info->rfpOffset = rfpOffset;
-        rfpOffset += 4;
+        info->rfpOffset = localRfpOffset;
+        localRfpOffset += 4;
 
         if(err)
             return err;

@@ -288,6 +288,8 @@ globalVarDeclaration:
 //Function declaration
 functionDeclaration:
     functionHead {
+                    createContext();
+
                     int err = addSymbolFromNodeFunction($1);
                     if (err && numberOfChildren($1) == 5 ) { 
                        semanticerror(err, $1->child->brother, $1->child); 
@@ -318,16 +320,15 @@ functionDeclaration:
                     else if (err && numberOfChildren($1) == 6){
                        semanticerror(err, $1->child->brother->brother, $1->child->brother);
                        exit(err);
-                    };     
-                    
-                     
+                    };   
+
+                    declareFunctionCode($1);
                 } 
     functionCommandsBlock                           { 
                                                     $$ = createNode(AST_FUNCDEC);
                                                     createChildren($$, $1, -1);
                                                     createChildren($$, $3, -1);
-                                                    declareFunctionCode($$);
-                                                    $$->code = concatTwoCodes($$->code,$3->code);
+                                                    $$->code = concatTwoCodes($1->code,$3->code);
                                                     deleteContext();
                                                    };
 
@@ -354,11 +355,11 @@ functionCommandsBlock:
                              }; 
 
 commandsBlock:
-    { createContext(); }'{' commandsList '}'    {$$ = createNode(AST_COMMANDSBLOCK); 
-                                                createChildren($$, $2, -1); createChildren($$, $3, -1);
-                                                createChildren($$, $4, -1);
+    '{' commandsList '}'    {$$ = createNode(AST_COMMANDSBLOCK); 
+                                                createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                createChildren($$, $3, -1);
                                                 deleteContext();
-                                                $$->code = $3->code;
+                                                $$->code = $2->code;
                                                 }; 
 
 commandsList:
