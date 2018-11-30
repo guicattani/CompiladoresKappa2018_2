@@ -488,7 +488,7 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
             char* leftAttributionRegister;
             char* rightAttributionRegister;
             if(leftOperand->token_type != NATUREZA_IDENTIFICADOR){
-                if(rightOperand->registerTemp)
+                if(leftOperand->registerTemp)
                     leftAttributionRegister = leftOperand->registerTemp;
                 else
                     leftAttributionRegister = "ERROR";
