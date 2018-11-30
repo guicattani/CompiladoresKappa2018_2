@@ -627,26 +627,26 @@ struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOp
                 registerName = "ERROR";
             topNode->code =  concatTwoCodes(rightOperand->code, topNode->code);
         }
-
-        strcat(topNode->code->line,"storeAI ");
-        strcat(topNode->code->line,registerName);
-        strcat(topNode->code->line," => ");
+        struct code* next = getNextLine(topNode->code);
+        strcat(next->line,"storeAI ");
+        strcat(next->line,registerName);
+        strcat(next->line," => ");
         if(info->rfpOffset >= 0){
-            strcat(topNode->code->line,"rfp");
-            strcat(topNode->code->line,", ");
+            strcat(next->line,"rfp");
+            strcat(next->line,", ");
             char rfpOffsetTemp[10];
             sprintf(rfpOffsetTemp,"%d", info->rfpOffset);
-            strcat(topNode->code->line,rfpOffsetTemp);
+            strcat(next->line,rfpOffsetTemp);
         }
         else{
-            strcat(topNode->code->line,"rbss");
-            strcat(topNode->code->line,", ");
+            strcat(next->line,"rbss");
+            strcat(next->line,", ");
             char rbssOffsetTemp[10];
             sprintf(rbssOffsetTemp,"%d", info->rbssOffset);
-            strcat(topNode->code->line,rbssOffsetTemp);
+            strcat(next->line,rbssOffsetTemp);
         }
 
-        struct code* next = getNextLine(topNode->code);
+        next = getNextLine(topNode->code);
 
         strcat(next->line, "i2i ");
         strcat(next->line, registerName);
