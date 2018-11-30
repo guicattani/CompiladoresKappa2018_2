@@ -218,14 +218,16 @@ int getFunctionArgumentsNumber(struct node* func){
     if(numberOfChildren(functionCallArguments) != 0){
         children++;
         struct node* functionCallArgumentsList = functionCallArguments->child;
-        if(strcmp(functionCallArgumentsList->child->child->token_value, AST_LITERAL) == 0)
+        if(strcmp(functionCallArgumentsList->child->child->token_value, AST_LITERAL) == 0){       
                 children++;
+        }
 
         while(numberOfChildren( functionCallArgumentsList) != 1){
-            if(strcmp(functionCallArgumentsList->child->child->token_value, AST_LITERAL) == 0)
-                children++;
             children++;
             functionCallArgumentsList = functionCallArgumentsList->child->brother->brother;
+            if(strcmp(functionCallArgumentsList->child->child->token_value, AST_LITERAL) == 0){
+                children++;
+            }
         }
      
     }
