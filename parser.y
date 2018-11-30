@@ -357,9 +357,9 @@ functionCommandsBlock:
                              }; 
 
 commandsBlock:
-    {createContext();}'{' commandsList '}'    {$$ = createNode(AST_COMMANDSBLOCK); 
-                                                createChildren($$, $2, -1); createChildren($$, $3, -1);
-                                                createChildren($$, $4, -1);
+    '{' commandsList '}'    {$$ = createNode(AST_COMMANDSBLOCK); 
+                                                createChildren($$, $1, -1); createChildren($$, $2, -1);
+                                                createChildren($$, $3, -1);
                                                 deleteContext();
                                                 $$->code = $2->code;
                                                 }; 
@@ -451,6 +451,8 @@ commandSimple:
     | TK_PR_RETURN expression                       {
                                                      struct node* exp = createNode(AST_EXPRESSION);
                                                      createChildren(exp, $2, -1);
+                                                     exp->code = $2->code;
+                                                     exp->registerTemp = $2->registerTemp;
                                                      $2 = exp;
                                                      $$ = createNode(AST_COMMANDSIMPLE); createChildren($$, $1, -1); 
                                                      char* userType = NULL;

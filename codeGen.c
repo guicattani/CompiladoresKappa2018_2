@@ -26,7 +26,7 @@ void printCode(struct node* topNode){
 void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperand, struct node* rightOperand, struct node* operatorNode){
     topNode->registerTemp = newRegister();
     topNode->code = newCode();
-
+    
     char* leftRegisterFromIdentifier = "";
     char* rightRegisterFromIdentifier = "";
     if(leftOperand->token_type == NATUREZA_IDENTIFICADOR){
@@ -430,6 +430,7 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
     else { //left is register
         if(strcmp(rightOperand->token_value, AST_LITERAL) == 0) { //right is literal
             //concat code
+            
             concatTwoCodes(topNode->code, leftOperand->code);
             
             struct code* next = getNextLine(topNode->code);
@@ -462,6 +463,7 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
             strcat(next->line,calculateCodeGenValue(rightOperand->child));
             strcat(next->line," => ");
             strcat(next->line,topNode->registerTemp);
+           
 
         } 
         else { //both are registers
@@ -980,7 +982,6 @@ struct code* makeReturnCode(struct node* expressionNode){
     }
     else{ //if it is a literal and has no register
         char* expressionReg = newRegister();
-
         strcat(code->line,"loadAI ");
         strcat(code->line, expressionNode->child->child->token_value);
         strcat(code->line," => ");
