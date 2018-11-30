@@ -34,7 +34,7 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
         if(info != NULL){
             if(info->type == NATUREZA_FUNC){
 
-                topNode->code = concatTwoCodes(topNode->code, writeFunctionCall(leftOperand));
+                topNode->code = concatTwoCodes(topNode->code, leftOperand->code);
                 leftRegisterFromIdentifier = info->registerTemp;
             }
             else
@@ -45,7 +45,7 @@ void updateNodeCodeARITHCOMPARISON(struct node* topNode, struct node* leftOperan
         struct symbolInfo* info = findSymbolInContexts(rightOperand->token_value);
         if(info != NULL){
           if(info->type == NATUREZA_FUNC){
-                topNode->code = concatTwoCodes(topNode->code, writeFunctionCall(rightOperand));
+                topNode->code = concatTwoCodes(topNode->code, rightOperand->code);
                 rightRegisterFromIdentifier = info->registerTemp;
             }
             else
@@ -333,19 +333,24 @@ void updateNodeCodeOPERATION(struct node* topNode, struct node* leftOperand, str
     if(leftOperand->token_type == NATUREZA_IDENTIFICADOR){
         struct symbolInfo* info = findSymbolInContexts(leftOperand->token_value);
         if(info != NULL){
-            if(info->registerTemp)
+            if(info->type == NATUREZA_FUNC){
+
+                topNode->code = concatTwoCodes(topNode->code, leftOperand->code);
                 leftRegisterFromIdentifier = info->registerTemp;
+            }
             else
-                leftRegisterFromIdentifier = "FUNC";
+                leftRegisterFromIdentifier = info->registerTemp;
         }
     }
     if(rightOperand->token_type == NATUREZA_IDENTIFICADOR){
         struct symbolInfo* info = findSymbolInContexts(rightOperand->token_value);
         if(info != NULL){
-            if(info->registerTemp)
+          if(info->type == NATUREZA_FUNC){
+                topNode->code = concatTwoCodes(topNode->code, rightOperand->code);
                 rightRegisterFromIdentifier = info->registerTemp;
+            }
             else
-                rightRegisterFromIdentifier = "FUNC";
+                rightRegisterFromIdentifier= info->registerTemp;
         }
     }
 
@@ -620,7 +625,7 @@ struct code* updateNodeCodeATTRIBUTION(struct node* topNode, struct node* leftOp
                 registerName = rightOperand->registerTemp;
             else
                 registerName = "ERROR";
-            concatTwoCodes(rightOperand->code, topNode->code);
+            topNode->code =  concatTwoCodes(rightOperand->code, topNode->code);
         }
 
         strcat(topNode->code->line,"storeAI ");
