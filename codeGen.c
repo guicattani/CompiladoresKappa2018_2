@@ -1051,6 +1051,16 @@ struct code* endFunctionCode(struct node* functionHead, struct node* functionCom
     int isFunctionMain = 0;
     if(strcmp(name, "main") == 0){
         isFunctionMain = 1;
+
+        struct code* code = newCode();
+        char* label = newLabel();
+        strcat(code->line, label);
+        strcat(code->line, ": ");
+
+        patching(functionCommandsBlock->code,label,4);
+        free(label);
+        concatTwoCodes(functionCommandsBlock->code, code);
+
     }
     if(!isFunctionMain){
         struct code* code = newCode();
