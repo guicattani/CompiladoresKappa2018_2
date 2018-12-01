@@ -12,6 +12,8 @@ int rspOffsetBeforeFunctionCall = 0;
 int dynamicLink = 0;
 char* mainLabel = NULL;
 
+int mainJumpWritten = 0;
+
 void printCode(struct node* topNode){
     struct code* code = topNode->code;
     struct code* temp;
@@ -955,6 +957,8 @@ void fixLine(char* line, int par, char* replacement){
     char str[3] = "#1";
     if(!par)
         str[1] = '2';
+    if(par == 3)
+        str[1] = '3';
 
     char* token, *dup;
     //Token will be a pointer to the place where we will need to start replacing
@@ -983,11 +987,21 @@ struct code* makeReturnCode(struct node* expressionNode){
     }
     else{ //if it is a literal and has no register
         char* expressionReg = newRegister();    
-        strcat(code->line,"loadI ");
-        if(expressionNode->child->child)
+        if(expressionNode->child->child){
+            strcat(code->line,"loadI ");
             strcat(code->line, expressionNode->child->child->token_value);
-        else
-            strcat(code->line, expressionNode->child->token_value);
+        }
+        else{ //ID
+            struct symbolInfo* info = findSymbolInContexts(expressionNode->child->token_value);
+            if(info && info->registerTemp){
+                strcat(code->line,"i2i ");
+                strcat(code->line,info->registerTemp);
+            }
+            else{
+                strcat(code->line,"loadI ");
+                strcat(code->line, expressionNode->child->token_value);
+            }
+        }
         strcat(code->line," => ");
         strcat(code->line, expressionReg);
 
@@ -1098,9 +1112,16 @@ void declareFunctionCode(struct node* functionHead){
         mainLabel = strdup(label);
         isFunctionMain = 1;
     }
+
     struct code* code = newCode();
-    strcat(code->line, label);
-    strcat(code->line, ":");
+    if(!mainJumpWritten) {
+        strcat(code->line, "jumpI => ");
+        strcat(code->line, "#3");
+        mainJumpWritten = 1;
+    }
+    struct code* next = getNextLine(code);
+    strcat(next->line, label);
+    strcat(next->line, ":");
 
     if(!isFunctionMain){
         
@@ -1108,7 +1129,6 @@ void declareFunctionCode(struct node* functionHead){
         int rspPointer = numberOfParameters*4 + 24; // on top of stack, for new variables
                                                     // 24 because 20 is the return
 
-        struct code* next;
         next = getNextLine(code);
         strcat(next->line, "i2i rsp => rfp ");
         
@@ -1127,7 +1147,7 @@ void declareFunctionCode(struct node* functionHead){
             struct node* functionCallElement = functionHead->child->brother->brother->brother;
             while(numberOfChildren(functionCallElement) == 5){
                 struct node* identifierNode = functionCallElement->child->brother->brother;
-                struct symbolInfo* info = findSymbolInCurrentContext(identifierNode->token_value);
+                struct symbolInfo* info = findSymbolInContexts(identifierNode->token_value);
 
                 char stackOffsetString[25];
                 sprintf(stackOffsetString, "%d", stackOffset);
@@ -1156,7 +1176,7 @@ void declareFunctionCode(struct node* functionHead){
             }
             struct node* identifierNode = functionCallElement->child->brother->brother;
             
-            struct symbolInfo* info = findSymbolInCurrentContext(identifierNode->token_value);
+            struct symbolInfo* info = findSymbolInContexts(identifierNode->token_value);
             char stackOffsetString[25];
             sprintf(stackOffsetString, "%d", stackOffset);
 
@@ -1182,7 +1202,6 @@ void declareFunctionCode(struct node* functionHead){
 
         rfpOffset = rspPointer; //for new variables
     }
-
 
     //ACTUAL CODE
     functionHead->code = concatTwoCodes(code, functionHead->code);
@@ -1457,7 +1476,6 @@ struct code* writeFunctionCall(struct node* functionCall){
 
 //Makes the code jump to the "main function" at the start of the code
 struct code* addJumpToFirstLine(struct code* program){
-    if(mainLabel != NULL){
 
     struct code* firstLine = newCode();
 
@@ -1467,14 +1485,12 @@ struct code* addJumpToFirstLine(struct code* program){
     next = getNextLine(firstLine);
     strcat(next->line, "loadI 0 => rbss");
     next = getNextLine(firstLine);
-    strcat(next->line, "jumpI => ");
-    strcat(next->line, mainLabel);
-    
-    return concatTwoCodes(firstLine, program); 
-    
+
+    if(mainLabel != NULL){
+        patching(program, mainLabel, 3);
     }
 
-    else return program;
+    return concatTwoCodes(firstLine, program); 
 }
 
 
