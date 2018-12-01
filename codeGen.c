@@ -983,7 +983,7 @@ struct code* makeReturnCode(struct node* expressionNode){
     }
     else{ //if it is a literal and has no register
         char* expressionReg = newRegister();    
-        strcat(code->line,"loadAI ");
+        strcat(code->line,"loadI ");
         if(expressionNode->child->child)
             strcat(code->line, expressionNode->child->child->token_value);
         else
@@ -1365,7 +1365,7 @@ struct code* writeFunctionCall(struct node* functionCall){
         if(strcmp(expression->token_value, AST_LITERAL) == 0){
             reg = newRegister();
             next = getNextLine(code);
-            strcat(next->line, "loadAI ");
+            strcat(next->line, "loadI ");
             strcat(next->line, calculateCodeGenValue(expression->child));
             strcat(next->line, " => ");
             strcat(next->line, reg);
@@ -1439,8 +1439,9 @@ struct code* writeFunctionCall(struct node* functionCall){
         struct code* next = getNextLine(code);
         strcat(next->line, "loadAI ");
         strcat(next->line, registerString);
-        strcat(next->line, " => rsp, ");
+        strcat(next->line, ", ");
         strcat(next->line, stackOffsetString);
+        strcat(next->line, " => rsp ");
         strcat(next->line, " //load of variable temp");
         variableStackOffset +=4; //updates offset
     }
