@@ -328,7 +328,7 @@ functionDeclaration:
                                                     $$ = createNode(AST_FUNCDEC);
                                                     createChildren($$, $1, -1);
                                                     createChildren($$, $3, -1);
-                                                    struct code* endFuncCode = endFunctionCode($1);
+                                                    struct code* endFuncCode = endFunctionCode($1, $3);
                                                     $$->code = concatTwoCodes($1->code,$3->code);
                                                     $$->code = concatTwoCodes($$->code,endFuncCode);
                                                     deleteContext();
@@ -471,7 +471,7 @@ commandSimple:
                                                      //expression end
 
                                                     //get previous code 
-                                                    $$->code = concatTwoCodes($$->code,$2->code);
+                                                    $$->code = $2->code;
                                                     //and add the return code to it
                                                     struct code* returnCode = makeReturnCode($2);
                                                     $$->code = concatTwoCodes($$->code,returnCode);
@@ -586,25 +586,33 @@ functionCall:
                                                     createChildren($$, $1, -1); createChildren($$, $2, -1);
                                                     createChildren($$, $3, -1); createChildren($$, $4, -1);
                                                     writeFunctionCall($$);
+                                                    $$->code = concatTwoCodes($3->code, $$->code);
                                                     };
 
 //Arguments can be empty or can be a list of expressions/dots
 functionCallArguments:
-      functionCallArgumentsList {$$ = createNode(AST_FUNCCALLARGS); createChildren($$, $1, -1);}
+      functionCallArgumentsList {$$ = createNode(AST_FUNCCALLARGS); createChildren($$, $1, -1);
+                                $$->code = $1->code;
+                                }
     | %empty                    {$$ = createNode(AST_FUNCCALLARGS);}; 
 
 //List of Expression/Dots
 functionCallArgumentsList:
-    functionCallArgument        {$$ = createNode(AST_FUNCARGLIST); createChildren($$, $1, -1);}
+    functionCallArgument        {$$ = createNode(AST_FUNCARGLIST); createChildren($$, $1, -1);
+                                $$->code = $1->code;
+                                }
     | functionCallArgument ',' functionCallArgumentsList {$$ = createNode(AST_FUNCARGLIST); 
                                                           createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                          createChildren($$, $3, -1);}; 
+                                                          createChildren($$, $3, -1);
+                                                          $$->code = concatTwoCodes($1->code,$3->code);
+                                                          }; 
     
 //Argument can be expression or dot
 functionCallArgument:
       '.'           {$$ = $1;}
     | expression    {$$ = createNode(AST_FUNCCALLARG); 
                           createChildren($$, $1, -1);
+                          $$->code = $1->code;
                           };
 
 //Shift command is straightforward too

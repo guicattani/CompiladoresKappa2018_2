@@ -29,7 +29,7 @@ void fixLine(char* line, int par, char* replacement);
 
 struct code* makeReturnCode(struct node* expressionNode);
 int getParameterCount(struct node* functionDeclaration);
-struct code* endFunctionCode(struct node* functionHead);
+struct code* endFunctionCode(struct node* functionHead, struct node* functionCommandsBlock);
 
 void liberaCode(struct code* code);
 

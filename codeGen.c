@@ -959,6 +959,8 @@ void fixLine(char* line, int par, char* replacement){
         str[1] = '2';
     if(par == 3)
         str[1] = '3';
+    if(par == 4)
+        str[1] = '4';
 
     char* token, *dup;
     //Token will be a pointer to the place where we will need to start replacing
@@ -984,6 +986,9 @@ struct code* makeReturnCode(struct node* expressionNode){
         strcat(code->line,"storeAI ");
         strcat(code->line, expressionNode->registerTemp);
         strcat(code->line," => rfp, 20 //store expression reg in return ");
+        struct code* next = getNextLine(code);
+        strcat(next->line,"jumpI => #4");
+        
     }
     else{ //if it is a literal and has no register
         char* expressionReg = newRegister();    
@@ -1009,6 +1014,9 @@ struct code* makeReturnCode(struct node* expressionNode){
         strcat(next->line,"storeAI ");
         strcat(next->line, expressionReg);
         strcat(next->line," => rfp, 20 //store expression reg in return ");
+
+        next = getNextLine(code);
+        strcat(next->line,"jumpI => #4");
     }
 
     return code;
@@ -1032,7 +1040,7 @@ int getParameterCount(struct node* functionHead){
 
 //given a functionNode, adds it to the global functionlabels writes the label now. If the function is called "main", updates mainLabel
 //Then adds the label of the function before the code of its commands
-struct code* endFunctionCode(struct node* functionHead){
+struct code* endFunctionCode(struct node* functionHead, struct node* functionCommandsBlock){
     char* name;
     if(numberOfChildren(functionHead) == 5){
         name = functionHead->child->brother->token_value; 
@@ -1050,13 +1058,22 @@ struct code* endFunctionCode(struct node* functionHead){
         char* regRsp = newRegister();
         char* regRfp = newRegister();
 
-        strcat(code->line, "loadAI ");
-        strcat(code->line, "rfp, 0"); 
-        strcat(code->line, " => ");
-        strcat(code->line, regReturnAdress);
-        strcat(code->line, " //start of end function code");
+        char* label = newLabel();
+        patching(functionCommandsBlock->code,label,4);
         
+        strcat(code->line, label);
+        strcat(code->line, ": ");
+
+        free(label);
         struct code* next;
+        next = getNextLine(code);
+
+        strcat(next->line, "loadAI ");
+        strcat(next->line, "rfp, 0"); 
+        strcat(next->line, " => ");
+        strcat(next->line, regReturnAdress);
+        strcat(next->line, " //start of end function code");
+        
         next = getNextLine(code);
         strcat(next->line, "loadAI ");
         strcat(next->line, "rfp, 4"); 
@@ -1135,7 +1152,7 @@ void declareFunctionCode(struct node* functionHead){
         char numberOfArgumentsOffset[25];
         sprintf(numberOfArgumentsOffset, "%d", rspPointer);
         next = getNextLine(next);
-        strcat(next->line, "loadAI rsp, ");
+        strcat(next->line, "addI rsp, ");
         strcat(next->line, numberOfArgumentsOffset);  
         strcat(next->line, " => rsp ");     
 
@@ -1433,9 +1450,6 @@ struct code* writeFunctionCall(struct node* functionCall){
     strcat(next->line, functionValue);
     strcat(next->line, " //save return from function on reg");
 
-    functionCall->registerTemp = functionValue;
-    functionCall->code = code;
-
     next = getNextLine(code);
     strcat(next->line, "subI rsp, ");
     strcat(next->line, rspBeforeFunctionCall);
@@ -1456,11 +1470,10 @@ struct code* writeFunctionCall(struct node* functionCall){
         strcat(registerString, variableStackString);
 
         struct code* next = getNextLine(code);
-        strcat(next->line, "loadAI ");
-        strcat(next->line, registerString);
-        strcat(next->line, ", ");
+        strcat(next->line, "loadAI rsp, ");
         strcat(next->line, stackOffsetString);
-        strcat(next->line, " => rsp ");
+        strcat(next->line, " => ");
+        strcat(next->line, registerString);
         strcat(next->line, " //load of variable temp");
         variableStackOffset +=4; //updates offset
     }
@@ -1471,6 +1484,10 @@ struct code* writeFunctionCall(struct node* functionCall){
     strcat(next->line, "subI rsp, ");
     strcat(next->line, RSPUpdate);
     strcat(next->line, " => rsp");
+
+
+    functionCall->registerTemp = functionValue;
+    functionCall->code = code;
 
 }
 
