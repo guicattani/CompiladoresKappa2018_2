@@ -357,11 +357,11 @@ functionCommandsBlock:
                              }; 
 
 commandsBlock:
-    '{' commandsList '}'    {$$ = createNode(AST_COMMANDSBLOCK); 
-                                                createChildren($$, $1, -1); createChildren($$, $2, -1);
-                                                createChildren($$, $3, -1);
+ {createContext();}    '{' commandsList '}'    {$$ = createNode(AST_COMMANDSBLOCK); 
+                                                createChildren($$, $2, -1); createChildren($$, $3, -1);
+                                                createChildren($$, $4, -1);
                                                 deleteContext();
-                                                $$->code = $2->code;
+                                                $$->code = $3->code;
                                                 }; 
 
 commandsList:

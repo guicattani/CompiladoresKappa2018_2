@@ -8,6 +8,7 @@ struct functionLabels *functionLabels = NULL;
 extern int rfpOffset;
 int rbssOffset = 0;
 int rspOffset = 0;
+int rspOffsetBeforeFunctionCall = 0;
 int dynamicLink = 0;
 char* mainLabel = NULL;
 
@@ -981,9 +982,12 @@ struct code* makeReturnCode(struct node* expressionNode){
         strcat(code->line," => rfp, 20 //store expression reg in return ");
     }
     else{ //if it is a literal and has no register
-        char* expressionReg = newRegister();
+        char* expressionReg = newRegister();    
         strcat(code->line,"loadAI ");
-        strcat(code->line, expressionNode->child->child->token_value);
+        if(expressionNode->child->child)
+            strcat(code->line, expressionNode->child->child->token_value);
+        else
+            strcat(code->line, expressionNode->child->token_value);
         strcat(code->line," => ");
         strcat(code->line, expressionReg);
 
@@ -1192,12 +1196,46 @@ struct code* writeFunctionCall(struct node* functionCall){
     sprintf(RSPUpdate, "%d", rfpOffset);
 
     dynamicLink = rfpOffset;
-
+    rspOffsetBeforeFunctionCall = rspOffset;
+    
     //Creates a new line updating RSP
     struct code* code = newCode();
     strcat(code->line, "addI rsp, ");
     strcat(code->line, RSPUpdate);
     strcat(code->line, " => rsp");
+    strcat(code->line, " // update rsp based on rfp");
+
+
+    //save variables ####BULLSHIT
+    int variableStack = 0;
+    int variableStackOffset = 0;
+    int savedRegs = registerIndex;
+    for (variableStack = 0; variableStack < savedRegs; variableStack++){
+        //Gets the offset to be saved
+        char stackOffsetString[33] = "\0";
+        sprintf(stackOffsetString, "%d", variableStackOffset);
+        
+        char variableStackString[5] = "\0";
+        sprintf(variableStackString, "%d", variableStack);
+        char registerString[10] = "\0";
+        strcat(registerString, "r");
+        strcat(registerString, variableStackString);
+
+        struct code* next = getNextLine(code);
+        strcat(next->line, "storeAI ");
+        strcat(next->line, registerString);
+        strcat(next->line, " => rsp, ");
+        strcat(next->line, stackOffsetString);
+        strcat(next->line, " //store of variable");
+        variableStackOffset +=4; //updates offset
+    }
+
+    char rspBeforeFunctionCall[33];
+    sprintf(rspBeforeFunctionCall, "%d", variableStackOffset);
+    struct code* next = getNextLine(code);
+    strcat(next->line, "addI rsp, ");
+    strcat(next->line, rspBeforeFunctionCall);
+    strcat(next->line, " => rsp");
 
 
     //Gets the value to jump the PC to after the function
@@ -1216,7 +1254,7 @@ struct code* writeFunctionCall(struct node* functionCall){
     char* jumpPCLabel = newRegister();
 
     //Creates the line to add PC an saves it in a new register
-    struct code* next = getNextLine(code);
+    next = getNextLine(code);
     strcat(next->line, "addI rpc, ");
     strcat(next->line, jumpPCString);
     strcat(next->line, " => ");
@@ -1235,7 +1273,7 @@ struct code* writeFunctionCall(struct node* functionCall){
     strcat(next->line, " //rsp save");
     next = getNextLine(code);
     strcat(next->line, "storeAI rfp => rsp, 8");
-    strcat(next->line, " //rfp save");
+    strcat(next->line, " //rfp save //dynamic link");
 
     //We need to save the dynamic link (varies, as it is the base of the activation record of the calling function)
     //and static link (which will always be zero)
@@ -1264,8 +1302,7 @@ struct code* writeFunctionCall(struct node* functionCall){
     
     next = getNextLine(code);
     strcat(next->line, "storeAI ");
-    strcat(next->line, dynamicLinkReg);
-    strcat(next->line, " => rsp, 16");
+    strcat(next->line, "rfp => rsp, 16");
     strcat(next->line, " //dynamic link");
 
     free(dynamicLinkReg);
@@ -1286,7 +1323,7 @@ struct code* writeFunctionCall(struct node* functionCall){
             if(strcmp(expression->token_value, AST_LITERAL) == 0){
                 reg = newRegister();
                 next = getNextLine(code);
-                strcat(next->line, "loadAI ");
+                strcat(next->line, "loadI ");
                 strcat(next->line, calculateCodeGenValue(expression->child));
                 strcat(next->line, " => ");
                 strcat(next->line, reg);
@@ -1359,11 +1396,13 @@ struct code* writeFunctionCall(struct node* functionCall){
     }
 
 
+
     //Everything is now stacked,, now we JUMP
     char* functionLabel = findLabel(functionLabels, functionCall->child->token_value);
     next = getNextLine(code);
     strcat(next->line, "jumpI => ");
     strcat(next->line, functionLabel);
+
 
     //Now all that is needed to do is load the value returned by the function
     //The value will be in the stackOffset
@@ -1378,6 +1417,41 @@ struct code* writeFunctionCall(struct node* functionCall){
     functionCall->registerTemp = functionValue;
     functionCall->code = code;
 
+    next = getNextLine(code);
+    strcat(next->line, "subI rsp, ");
+    strcat(next->line, rspBeforeFunctionCall);
+    strcat(next->line, " => rsp");
+
+    //load variables
+    variableStack = 0;
+    variableStackOffset = 0;
+    for (variableStack = 0; variableStack < savedRegs; variableStack++){
+        //Gets the offset to be saved
+        char stackOffsetString[33] = "\0";
+        sprintf(stackOffsetString, "%d", variableStackOffset);
+        
+        char variableStackString[5] = "\0";
+        sprintf(variableStackString, "%d", variableStack);
+        char registerString[10] = "\0";
+        strcat(registerString, "r");
+        strcat(registerString, variableStackString);
+
+        struct code* next = getNextLine(code);
+        strcat(next->line, "loadAI ");
+        strcat(next->line, registerString);
+        strcat(next->line, " => rsp, ");
+        strcat(next->line, stackOffsetString);
+        strcat(next->line, " //load of variable temp");
+        variableStackOffset +=4; //updates offset
+    }
+
+    rspOffset = rspOffsetBeforeFunctionCall;
+
+    next = getNextLine(code);
+    strcat(next->line, "subI rsp, ");
+    strcat(next->line, RSPUpdate);
+    strcat(next->line, " => rsp");
+
 }
 
 //Makes the code jump to the "main function" at the start of the code
@@ -1385,8 +1459,16 @@ struct code* addJumpToFirstLine(struct code* program){
     if(mainLabel != NULL){
 
     struct code* firstLine = newCode();
-    strcat(firstLine->line, "jumpI => ");
-    strcat(firstLine->line, mainLabel);
+
+    strcat(firstLine->line, "loadI 1024 => rfp");
+    struct code* next = getNextLine(firstLine);
+    strcat(next->line, "loadI 1024 => rsp");
+    next = getNextLine(firstLine);
+    strcat(next->line, "loadI 0 => rbss");
+    next = getNextLine(firstLine);
+    strcat(next->line, "jumpI => ");
+    strcat(next->line, mainLabel);
+    
     return concatTwoCodes(firstLine, program); 
     
     }
